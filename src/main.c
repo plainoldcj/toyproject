@@ -48,7 +48,8 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 	{
 		while(SDL_PollEvent(&event))
 		{
-			if(event.type == SDL_QUIT)
+			if(event.type == SDL_QUIT
+				|| (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE))
 			{
 				isDone = true;
 			}
