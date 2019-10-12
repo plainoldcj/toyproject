@@ -7,6 +7,7 @@ static FILE* s_logfile;
 
 void COM_Init(void)
 {
+	// There is no corresponding fclose. We let the OS clean up the file handle on exit.
 	s_logfile = fopen("logfile.txt", "wt");
 	if(!s_logfile)
 	{
