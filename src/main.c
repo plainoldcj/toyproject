@@ -61,6 +61,8 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 		SDL_GL_SwapWindow(window);
 	}
 
+	R_Shutdown();
+
 	SDL_GL_DeleteContext(glContext);
 	SDL_DestroyWindow(window);
 
