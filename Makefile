@@ -25,4 +25,4 @@ THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
 bin/project: $(SRC) $(THIRD_PARTY_SRC)
-	gcc $(CFLAGS) -g $^ $(LIBS) $(WINLIBS) -o $@
+	gcc $(CFLAGS) -Wall -g $^ $(LIBS) $(WINLIBS) -o $@
