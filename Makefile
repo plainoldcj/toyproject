@@ -1,3 +1,7 @@
+CFLAGS=\
+-I./third_party/glew\
+-DGLEW_STATIC
+
 WINLIBS=\
 -lgdi32\
 -lwinmm\
@@ -14,7 +18,11 @@ LIBS=\
 
 SRC=\
 src/common.c\
-src/main.c
+src/main.c\
+src/renderer.c
 
-bin/project: $(SRC)
-	gcc -g $^ $(LIBS) $(WINLIBS) -o $@
+THIRD_PARTY_SRC=\
+third_party/glew/glew.c
+
+bin/project: $(SRC) $(THIRD_PARTY_SRC)
+	gcc $(CFLAGS) -g $^ $(LIBS) $(WINLIBS) -o $@

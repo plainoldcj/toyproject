@@ -1,4 +1,5 @@
 #include "common.h"
+#include "renderer.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
@@ -40,7 +41,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 		return 1;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	R_Init();
 
 	SDL_Event event;
 	bool isDone = false;
@@ -55,12 +56,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 			}
 		}
 
-		glClear(GL_COLOR_BUFFER_BIT);
-		glBegin(GL_TRIANGLES);
-			glVertex3f(-1.0f, -1.0f, 0.0f);
-			glVertex3f(1.0f, -1.0f, 0.0f);
-			glVertex3f(0.0f, 1.0f, 0.0f);
-		glEnd();
+		R_Draw();
 
 		SDL_GL_SwapWindow(window);
 	}
