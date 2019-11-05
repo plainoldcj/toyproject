@@ -4,11 +4,29 @@
 
 #include "GL/glew.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
 
-// TODO(cj): Add error checking macro.
-#define GL_CALL(x) x
-#define GL_CHECK_ERROR
+#define GL_CALL(x) \
+    do { \
+        x; \
+        GLint error; \
+        while((error = glGetError())) { \
+            COM_LogPrintf("ERROR - in %s:%d: calling %s failed with error 0x%X, '%s'.\n", \
+                __FILE__, __LINE__, #x, error, gluErrorString(error)); \
+            exit(1); \
+        } \
+    } while(false)
+
+#define GL_CHECK_ERROR \
+    do { \
+        GLint error; \
+        if((error = glGetError())) { \
+            COM_LogPrintf("ERROR - in %s:%d: glGetError() == 0x%X, '%s'.\n", \
+                __FILE__, __LINE__, error, gluErrorString(error)); \
+            exit(1); \
+        } \
+    } while(false)
 
 static const char* fragmentShaderSource = "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }";
 

@@ -22,7 +22,8 @@ ifdef OS
 	DEFINES=-DPLATFORM_WINDOWS
 else
 	LIBS+=\
-	-lGL
+	-lGL\
+	-lGLU
 
 	DEFINES=-DPLATFORM_LINUX
 endif
