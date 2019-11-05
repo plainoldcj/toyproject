@@ -4,12 +4,18 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#ifdef PLATFORM_WINDOWS
 #include <Windows.h>
+#endif
 
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifdef PLATFORM_WINDOWS
 int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showCmd)
+#else
+int main(int argc, char* argv[])
+#endif
 {
 	COM_Init();
 
