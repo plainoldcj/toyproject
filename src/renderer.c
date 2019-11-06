@@ -29,12 +29,19 @@
     } while(false)
 
 static const char* fragmentShaderSource = "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }";
+static const char* vertexShaderSource =
+"#version 150\n"
+"in vec4 aPos;\n"
+"void main() { gl_Position = aPos; }";
 
 static struct
 {
 	GLuint fragShader;
+	GLuint vertShader;
 	GLuint prog;
 } s_rend;
+
+static const int IN_POSITION = 0;
 
 static void InitGlew(void)
 {
@@ -52,6 +59,34 @@ static void InitGlew(void)
 	}
 }
 
+static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
+{
+	GLuint shader = glCreateShader(shaderType);
+	GL_CHECK_ERROR;
+	if(!shader)
+	{
+		COM_LogPrintf("Unable to create shader");
+		exit(1);
+	}
+
+	const char* source[] = { shaderSource };
+	GL_CALL(glShaderSource(shader, 1, source, NULL));
+
+	GL_CALL(glCompileShader(shader));
+	GLint compileStatus;
+	GL_CALL(glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus));
+	if(compileStatus != GL_TRUE)
+	{
+		char logBuffer[2048] = { 0 };
+		GL_CALL(glGetShaderInfoLog(shader, sizeof(logBuffer) - 1, NULL, logBuffer));
+
+		COM_LogPrintf("Failed to compile shader: %s", logBuffer);
+		exit(1);
+	}
+
+	return shader;
+}
+
 void R_Init(void)
 {
 	InitGlew();
@@ -60,28 +95,8 @@ void R_Init(void)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	s_rend.fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	GL_CHECK_ERROR;
-	if(!s_rend.fragShader)
-	{
-		COM_LogPrintf("Unable to create shader");
-		exit(1);
-	}
-
-	const char* source[] = { fragmentShaderSource };
-	GL_CALL(glShaderSource(s_rend.fragShader, 1, source, NULL));
-
-	GL_CALL(glCompileShader(s_rend.fragShader));
-	GLint compileStatus;
-	GL_CALL(glGetShaderiv(s_rend.fragShader, GL_COMPILE_STATUS, &compileStatus));
-	if(compileStatus != GL_TRUE)
-	{
-		char logBuffer[2048] = { 0 };
-		GL_CALL(glGetShaderInfoLog(s_rend.fragShader, sizeof(logBuffer) - 1, NULL, logBuffer));
-
-		COM_LogPrintf("Failed to compile shader: %s", logBuffer);
-		exit(1);
-	}
+	s_rend.fragShader = CreateShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	s_rend.vertShader = CreateShader(GL_VERTEX_SHADER, vertexShaderSource);
 
 	s_rend.prog = glCreateProgram();
 	if(!s_rend.prog)
@@ -91,6 +106,7 @@ void R_Init(void)
 	}
 
 	GL_CALL(glAttachShader(s_rend.prog, s_rend.fragShader));
+	GL_CALL(glAttachShader(s_rend.prog, s_rend.vertShader));
 
 	GL_CALL(glLinkProgram(s_rend.prog));
 	GLint linkStatus;
@@ -105,14 +121,18 @@ void R_Init(void)
 	}
 
 	GL_CALL(glUseProgram(s_rend.prog));
+
+	GL_CALL(glBindAttribLocation(s_rend.prog, IN_POSITION, "aPos"));
 }
 
 void R_Shutdown(void)
 {
 	glDeleteShader(s_rend.fragShader);
+	glDeleteShader(s_rend.vertShader);
 	glDeleteProgram(s_rend.prog);
 
 	s_rend.fragShader = 0;
+	s_rend.vertShader = 0;
 	s_rend.prog = 0;
 }
 
@@ -120,8 +140,8 @@ void R_Draw(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_TRIANGLES);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
-	glVertex3f(0.0f, 1.0f, 0.0f);
+	glVertexAttrib3f(IN_POSITION, -1.0f, -1.0f, 0.0f);
+	glVertexAttrib3f(IN_POSITION, 1.0f, -1.0f, 0.0f);
+	glVertexAttrib3f(IN_POSITION, 0.0f, 1.0f, 0.0f);
 	glEnd();
 }
