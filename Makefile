@@ -23,7 +23,8 @@ ifdef OS
 else
 	LIBS+=\
 	-lGL\
-	-lGLU
+	-lGLU\
+	-lm
 
 	DEFINES=-DPLATFORM_LINUX
 endif
@@ -31,6 +32,8 @@ endif
 SRC=\
 src/common.c\
 src/main.c\
+src/math.c\
+src/math_tests.c\
 src/renderer.c
 
 THIRD_PARTY_SRC=\

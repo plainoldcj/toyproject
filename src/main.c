@@ -1,4 +1,5 @@
 #include "common.h"
+#include "math_tests.h"
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
@@ -17,6 +18,8 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 int main(int argc, char* argv[])
 #endif
 {
+	RunTests();
+
 	COM_Init();
 
 	if(SDL_Init(SDL_INIT_VIDEO))
