@@ -32,10 +32,13 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+	const int screenWidth = 400;
+	const int screenHeight = 400;
+
 	SDL_Window* window = SDL_CreateWindow("Project",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		400, 400,
+		screenWidth, screenHeight,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL );
 	if(!window)
 	{
@@ -50,7 +53,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	R_Init();
+	R_Init(screenWidth, screenHeight);
 
 	SDL_Event event;
 	bool isDone = false;

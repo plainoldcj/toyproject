@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "common.h"
+#include "math.h"
 
 #include "GL/glew.h"
 
@@ -31,8 +32,9 @@
 static const char* fragmentShaderSource = "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }";
 static const char* vertexShaderSource =
 "#version 150\n"
+"uniform mat4 uProjection;"
 "in vec4 aPos;\n"
-"void main() { gl_Position = aPos; }";
+"void main() { gl_Position = uProjection * aPos; }";
 
 static struct
 {
@@ -87,7 +89,7 @@ static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
 	return shader;
 }
 
-void R_Init(void)
+void R_Init(int screenWidth, int screenHeight)
 {
 	InitGlew();
 
@@ -123,6 +125,19 @@ void R_Init(void)
 	GL_CALL(glUseProgram(s_rend.prog));
 
 	GL_CALL(glBindAttribLocation(s_rend.prog, IN_POSITION, "aPos"));
+
+	float aspect = (float)screenWidth / (float)screenHeight;
+	struct Mat4 perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
+
+	const char* uniformName = "uProjection";
+	GLint loc = glGetUniformLocation(s_rend.prog, uniformName);
+	GL_CHECK_ERROR;
+	if(loc < 0)
+	{
+		COM_LogPrintf("Cannot find uniform \"%s\"", uniformName);
+		exit(1);
+	}
+	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &perspective.m00));
 }
 
 void R_Shutdown(void)
@@ -138,10 +153,12 @@ void R_Shutdown(void)
 
 void R_Draw(void)
 {
+	const float z = -5.0f;
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_TRIANGLES);
-	glVertexAttrib3f(IN_POSITION, -1.0f, -1.0f, 0.0f);
-	glVertexAttrib3f(IN_POSITION, 1.0f, -1.0f, 0.0f);
-	glVertexAttrib3f(IN_POSITION, 0.0f, 1.0f, 0.0f);
+	glVertexAttrib3f(IN_POSITION, -1.0f, -1.0f, z);
+	glVertexAttrib3f(IN_POSITION, 1.0f, -1.0f, z);
+	glVertexAttrib3f(IN_POSITION, 0.0f, 1.0f, z);
 	glEnd();
 }
