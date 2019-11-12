@@ -34,11 +34,6 @@ struct Vec4 Mat4_MulVec(const struct Mat4* m, const struct Vec4* v)
 	return out;
 }
 
-// Creates a perspective projection matrix that transforms points from camera space to
-// normalized device space (NDC). More precisely:
-// Let P the projection matrix and v = Pu = (vx, vy, vz, vw).
-// Then v/vw = (vx / vw, vy / vw, vz / vw, 1) is the point u in NDC.
-// Here, NDC is a cube [-1,-1,-1]x[1,1,1] around the origin.
 struct Mat4 M_CreatePerspective(float fovy, float aspect, float zNear, float zFar)
 {
 	const float f = 1.0f / tan(0.5f * fovy);
