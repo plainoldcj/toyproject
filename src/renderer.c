@@ -151,14 +151,42 @@ void R_Shutdown(void)
 	s_rend.prog = 0;
 }
 
+#define TILE_SIZE 1.0f
+
+// Draws a nxn-grid with origin in the lower left corner.
+static void DrawGrid(int n, float cellSize, float x, float y, float z)
+{
+	const float size = n * cellSize;
+
+	glBegin(GL_LINES);
+	for(int i = 0; i < n + 1; ++i)
+	{
+		glVertexAttrib3f(IN_POSITION, x + 0.0f, y + i * cellSize, z);
+		glVertexAttrib3f(IN_POSITION, x + size, y + i * cellSize, z);
+
+		glVertexAttrib3f(IN_POSITION, x + i * cellSize, y + 0.0f, z);
+		glVertexAttrib3f(IN_POSITION, x + i * cellSize, y + size, z);
+	}
+	glEnd();
+}
+
 void R_Draw(void)
 {
-	const float z = -5.0f;
-
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	const int n = 16;
+
+	const float gridX = -(n/2) * TILE_SIZE;
+	const float gridY = -(n/2) * TILE_SIZE;
+
+	DrawGrid(n, TILE_SIZE, gridX, gridY, -5.0f);
+
+#if 0
+	const float z = -5.0f;
 	glBegin(GL_TRIANGLES);
 	glVertexAttrib3f(IN_POSITION, -1.0f, -1.0f, z);
 	glVertexAttrib3f(IN_POSITION, 1.0f, -1.0f, z);
 	glVertexAttrib3f(IN_POSITION, 0.0f, 1.0f, z);
 	glEnd();
+#endif
 }
