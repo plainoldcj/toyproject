@@ -97,18 +97,16 @@ struct Vertex
 {
 	float x;
 	float y;
-	float z;
 };
 
-static void SetVertex(struct Vertex* v, float x, float y, float z)
+static void SetVertex(struct Vertex* v, float x, float y)
 {
 	v->x = x;
 	v->y = y;
-	v->z = z;
 }
 
 // Draws a nxn-grid with origin in the lower left corner.
-static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, float z, int* vertexCount)
+static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, int* vertexCount)
 {
 	const float size = n * cellSize;
 
@@ -119,11 +117,11 @@ static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, float 
 	struct Vertex* it = vertices;
 	for(int i = 0; i < n + 1; ++i)
 	{
-		SetVertex( it++, x + 0.0f, y + i * cellSize, z);
-		SetVertex( it++, x + size, y + i * cellSize, z);
+		SetVertex( it++, x + 0.0f, y + i * cellSize);
+		SetVertex( it++, x + size, y + i * cellSize);
 
-		SetVertex( it++, x + i * cellSize, y + 0.0f, z);
-		SetVertex( it++, x + i * cellSize, y + size, z);
+		SetVertex( it++, x + i * cellSize, y + 0.0f);
+		SetVertex( it++, x + i * cellSize, y + size);
 	}
 
 	return vertices;
@@ -194,7 +192,7 @@ void R_Init(int screenWidth, int screenHeight)
 	const float gridX = -(n/2) * TILE_SIZE;
 	const float gridY = -(n/2) * TILE_SIZE;
 
-	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, 0.0f, &s_rend.gridVertexCount);
+	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, &s_rend.gridVertexCount);
 
 	// TODO(cj): Restore previous binding.
 	GL_CALL(glGenBuffers(1, &s_rend.gridVbo));
@@ -222,7 +220,7 @@ void R_Draw(void)
 	// TODO(cj): Restore previous binding.
 	glEnableVertexAttribArray(IN_POSITION);
 	glBindBuffer(GL_ARRAY_BUFFER, s_rend.gridVbo);
-	glVertexAttribPointer(IN_POSITION, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	glDrawArrays(GL_LINES, 0, s_rend.gridVertexCount);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableVertexAttribArray(IN_POSITION);
