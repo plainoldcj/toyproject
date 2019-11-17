@@ -6,7 +6,6 @@
 #include "GL/glew.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #define GL_CALL(x) \
@@ -196,8 +195,6 @@ void R_Init(int screenWidth, int screenHeight)
 	const float gridY = -(n/2) * TILE_SIZE;
 
 	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, 0.0f, &s_rend.gridVertexCount);
-
-	printf("GridVertexCount: %d\n", s_rend.gridVertexCount);
 
 	// TODO(cj): Restore previous binding.
 	GL_CALL(glGenBuffers(1, &s_rend.gridVbo));
