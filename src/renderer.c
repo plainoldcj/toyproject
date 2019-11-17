@@ -34,8 +34,9 @@ static const char* fragmentShaderSource = "void main() { gl_FragColor = vec4(1.0
 static const char* vertexShaderSource =
 "#version 150\n"
 "uniform mat4 uProjection;"
+"uniform mat4 uModelView;"
 "in vec4 aPos;\n"
-"void main() { gl_Position = uProjection * aPos; }";
+"void main() { gl_Position = uProjection * uModelView * aPos; }";
 
 static struct
 {
@@ -131,6 +132,18 @@ static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, float 
 
 #define TILE_SIZE 1.0f
 
+static void SetUniformMat4(GLuint prog, const char* name, struct Mat4* m)
+{
+	GLint loc = glGetUniformLocation(prog, name);
+	GL_CHECK_ERROR;
+	if(loc < 0)
+	{
+		COM_LogPrintf("Cannot find uniform \"%s\"", name);
+		exit(1);
+	}
+	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &m->m00));
+}
+
 void R_Init(int screenWidth, int screenHeight)
 {
 	InitGlew();
@@ -171,22 +184,18 @@ void R_Init(int screenWidth, int screenHeight)
 	float aspect = (float)screenWidth / (float)screenHeight;
 	struct Mat4 perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
 
-	const char* uniformName = "uProjection";
-	GLint loc = glGetUniformLocation(s_rend.prog, uniformName);
-	GL_CHECK_ERROR;
-	if(loc < 0)
-	{
-		COM_LogPrintf("Cannot find uniform \"%s\"", uniformName);
-		exit(1);
-	}
-	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &perspective.m00));
+	SetUniformMat4(s_rend.prog, "uProjection", &perspective);
+	
+	struct Mat4 modelView = M_CreateTranslation(0.0f, 0.0f, -5.0f);
+
+	SetUniformMat4(s_rend.prog, "uModelView", &modelView);
 
 	const int n = 16;
 
 	const float gridX = -(n/2) * TILE_SIZE;
 	const float gridY = -(n/2) * TILE_SIZE;
 
-	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, -5.0f, &s_rend.gridVertexCount);
+	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, 0.0f, &s_rend.gridVertexCount);
 
 	printf("GridVertexCount: %d\n", s_rend.gridVertexCount);
 

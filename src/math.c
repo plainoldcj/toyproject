@@ -49,3 +49,14 @@ struct Mat4 M_CreatePerspective(float fovy, float aspect, float zNear, float zFa
 	return m;
 }
 
+struct Mat4 M_CreateTranslation(float x, float y, float z)
+{
+	struct Mat4 m =
+	{
+		1.0f, 0.0f, 0.0f, x,
+		0.0f, 1.0f, 0.0f, y,
+		0.0f, 0.0f, 1.0f, z,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	};
+	return m;
+}

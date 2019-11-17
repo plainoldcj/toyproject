@@ -38,3 +38,5 @@ struct Vec4 Mat4_MulVec(const struct Mat4* m, const struct Vec4* v);
 // Here, NDC is a cube [-1,-1,-1]x[1,1,1] around the origin with left-handed coordinate space.
 // Camera space is right-handed with the z-axis going out of the screen.
 struct Mat4 M_CreatePerspective(float fovy, float aspect, float nearZ, float farZ);
+
+struct Mat4 M_CreateTranslation(float x, float y, float z);
