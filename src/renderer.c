@@ -6,6 +6,7 @@
 #include "GL/glew.h"
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define GL_CALL(x) \
@@ -41,6 +42,9 @@ static struct
 	GLuint fragShader;
 	GLuint vertShader;
 	GLuint prog;
+
+	GLuint gridVbo;
+	int gridVertexCount;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -88,6 +92,44 @@ static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
 
 	return shader;
 }
+
+struct Vertex
+{
+	float x;
+	float y;
+	float z;
+};
+
+static void SetVertex(struct Vertex* v, float x, float y, float z)
+{
+	v->x = x;
+	v->y = y;
+	v->z = z;
+}
+
+// Draws a nxn-grid with origin in the lower left corner.
+static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, float z, int* vertexCount)
+{
+	const float size = n * cellSize;
+
+	*vertexCount = 4 * (n+1);
+
+	struct Vertex* vertices = malloc(sizeof(struct Vertex) * (*vertexCount));
+
+	struct Vertex* it = vertices;
+	for(int i = 0; i < n + 1; ++i)
+	{
+		SetVertex( it++, x + 0.0f, y + i * cellSize, z);
+		SetVertex( it++, x + size, y + i * cellSize, z);
+
+		SetVertex( it++, x + i * cellSize, y + 0.0f, z);
+		SetVertex( it++, x + i * cellSize, y + size, z);
+	}
+
+	return vertices;
+}
+
+#define TILE_SIZE 1.0f
 
 void R_Init(int screenWidth, int screenHeight)
 {
@@ -138,6 +180,22 @@ void R_Init(int screenWidth, int screenHeight)
 		exit(1);
 	}
 	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &perspective.m00));
+
+	const int n = 16;
+
+	const float gridX = -(n/2) * TILE_SIZE;
+	const float gridY = -(n/2) * TILE_SIZE;
+
+	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, -5.0f, &s_rend.gridVertexCount);
+
+	printf("GridVertexCount: %d\n", s_rend.gridVertexCount);
+
+	// TODO(cj): Restore previous binding.
+	GL_CALL(glGenBuffers(1, &s_rend.gridVbo));
+	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, s_rend.gridVbo));
+	GL_CALL(glBufferData(GL_ARRAY_BUFFER, s_rend.gridVertexCount * sizeof(struct Vertex), vertices, GL_STATIC_DRAW));
+
+	free(vertices);
 }
 
 void R_Shutdown(void)
@@ -151,35 +209,17 @@ void R_Shutdown(void)
 	s_rend.prog = 0;
 }
 
-#define TILE_SIZE 1.0f
-
-// Draws a nxn-grid with origin in the lower left corner.
-static void DrawGrid(int n, float cellSize, float x, float y, float z)
-{
-	const float size = n * cellSize;
-
-	glBegin(GL_LINES);
-	for(int i = 0; i < n + 1; ++i)
-	{
-		glVertexAttrib3f(IN_POSITION, x + 0.0f, y + i * cellSize, z);
-		glVertexAttrib3f(IN_POSITION, x + size, y + i * cellSize, z);
-
-		glVertexAttrib3f(IN_POSITION, x + i * cellSize, y + 0.0f, z);
-		glVertexAttrib3f(IN_POSITION, x + i * cellSize, y + size, z);
-	}
-	glEnd();
-}
-
 void R_Draw(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	const int n = 16;
-
-	const float gridX = -(n/2) * TILE_SIZE;
-	const float gridY = -(n/2) * TILE_SIZE;
-
-	DrawGrid(n, TILE_SIZE, gridX, gridY, -5.0f);
+	// TODO(cj): Restore previous binding.
+	glEnableVertexAttribArray(IN_POSITION);
+	glBindBuffer(GL_ARRAY_BUFFER, s_rend.gridVbo);
+	glVertexAttribPointer(IN_POSITION, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glDrawArrays(GL_LINES, 0, s_rend.gridVertexCount);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDisableVertexAttribArray(IN_POSITION);
 
 #if 0
 	const float z = -5.0f;
