@@ -30,6 +30,8 @@ else
 endif
 
 SRC=\
+src/alloc.c\
+src/alloc_tests.c\
 src/common.c\
 src/main.c\
 src/math.c\

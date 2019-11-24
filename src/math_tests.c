@@ -72,6 +72,7 @@ static void TestCreatePerspective(void)
 	}
 }
 
+// TODO(cj): Rename to RunMathTests because we now also have RunAllocTests.
 void RunTests(void)
 {
 	TestCreatePerspective();

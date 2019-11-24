@@ -1,4 +1,5 @@
 #include "common.h"
+#include "alloc_tests.h"
 #include "math_tests.h"
 #include "renderer.h"
 
@@ -18,6 +19,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 int main(int argc, char* argv[])
 #endif
 {
+	RunAllocTests();
 	RunTests();
 
 	COM_Init();
