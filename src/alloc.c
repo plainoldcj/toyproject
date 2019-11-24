@@ -9,20 +9,20 @@ struct FLNode
 	uint32_t size;
 };
 
-void FLAlloc_Init(struct FLAlloc* alloc, void* mem, uint32_t size)
+void FL_Init(struct FLAlloc* alloc, void* mem, uint32_t size)
 {
-	assert(sizeof(struct FLNode) < size);
+	assert(size > sizeof(struct FLNode));
 
 	struct FLNode* node = mem;
 	node->next = NULL;
 	node->size = size;
 
+	alloc->freeList = node;
 	alloc->mem = mem;
 	alloc->size = size;
-	alloc->freeList = node;
 }
 
-struct Chunk FLAlloc_Alloc(struct FLAlloc* alloc, uint32_t size)
+struct Chunk FL_Alloc(struct FLAlloc* alloc, uint32_t size)
 {
 	// TODO(cj): Size must be rounded upwards to that we can store
 	// a FLNode inside the allocated memory.
@@ -64,9 +64,9 @@ struct Chunk FLAlloc_Alloc(struct FLAlloc* alloc, uint32_t size)
 
 void FL_Free(struct FLAlloc* alloc, struct Chunk chunk)
 {
-	assert((char*)chunk.mem >= (char*)alloc->mem && (char*)chunk.mem < ((char*)alloc->mem + alloc->size));
+	assert((char*)chunk.mem >= alloc->mem && (char*)chunk.mem < (alloc->mem + alloc->size));
 
-	struct FLNode* newNode = (struct FLNode*)chunk.mem;
+	struct FLNode* newNode = chunk.mem;
 	newNode->size = chunk.size;
 
 	struct FLNode** pprev = &alloc->freeList;

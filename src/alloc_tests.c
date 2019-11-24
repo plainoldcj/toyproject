@@ -42,38 +42,38 @@ static void TestFreeListAllocator(void)
 
 	// First allocation uses up total memory, second allocation must fail.
 
-	FLAlloc_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
+	FL_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
 	
-	chunk = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE);
+	chunk = FL_Alloc(&alloc, TOTAL_MEM_SIZE);
 	EXPECT_NOT_EQUAL(chunk.mem, NULL);
 
-	chunk = FLAlloc_Alloc(&alloc, 1);
+	chunk = FL_Alloc(&alloc, 1);
 	EXPECT_EQUAL(chunk.mem, NULL);
 
 	// Two allocations, each half the total size. Third allocation must fail.
 
-	FLAlloc_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
+	FL_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
 
-	chunk = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
+	chunk = FL_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
 	EXPECT_NOT_EQUAL(chunk.mem, NULL);
 
-	chunk = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
+	chunk = FL_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
 	EXPECT_NOT_EQUAL(chunk.mem, NULL);
 
-	chunk = FLAlloc_Alloc(&alloc, 1);
+	chunk = FL_Alloc(&alloc, 1);
 	EXPECT_EQUAL(chunk.mem, NULL);
 
 	// Two smaller allocations, then a bigger one. This tests coalesced free nodes.
 
-	FLAlloc_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
+	FL_Init(&alloc, totalMem, TOTAL_MEM_SIZE);
 
-	chunk = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
-	chunk1 = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
+	chunk = FL_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
+	chunk1 = FL_Alloc(&alloc, TOTAL_MEM_SIZE / 2 );
 
 	FL_FreeZero(&alloc, &chunk);
 	FL_FreeZero(&alloc, &chunk1);
 
-	chunk = FLAlloc_Alloc(&alloc, TOTAL_MEM_SIZE);
+	chunk = FL_Alloc(&alloc, TOTAL_MEM_SIZE);
 	EXPECT_NOT_EQUAL(chunk.mem, NULL);
 
 	// Cleanup.
