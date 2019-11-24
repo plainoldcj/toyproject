@@ -3,6 +3,12 @@
 #include <assert.h>
 #include <stdlib.h>
 
+/*
+==================================================
+Freelist Allocator
+==================================================
+*/
+
 struct FLNode
 {
 	struct FLNode* next;
@@ -102,5 +108,54 @@ void FL_FreeZero(struct FLAlloc* alloc, struct Chunk* chunk)
 
 	chunk->mem = NULL;
 	chunk->size = 0;
+}
+
+/*
+==================================================
+Pool Allocator
+==================================================
+*/
+
+struct PNode
+{
+	struct PNode* next;
+};
+
+void P_Init(struct PAlloc* alloc, void* mem, uint32_t size, uint32_t objSize)
+{
+	assert(size >= sizeof(struct PNode));
+	assert(objSize >= sizeof(struct PNode));
+	assert(objSize <= size);
+
+	alloc->freeList = NULL;
+	alloc->mem = mem;
+	alloc->size = size;
+	alloc->objSize = objSize;
+
+	char* it = mem;
+	char* end = it + size;
+
+	while(it < end)
+	{
+		struct PNode* newNode = (struct PNode*)it;
+		newNode->next = alloc->freeList;
+		alloc->freeList = newNode;
+
+		it += objSize;
+	}
+}
+
+void* P_Alloc(struct PAlloc* alloc)
+{
+	struct PNode* it = alloc->freeList;
+	alloc->freeList = alloc->freeList->next;
+	return it;
+}
+
+void P_Free(struct PAlloc* alloc, void* mem)
+{
+	struct PNode* newNode = (struct PNode*)mem;
+	newNode->next = alloc->freeList;
+	alloc->freeList = newNode;
 }
 
