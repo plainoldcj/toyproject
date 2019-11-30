@@ -1,12 +1,18 @@
 #include "renderer.h"
 
+#include "alloc.h"
 #include "common.h"
 #include "math.h"
 
 #include "GL/glew.h"
 
+#include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define REND_MESH_CAPACITY 2048
 
 #define GL_CALL(x) \
     do { \
@@ -37,6 +43,19 @@ static const char* vertexShaderSource =
 "in vec4 aPos;\n"
 "void main() { gl_Position = uProjection * uModelView * aPos; }";
 
+struct RendMesh
+{
+	uint16_t generation;
+
+	struct RendMesh *prev, *next;
+	struct Mesh mesh;
+
+	struct Chunk posChunk;
+
+	GLuint vbo;
+	bool ready;
+};
+
 static struct
 {
 	GLuint fragShader;
@@ -45,6 +64,12 @@ static struct
 
 	GLuint gridVbo;
 	int gridVertexCount;
+
+	struct FLAlloc meshAttrAlloc;
+
+	struct RendMesh rendMeshes[REND_MESH_CAPACITY];
+	struct RendMesh* freeMeshes;
+	struct RendMesh* usedMeshes;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -92,42 +117,6 @@ static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
 
 	return shader;
 }
-
-struct Vertex
-{
-	float x;
-	float y;
-};
-
-static void SetVertex(struct Vertex* v, float x, float y)
-{
-	v->x = x;
-	v->y = y;
-}
-
-// Draws a nxn-grid with origin in the lower left corner.
-static struct Vertex* CreateGrid(int n, float cellSize, float x, float y, int* vertexCount)
-{
-	const float size = n * cellSize;
-
-	*vertexCount = 4 * (n+1);
-
-	struct Vertex* vertices = malloc(sizeof(struct Vertex) * (*vertexCount));
-
-	struct Vertex* it = vertices;
-	for(int i = 0; i < n + 1; ++i)
-	{
-		SetVertex( it++, x + 0.0f, y + i * cellSize);
-		SetVertex( it++, x + size, y + i * cellSize);
-
-		SetVertex( it++, x + i * cellSize, y + 0.0f);
-		SetVertex( it++, x + i * cellSize, y + size);
-	}
-
-	return vertices;
-}
-
-#define TILE_SIZE 1.0f
 
 static void SetUniformMat4(GLuint prog, const char* name, struct Mat4* m)
 {
@@ -187,21 +176,20 @@ void R_Init(int screenWidth, int screenHeight)
 
 	SetUniformMat4(s_rend.prog, "uModelView", &modelView);
 
-	const int n = 16;
+	// Init render meshes.
+	// TODO(cj): Get memory from arean/zone instead of mallocing it.
+	FL_Init(&s_rend.meshAttrAlloc, malloc(4096), 4096);
 
-	const float gridX = -(n/2) * TILE_SIZE;
-	const float gridY = -(n/2) * TILE_SIZE;
-
-	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, &s_rend.gridVertexCount);
-
-	// TODO(cj): Restore previous binding.
-	GL_CALL(glGenBuffers(1, &s_rend.gridVbo));
-	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, s_rend.gridVbo));
-	GL_CALL(glBufferData(GL_ARRAY_BUFFER, s_rend.gridVertexCount * sizeof(struct Vertex), vertices, GL_STATIC_DRAW));
-
-	free(vertices);
+	// Create initial list for render meshes.
+	// TODO(cj): This is a dumb loop.
+	for(uint16_t i = 0; i < REND_MESH_CAPACITY; ++i)
+	{
+		s_rend.rendMeshes[i].next = s_rend.freeMeshes;
+		s_rend.freeMeshes = &s_rend.rendMeshes[i];
+	}
 }
 
+// TODO(cj): Rename to Deinit for consistency reasons.
 void R_Shutdown(void)
 {
 	glDeleteShader(s_rend.fragShader);
@@ -216,21 +204,121 @@ void R_Shutdown(void)
 void R_Draw(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+}
 
+hrmesh_t R_CreateMesh(const struct Mesh* mesh)
+{
+	if(!s_rend.freeMeshes)
+	{
+		hrmesh_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendMesh* rmesh = s_rend.freeMeshes;
+
+	// Remove from free list.
+	s_rend.freeMeshes = s_rend.freeMeshes->next;
+
+	// Add to used list.
+	// TODO(cj): Can we get rid of branching here?
+	rmesh->prev = NULL;
+	rmesh->next = s_rend.usedMeshes;
+	if(rmesh->next)
+	{
+		rmesh->next->prev = rmesh;
+	}
+	s_rend.usedMeshes = rmesh;
+
+	rmesh->generation++;
+	rmesh->ready = false;
+
+	// Copy mesh vertex data.
+	size_t vertSize = sizeof(float) * 2 * mesh->vertexCount;
+	rmesh->posChunk = FL_Alloc(&s_rend.meshAttrAlloc, vertSize);
+	memcpy(rmesh->posChunk.mem, mesh->pos, vertSize);
+
+	// Copy mesh.
+	rmesh->mesh.vertexCount = mesh->vertexCount;
+	rmesh->mesh.pos = (float*)rmesh->posChunk.mem;
+
+	hrmesh_t handle;
+	handle.index = (uint16_t)(rmesh - s_rend.rendMeshes);
+	handle.generation = rmesh->generation;
+	return handle;
+}
+
+void R_DestroyMesh(hrmesh_t handle)
+{
+	struct RendMesh* rmesh = &s_rend.rendMeshes[handle.index];
+	if(handle.generation != rmesh->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	// Remove from used list.
+	// TODO(cj): Can we get rid of branching here?
+	if(rmesh->next)
+	{
+		rmesh->next->prev = rmesh->prev;
+	}
+	if(rmesh->prev)
+	{
+		rmesh->prev->next = rmesh->next;
+	}
+	if(rmesh == s_rend.usedMeshes)
+	{
+		if(s_rend.usedMeshes->next)
+		{
+			s_rend.usedMeshes = s_rend.usedMeshes->next;
+		}
+		else
+		{
+			s_rend.usedMeshes = s_rend.usedMeshes->prev;
+		}
+	}
+
+	// TODO(cj): Destroy vertex buffers.
+
+	// Add to free list.
+	rmesh->next = s_rend.freeMeshes;
+	s_rend.freeMeshes = rmesh;
+
+	rmesh->generation++;
+	rmesh->ready = 0;
+}
+
+void R_DrawMesh(hrmesh_t handle)
+{
+	struct RendMesh* rmesh = &s_rend.rendMeshes[handle.index];
+	if(handle.generation != rmesh->generation)
+	{
+		// TODO(cj): Handle error.
+		return;
+	}
+	
+	if(!rmesh->ready)
+	{
+		// TODO(cj): Restore previous binding.
+		GL_CALL(glGenBuffers(1, &rmesh->vbo));
+		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo));
+		GL_CALL(glBufferData(GL_ARRAY_BUFFER,
+			rmesh->mesh.vertexCount * sizeof(float) * 2,
+			rmesh->mesh.pos,
+			GL_STATIC_DRAW));
+
+		rmesh->ready = true;
+	}
+
+	// TODO(cj): Draw should just mark the mesh for rendering.
+	// Draw calls should be issued in a single place.
 	// TODO(cj): Restore previous binding.
 	glEnableVertexAttribArray(IN_POSITION);
-	glBindBuffer(GL_ARRAY_BUFFER, s_rend.gridVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo);
 	glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glDrawArrays(GL_LINES, 0, s_rend.gridVertexCount);
+	glDrawArrays(GL_LINES, 0, rmesh->mesh.vertexCount);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableVertexAttribArray(IN_POSITION);
-
-#if 0
-	const float z = -5.0f;
-	glBegin(GL_TRIANGLES);
-	glVertexAttrib3f(IN_POSITION, -1.0f, -1.0f, z);
-	glVertexAttrib3f(IN_POSITION, 1.0f, -1.0f, z);
-	glVertexAttrib3f(IN_POSITION, 0.0f, 1.0f, z);
-	glEnd();
-#endif
 }

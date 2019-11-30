@@ -1,5 +1,6 @@
 #include "common.h"
 #include "alloc_tests.h"
+#include "grid.h"
 #include "math_tests.h"
 #include "renderer.h"
 
@@ -12,6 +13,8 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+
+#define TILE_SIZE 1.0f
 
 #ifdef PLATFORM_WINDOWS
 int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showCmd)
@@ -57,6 +60,24 @@ int main(int argc, char* argv[])
 
 	R_Init(screenWidth, screenHeight);
 
+	// Create the grid.
+	const int n = 16;
+
+	const float gridX = -(n/2) * TILE_SIZE;
+	const float gridY = -(n/2) * TILE_SIZE;
+
+	int gridVertexCount;
+
+	struct Vertex* vertices = CreateGrid(n, TILE_SIZE, gridX, gridY, &gridVertexCount);
+
+	struct Mesh gridMesh;
+	gridMesh.vertexCount = gridVertexCount;
+	gridMesh.pos = &vertices->x;
+
+	hrmesh_t gridRenderMesh = R_CreateMesh(&gridMesh);
+
+	free(vertices);
+
 	SDL_Event event;
 	bool isDone = false;
 	while(!isDone)
@@ -71,9 +92,12 @@ int main(int argc, char* argv[])
 		}
 
 		R_Draw();
+		R_DrawMesh(gridRenderMesh);
 
 		SDL_GL_SwapWindow(window);
 	}
+
+	R_DestroyMesh(gridRenderMesh);
 
 	R_Shutdown();
 

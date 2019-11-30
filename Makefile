@@ -33,6 +33,7 @@ SRC=\
 src/alloc.c\
 src/alloc_tests.c\
 src/common.c\
+src/grid.c\
 src/main.c\
 src/math.c\
 src/math_tests.c\
