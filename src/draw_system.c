@@ -26,8 +26,8 @@ static void Draw()
 	{
 		struct Transform* const transform = FindComponent(&s_transforms, entId);
 		struct Drawable* const drawable = FindComponent(&s_drawables, entId);
-		(void)transform;
 
+		R_SetObjectPos(drawable->hrobj, transform->posX, transform->posY);
 		R_DrawObject(drawable->hrobj);
 
 #if 0

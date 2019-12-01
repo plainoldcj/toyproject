@@ -61,11 +61,14 @@ struct RendMesh
 
 struct RendObject
 {
-	uint16_t generation;
+	uint16_t	generation;
 
-	uint16_t rmesh;
+	uint16_t	rmesh;
 
-	int16_t next;
+	int16_t		next;
+
+	float		posX;
+	float		posY;
 };
 
 static struct
@@ -236,10 +239,6 @@ void R_Init(int screenWidth, int screenHeight)
 	struct Mat4 perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
 
 	SetUniformMat4(s_rend.prog, "uProjection", &perspective);
-	
-	struct Mat4 modelView = M_CreateTranslation(0.0f, 0.0f, -5.0f);
-
-	SetUniformMat4(s_rend.prog, "uModelView", &modelView);
 
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
@@ -420,6 +419,8 @@ hrobj_t R_CreateObject(hrmesh_t hrmesh)
 
 	robj->generation++;
 	robj->rmesh = hrmesh.index;
+	robj->posX = 0.0f;
+	robj->posY = 0.0f;
 
 	rmesh->refCount++;
 
@@ -445,6 +446,19 @@ void R_DestroyObject(hrobj_t hrobj)
 	s_rend.freeObjects = (int16_t)(robj - s_rend.rendObjects);
 }
 
+void R_SetObjectPos(hrobj_t hrobj, float x, float y)
+{
+	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
+	if(hrobj.generation != robj->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	robj->posX = x;
+	robj->posY = y;
+}
+
 void R_DrawObject(hrobj_t hrobj)
 {
 	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
@@ -453,6 +467,10 @@ void R_DrawObject(hrobj_t hrobj)
 		// TODO(cj): Error output.
 		return;
 	}
+	
+	struct Mat4 modelView = M_CreateTranslation(robj->posX, robj->posY, -5.0f);
+
+	SetUniformMat4(s_rend.prog, "uModelView", &modelView);
 
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 

@@ -66,15 +66,15 @@ static void CreateTile()
 	s_ed.tile = R_CreateMesh(&mesh);
 }
 
-static void CreateTileEntity()
+static void CreateTileEntity(float posX, float posY)
 {
 	EntityId_t entId = CreateEntity();
 
 	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
 
-	transform->posX = 0.0f;
-	transform->posY = 0.0f;
+	transform->posX = posX;
+	transform->posY = posY;
 
 	drawable->hrobj = R_CreateObject(s_ed.tile);
 }
@@ -86,7 +86,8 @@ void Ed_Init(void)
 
 	Sh_Init();
 
-	CreateTileEntity();
+	CreateTileEntity(0.0f, 0.0f);
+	CreateTileEntity(-1.0f, -1.0f);
 }
 
 void Ed_Shutdown(void)

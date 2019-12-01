@@ -39,4 +39,6 @@ void		R_ReleaseMesh(hrmesh_t hrmesh);
 hrobj_t		R_CreateObject(hrmesh_t hrmesh);
 void		R_DestroyObject(hrobj_t hrobj);
 
+void		R_SetObjectPos(hrobj_t hrobj, float x, float y);
+
 void		R_DrawObject(hrobj_t hrobj);
