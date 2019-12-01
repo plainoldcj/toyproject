@@ -9,7 +9,6 @@
 
 static struct
 {
-	hrmesh_t gridMesh;
 	hrobj_t gridObj;
 } s_ed;
 
@@ -28,8 +27,10 @@ static void Ed_CreateGrid()
 	gridMesh.vertexCount = gridVertexCount;
 	gridMesh.pos = &vertices->x;
 
-	s_ed.gridMesh = R_CreateMesh(&gridMesh);
-	s_ed.gridObj = R_CreateObject(s_ed.gridMesh);
+	hrmesh_t rmesh = R_CreateMesh(&gridMesh);
+	s_ed.gridObj = R_CreateObject(rmesh);
+
+	R_DestroyMesh(rmesh);
 
 	free(vertices); // TODO(cj): Remove malloc.
 }
@@ -42,7 +43,6 @@ void Ed_Init(void)
 void Ed_Shutdown(void)
 {
 	R_DestroyObject(s_ed.gridObj);
-	R_DestroyMesh(s_ed.gridMesh);
 }
 
 void Ed_Draw(void)

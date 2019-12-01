@@ -53,8 +53,11 @@ struct RendMesh
 
 	struct Chunk posChunk;
 
+	uint16_t refCount;
+
 	GLuint vbo;
 	bool ready;
+	bool destroyLater;
 };
 
 struct RendObject
@@ -143,6 +146,57 @@ static void SetUniformMat4(GLuint prog, const char* name, struct Mat4* m)
 	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &m->m00));
 }
 
+static void DestroyMesh(struct RendMesh* rmesh)
+{
+	// Remove from used list.
+	// TODO(cj): Can we get rid of branching here?
+	if(rmesh->next)
+	{
+		rmesh->next->prev = rmesh->prev;
+	}
+	if(rmesh->prev)
+	{
+		rmesh->prev->next = rmesh->next;
+	}
+	if(rmesh == s_rend.usedMeshes)
+	{
+		if(s_rend.usedMeshes->next)
+		{
+			s_rend.usedMeshes = s_rend.usedMeshes->next;
+		}
+		else
+		{
+			s_rend.usedMeshes = s_rend.usedMeshes->prev;
+		}
+	}
+
+	// TODO(cj): Destroy vertex buffers.
+	if(rmesh->ready)
+	{
+		GL_CALL(glDeleteBuffers(1, &rmesh->vbo));
+		rmesh->ready = false;
+	}
+
+	// Add to free list.
+	rmesh->next = s_rend.freeMeshes;
+	s_rend.freeMeshes = rmesh;
+
+	rmesh->generation++;
+}
+
+static void DestroyMeshes(void)
+{
+	for(uint16_t i = 0; i < REND_MESH_CAPACITY; ++i)
+	{
+		struct RendMesh* rmesh = &s_rend.rendMeshes[i];
+		if(rmesh->destroyLater && rmesh->refCount == 0)
+		{
+			DestroyMesh(rmesh);
+			rmesh->destroyLater = false;
+		}
+	}
+}
+
 void R_Init(int screenWidth, int screenHeight)
 {
 	InitGlew();
@@ -213,6 +267,8 @@ void R_Init(int screenWidth, int screenHeight)
 // TODO(cj): Rename to Deinit for consistency reasons.
 void R_Shutdown(void)
 {
+	DestroyMeshes();
+
 	glDeleteShader(s_rend.fragShader);
 	glDeleteShader(s_rend.vertShader);
 	glDeleteProgram(s_rend.prog);
@@ -224,6 +280,8 @@ void R_Shutdown(void)
 
 void R_Draw(void)
 {
+	DestroyMeshes();
+
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -254,6 +312,7 @@ hrmesh_t R_CreateMesh(const struct Mesh* mesh)
 
 	rmesh->generation++;
 	rmesh->ready = false;
+	rmesh->destroyLater = false;
 
 	// Copy mesh vertex data.
 	size_t vertSize = sizeof(float) * 2 * mesh->vertexCount;
@@ -279,36 +338,7 @@ void R_DestroyMesh(hrmesh_t handle)
 		return;
 	}
 
-	// Remove from used list.
-	// TODO(cj): Can we get rid of branching here?
-	if(rmesh->next)
-	{
-		rmesh->next->prev = rmesh->prev;
-	}
-	if(rmesh->prev)
-	{
-		rmesh->prev->next = rmesh->next;
-	}
-	if(rmesh == s_rend.usedMeshes)
-	{
-		if(s_rend.usedMeshes->next)
-		{
-			s_rend.usedMeshes = s_rend.usedMeshes->next;
-		}
-		else
-		{
-			s_rend.usedMeshes = s_rend.usedMeshes->prev;
-		}
-	}
-
-	// TODO(cj): Destroy vertex buffers.
-
-	// Add to free list.
-	rmesh->next = s_rend.freeMeshes;
-	s_rend.freeMeshes = rmesh;
-
-	rmesh->generation++;
-	rmesh->ready = 0;
+	rmesh->destroyLater = true;
 }
 
 void R_DrawMesh(struct RendMesh* rmesh)
@@ -366,6 +396,8 @@ hrobj_t R_CreateObject(hrmesh_t hrmesh)
 	robj->generation++;
 	robj->rmesh = hrmesh.index;
 
+	rmesh->refCount++;
+
 	hrobj_t hrobj;
 	hrobj.index = (uint16_t)(robj - s_rend.rendObjects);
 	hrobj.generation = robj->generation;
@@ -380,6 +412,9 @@ void R_DestroyObject(hrobj_t hrobj)
 		// TODO(cj): Error output.
 		return;
 	}
+
+	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
+	rmesh->refCount--;
 
 	robj->next = s_rend.freeObjects;
 	s_rend.freeObjects = (int16_t)(robj - s_rend.rendObjects);
