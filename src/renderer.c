@@ -320,6 +320,7 @@ hrmesh_t R_CreateMesh(const struct Mesh* mesh)
 	memcpy(rmesh->posChunk.mem, mesh->pos, vertSize);
 
 	// Copy mesh.
+	rmesh->mesh.prim = mesh->prim;
 	rmesh->mesh.vertexCount = mesh->vertexCount;
 	rmesh->mesh.pos = (float*)rmesh->posChunk.mem;
 
@@ -339,6 +340,20 @@ void R_DestroyMesh(hrmesh_t handle)
 	}
 
 	rmesh->destroyLater = true;
+}
+
+static GLenum GetPrimitiveType(enum Prim prim)
+{
+	switch(prim)
+	{
+	case ePrim_Lines:
+		return GL_LINES;
+	case ePrim_Triangles:
+		return GL_TRIANGLES;
+	default:
+		// TODO(cj): Error
+		return GL_TRIANGLES;
+	};
 }
 
 void R_DrawMesh(struct RendMesh* rmesh)
@@ -362,7 +377,7 @@ void R_DrawMesh(struct RendMesh* rmesh)
 	glEnableVertexAttribArray(IN_POSITION);
 	glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo);
 	glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	glDrawArrays(GL_LINES, 0, rmesh->mesh.vertexCount);
+	glDrawArrays(GetPrimitiveType(rmesh->mesh.prim), 0, rmesh->mesh.vertexCount);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableVertexAttribArray(IN_POSITION);
 }

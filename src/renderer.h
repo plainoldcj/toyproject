@@ -19,8 +19,15 @@ typedef struct
 	uint16_t generation;
 } hrobj_t;
 
+enum Prim
+{
+	ePrim_Lines,
+	ePrim_Triangles
+};
+
 struct Mesh
 {
+	enum Prim prim;
 	int vertexCount;
 	float* pos;
 };
