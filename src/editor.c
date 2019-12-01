@@ -9,7 +9,7 @@
 
 static struct
 {
-	hrobj_t gridObj;
+	hrobj_t grid;
 } s_ed;
 
 static void Ed_CreateGrid()
@@ -28,7 +28,7 @@ static void Ed_CreateGrid()
 	gridMesh.pos = &vertices->x;
 
 	hrmesh_t rmesh = R_CreateMesh(&gridMesh);
-	s_ed.gridObj = R_CreateObject(rmesh);
+	s_ed.grid = R_CreateObject(rmesh);
 
 	R_DestroyMesh(rmesh);
 
@@ -42,10 +42,10 @@ void Ed_Init(void)
 
 void Ed_Shutdown(void)
 {
-	R_DestroyObject(s_ed.gridObj);
+	R_DestroyObject(s_ed.grid);
 }
 
 void Ed_Draw(void)
 {
-	R_DrawObject(s_ed.gridObj);
+	R_DrawObject(s_ed.grid);
 }
