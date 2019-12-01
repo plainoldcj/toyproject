@@ -13,6 +13,12 @@ typedef struct
 	uint16_t generation;
 } hrmesh_t;
 
+typedef struct
+{
+	uint16_t index;
+	uint16_t generation;
+} hrobj_t;
+
 struct Mesh
 {
 	int vertexCount;
@@ -20,6 +26,9 @@ struct Mesh
 };
 
 hrmesh_t	R_CreateMesh(const struct Mesh* mesh);
-void		R_DestroyMesh(hrmesh_t handle);
+void		R_DestroyMesh(hrmesh_t handle); // TODO(cj): Rename handle argument to hrmesh to be more consistent.
 
-void		R_DrawMesh(hrmesh_t handle);
+hrobj_t		R_CreateObject(hrmesh_t hrmesh);
+void		R_DestroyObject(hrobj_t hrobj);
+
+void		R_DrawObject(hrobj_t hrobj);

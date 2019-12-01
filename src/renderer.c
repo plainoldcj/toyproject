@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define REND_MESH_CAPACITY 2048
+#define REND_OBJECT_CAPACITY 2048
 
 #define GL_CALL(x) \
     do { \
@@ -56,6 +57,15 @@ struct RendMesh
 	bool ready;
 };
 
+struct RendObject
+{
+	uint16_t generation;
+
+	uint16_t rmesh;
+
+	int16_t next;
+};
+
 static struct
 {
 	GLuint fragShader;
@@ -70,6 +80,9 @@ static struct
 	struct RendMesh rendMeshes[REND_MESH_CAPACITY];
 	struct RendMesh* freeMeshes;
 	struct RendMesh* usedMeshes;
+
+	struct RendObject rendObjects[REND_OBJECT_CAPACITY];
+	int16_t freeObjects;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -187,6 +200,14 @@ void R_Init(int screenWidth, int screenHeight)
 		s_rend.rendMeshes[i].next = s_rend.freeMeshes;
 		s_rend.freeMeshes = &s_rend.rendMeshes[i];
 	}
+
+	// TODO(cj): This is also a dumb loop.
+	s_rend.rendObjects[0].next = -1;
+	for(int16_t i = 1; i < REND_OBJECT_CAPACITY; ++i)
+	{
+		s_rend.rendObjects[i].next = i - 1;
+	}
+	s_rend.freeObjects = REND_OBJECT_CAPACITY - 1;
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -290,15 +311,8 @@ void R_DestroyMesh(hrmesh_t handle)
 	rmesh->ready = 0;
 }
 
-void R_DrawMesh(hrmesh_t handle)
+void R_DrawMesh(struct RendMesh* rmesh)
 {
-	struct RendMesh* rmesh = &s_rend.rendMeshes[handle.index];
-	if(handle.generation != rmesh->generation)
-	{
-		// TODO(cj): Handle error.
-		return;
-	}
-	
 	if(!rmesh->ready)
 	{
 		// TODO(cj): Restore previous binding.
@@ -321,4 +335,66 @@ void R_DrawMesh(hrmesh_t handle)
 	glDrawArrays(GL_LINES, 0, rmesh->mesh.vertexCount);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableVertexAttribArray(IN_POSITION);
+}
+
+hrobj_t R_CreateObject(hrmesh_t hrmesh)
+{
+	if(s_rend.freeObjects == -1)
+	{
+		hrobj_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendMesh* rmesh = &s_rend.rendMeshes[hrmesh.index];
+	if(hrmesh.generation != rmesh->generation)
+	{
+		// TODO(cj): Error output.
+		hrobj_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendObject* robj = &s_rend.rendObjects[s_rend.freeObjects];
+
+	// Update free list.
+	s_rend.freeObjects = robj->next;
+	robj->next = -1;
+
+	robj->generation++;
+	robj->rmesh = hrmesh.index;
+
+	hrobj_t hrobj;
+	hrobj.index = (uint16_t)(robj - s_rend.rendObjects);
+	hrobj.generation = robj->generation;
+	return hrobj;
+}
+
+void R_DestroyObject(hrobj_t hrobj)
+{
+	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
+	if(hrobj.generation != robj->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	robj->next = s_rend.freeObjects;
+	s_rend.freeObjects = (int16_t)(robj - s_rend.rendObjects);
+}
+
+void R_DrawObject(hrobj_t hrobj)
+{
+	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
+	if(hrobj.generation != robj->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
+
+	R_DrawMesh(rmesh);
 }
