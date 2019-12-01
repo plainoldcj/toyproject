@@ -33,13 +33,15 @@ SRC=\
 src/alloc.c\
 src/alloc_tests.c\
 src/common.c\
+src/draw_system.c\
 src/editor.c\
 src/entity.c\
 src/grid.c\
 src/main.c\
 src/math.c\
 src/math_tests.c\
-src/renderer.c
+src/renderer.c\
+src/shared_game.c
 
 THIRD_PARTY_SRC=\
 third_party/glew/glew.c

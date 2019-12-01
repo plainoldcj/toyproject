@@ -57,7 +57,6 @@ struct RendMesh
 
 	GLuint vbo;
 	bool ready;
-	bool destroyLater;
 };
 
 struct RendObject
@@ -189,10 +188,9 @@ static void DestroyMeshes(void)
 	for(uint16_t i = 0; i < REND_MESH_CAPACITY; ++i)
 	{
 		struct RendMesh* rmesh = &s_rend.rendMeshes[i];
-		if(rmesh->destroyLater && rmesh->refCount == 0)
+		if(rmesh->refCount == 0)
 		{
 			DestroyMesh(rmesh);
-			rmesh->destroyLater = false;
 		}
 	}
 }
@@ -312,7 +310,7 @@ hrmesh_t R_CreateMesh(const struct Mesh* mesh)
 
 	rmesh->generation++;
 	rmesh->ready = false;
-	rmesh->destroyLater = false;
+	rmesh->refCount = 1;
 
 	// Copy mesh vertex data.
 	size_t vertSize = sizeof(float) * 2 * mesh->vertexCount;
@@ -330,16 +328,28 @@ hrmesh_t R_CreateMesh(const struct Mesh* mesh)
 	return handle;
 }
 
-void R_DestroyMesh(hrmesh_t handle)
+void R_AcquireMesh(hrmesh_t hrmesh)
 {
-	struct RendMesh* rmesh = &s_rend.rendMeshes[handle.index];
-	if(handle.generation != rmesh->generation)
+	struct RendMesh* rmesh = &s_rend.rendMeshes[hrmesh.index];
+	if(hrmesh.generation != rmesh->generation)
 	{
 		// TODO(cj): Error output.
 		return;
 	}
 
-	rmesh->destroyLater = true;
+	++rmesh->refCount;
+}
+
+void R_ReleaseMesh(hrmesh_t hrmesh)
+{
+	struct RendMesh* rmesh = &s_rend.rendMeshes[hrmesh.index];
+	if(hrmesh.generation != rmesh->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	--rmesh->refCount;
 }
 
 static GLenum GetPrimitiveType(enum Prim prim)

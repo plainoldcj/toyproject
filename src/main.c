@@ -14,6 +14,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+static float MillisecsToSecs(float ms)
+{
+	return ms / 1000.0f;
+}
+
 #ifdef PLATFORM_WINDOWS
 int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showCmd)
 #else
@@ -60,6 +65,8 @@ int main(int argc, char* argv[])
 
 	Ed_Init();
 
+	Uint32 lastTicks = SDL_GetTicks();
+
 	SDL_Event event;
 	bool isDone = false;
 	while(!isDone)
@@ -72,6 +79,12 @@ int main(int argc, char* argv[])
 				isDone = true;
 			}
 		}
+
+		Uint32 ticks = SDL_GetTicks();
+		float elapsedMillisecs = (float)(ticks - lastTicks);
+		lastTicks = ticks;
+
+		Ed_Tick(MillisecsToSecs(elapsedMillisecs));
 
 		R_Draw();
 		Ed_Draw();

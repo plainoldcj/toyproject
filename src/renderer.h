@@ -33,7 +33,8 @@ struct Mesh
 };
 
 hrmesh_t	R_CreateMesh(const struct Mesh* mesh);
-void		R_DestroyMesh(hrmesh_t handle); // TODO(cj): Rename handle argument to hrmesh to be more consistent.
+void		R_AcquireMesh(hrmesh_t hrmesh);
+void		R_ReleaseMesh(hrmesh_t hrmesh);
 
 hrobj_t		R_CreateObject(hrmesh_t hrmesh);
 void		R_DestroyObject(hrobj_t hrobj);
