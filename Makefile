@@ -43,8 +43,30 @@ src/math_tests.c\
 src/renderer.c\
 src/shared_game.c
 
+REFLECT_SRC=\
+src/reflect.c
+
+REFLECT_OBJ=\
+build/reflect_parser.lex.o
+
 THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
-bin/project: $(SRC) $(THIRD_PARTY_SRC)
+build/%.lex.c: src/%.flex
+	flex --outfile $@ $^
+
+build/%.lex.o: build/%.lex.c
+	gcc -c -Isrc -o $@ $^
+
+build/reflect: $(REFLECT_SRC) $(REFLECT_OBJ)
+	gcc --std=c90 -g -o $@ $^
+
+run_reflect: build/reflect
+	./reflect.sh
+.PHONY: run_reflect
+
+build/project: $(SRC) $(THIRD_PARTY_SRC)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
+
+all: run_reflect build/reflect build/project
+.PHONY: all

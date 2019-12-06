@@ -1,10 +1,12 @@
 #pragma once
 
+#define REFLECTED
+
 //==================================================
 // Components
 //==================================================
 
-struct Transform
+REFLECTED struct Transform
 {
 	float posX, posY;
 };
