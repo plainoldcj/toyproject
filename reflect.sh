@@ -1,2 +1,2 @@
 #!/bin/bash
-find ./src -type f -exec grep -l REFLECTED {} \; | xargs ./build/reflect
+find ./src -type f -iname '*.h' -exec grep -l REFLECTED {} \; | xargs ./build/reflect

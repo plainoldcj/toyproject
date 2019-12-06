@@ -1,6 +1,7 @@
 CFLAGS=\
 -I./third_party/glew\
--DGLEW_STATIC
+-DGLEW_STATIC\
+-D__REFLECTED__=
 
 LIBS=\
 -lSDL2main\
