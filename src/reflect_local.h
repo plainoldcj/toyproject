@@ -21,10 +21,14 @@ enum
 };
 #undef FOR_TOKEN
 
-extern int		g_primType; /* enum PrimitiveType */
+struct ReflectedType;
 
-extern char*	yyrfltext;
-extern int		yyrfllineno;
+extern int						g_primType; /* enum PrimitiveType */
+
+extern char*					yyrfltext;
+extern int						yyrfllineno;
+
+extern struct ReflectedType*	g_types;
 
 int		yyrfllex(void);
 
