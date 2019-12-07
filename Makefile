@@ -44,6 +44,9 @@ src/math_tests.c\
 src/renderer.c\
 src/shared_game.c
 
+OBJ_GEN=\
+build/reflected.o
+
 REFLECT_SRC=\
 src/reflect.c
 
@@ -59,6 +62,9 @@ build/%.lex.c: src/%.flex
 build/%.lex.o: build/%.lex.c
 	gcc -c -Isrc -o $@ $^
 
+build/%.o: build/%.c
+	gcc $(CFLAGS) -c -o $@ $^
+
 build/reflect: $(REFLECT_SRC) $(REFLECT_OBJ)
 	gcc --std=c90 -g -o $@ $^
 
@@ -66,7 +72,7 @@ run_reflect: build/reflect
 	./reflect.sh
 .PHONY: run_reflect
 
-build/project: $(SRC) $(THIRD_PARTY_SRC)
+build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
 
 all: run_reflect build/reflect build/project
