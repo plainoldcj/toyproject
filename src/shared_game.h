@@ -7,7 +7,8 @@
 __REFLECTED__
 struct Transform
 {
-	float posX, posY;
+	float posX;
+	float posY;
 };
 
 struct Drawable
