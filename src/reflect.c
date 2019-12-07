@@ -151,7 +151,7 @@ static void WriteVariables(FILE* file)
 	}
 }
 
-void WriteTypes(FILE* file)
+static void WriteTypes(FILE* file)
 {
 	const char* format =
 		"\t{ "
@@ -180,6 +180,9 @@ void WriteTypes(FILE* file)
 
 		type = type->next;
 	}
+
+	/* Write sentinel */
+	fprintf(file, "\t{0, 0, 0}\n");
 
 	fprintf(file, "};\n");
 }

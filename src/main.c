@@ -2,6 +2,7 @@
 #include "alloc_tests.h"
 #include "editor.h"
 #include "math_tests.h"
+#include "reflect.h"
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
@@ -29,6 +30,13 @@ int main(int argc, char* argv[])
 	RunTests();
 
 	COM_Init();
+
+	// TODO(cj): Remove this.
+	{
+		char buffer[4096] = { 0 };
+		PrintReflectedType(buffer, "Transform");
+		printf("%s", buffer);
+	}
 
 	if(SDL_Init(SDL_INIT_VIDEO))
 	{

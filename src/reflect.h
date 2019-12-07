@@ -22,4 +22,6 @@ struct ReflectedType
 	struct ReflectedVariable*	variables;
 };
 
-struct ReflectedType* FindReflectedType(const char* name);
+const struct ReflectedType*	FindReflectedType(const char* typeName);
+
+void						PrintReflectedType(char* buffer, const char* typeName);
