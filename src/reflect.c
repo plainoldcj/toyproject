@@ -260,6 +260,17 @@ static void ParseType(void)
 
 	NextToken();
 	ExpectToken(TOK_SEMICOL);
+
+	/* Reverse variable order to make it the same as in source file. */
+	struct Variable* var = type->variables;
+	type->variables = NULL;
+	while(var)
+	{
+		struct Variable* next = var->next;
+		var->next = type->variables;
+		type->variables = var;
+		var = next;
+	}
 }
 
 void StartParsing(const char* filename)
