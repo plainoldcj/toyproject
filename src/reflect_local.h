@@ -21,16 +21,10 @@ enum
 };
 #undef FOR_TOKEN
 
-/* Primitive Types */
-enum PrimitiveType
-{
-	PT_FLOAT
-};
+extern int		g_primType; /* enum PrimitiveType */
 
-extern enum PrimitiveType	g_primType;
-
-extern char*				yyrfltext;
-extern int					yyrfllineno;
+extern char*	yyrfltext;
+extern int		yyrfllineno;
 
 int		yyrfllex(void);
 

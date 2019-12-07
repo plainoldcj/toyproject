@@ -1,3 +1,4 @@
+#include "reflect.h"
 #include "reflect_local.h"
 
 #include "term.h"
@@ -8,10 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum PrimitiveType	g_primType;
+int		g_primType;
 
-char*				yyrfltext;
-int					yyrfllineno;
+char*	yyrfltext;
+int		yyrfllineno;
 
 static int			s_token = TOK_UNKNOWN;
 static const char*	s_filename;
@@ -31,6 +32,7 @@ struct Variable
 	struct Variable*	next;
 
 	char				ident[MAX_IDENT_LEN];
+	char				typeIdent[MAX_IDENT_LEN];
 	enum PrimitiveType	primType;
 	bool				prim;
 };
@@ -87,17 +89,27 @@ static void WriteOutput(const char* filename)
 	struct Type* type = s_types;
 	while(type)
 	{
-		fprintf(file, "%s\n", type->ident);
+		fprintf(file, "static struct ReflectedVariable s_variables_%s[] = {\n",
+			type->ident);
 
 		struct Variable* var = type->variables;
 		while(var)
 		{
-			fprintf(file, "%s\n", var->ident);
+			fprintf(file,
+				"\t{ \"%s\", \"%s\", %d, %d, %d, %d },\n",
+				var->ident,
+				var->typeIdent,
+				0,
+				0,
+				0,
+				0 );
 
 			var = var->next;
 		}
 
 		type = type->next;
+
+		fprintf(file, "};\n");
 	}
 
 	fclose(file);
@@ -156,6 +168,8 @@ static void ParseVariable(struct Type* type)
 
 	var->prim = true;
 	var->primType = g_primType;
+	
+	StoreIdentifier(var->typeIdent);
 
 	var->next = type->variables;
 	type->variables = var;

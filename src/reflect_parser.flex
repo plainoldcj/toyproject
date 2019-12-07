@@ -3,6 +3,7 @@
 %option yylineno
 
 %{
+#include "reflect.h"
 #include "reflect_local.h"
 %}
 
