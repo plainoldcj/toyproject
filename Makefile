@@ -41,7 +41,7 @@ src/grid.c\
 src/main.c\
 src/math.c\
 src/math_tests.c\
-src/reflect_impl.c\
+src/reflect.c\
 src/renderer.c\
 src/shared_game.c
 
