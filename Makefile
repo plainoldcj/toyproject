@@ -48,12 +48,6 @@ src/shared_game.c
 OBJ_GEN=\
 build/reflected.o
 
-REFLECT_SRC=\
-src/reflect.c
-
-REFLECT_OBJ=\
-build/reflect_parser.lex.o
-
 THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
@@ -66,7 +60,7 @@ build/%.lex.o: build/%.lex.c
 build/%.o: build/%.c
 	gcc $(CFLAGS) -c -o $@ $^
 
-build/reflect: $(REFLECT_SRC) $(REFLECT_OBJ)
+build/reflect: src/reflect_parser.c build/reflect_parser.lex.o
 	gcc --std=c90 -g -o $@ $^
 
 run_reflect: build/reflect
@@ -76,5 +70,5 @@ run_reflect: build/reflect
 build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
 
-all: run_reflect build/reflect build/project
+all: build/reflect run_reflect build/project
 .PHONY: all
