@@ -51,6 +51,10 @@ build/reflected.o
 THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
+build_dir:
+	mkdir -p build
+.PHONY: build_dir
+
 build/%.lex.c: src/%.flex
 	flex --outfile $@ $^
 
@@ -70,5 +74,5 @@ run_reflect: build/reflect
 build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
 
-all: build/reflect run_reflect build/project
+all: build_dir build/reflect run_reflect build/project
 .PHONY: all
