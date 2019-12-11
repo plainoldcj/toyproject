@@ -52,7 +52,7 @@ THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
 build_dir:
-	mkdir -p build
+	mkdir -p build/reflect
 .PHONY: build_dir
 
 build/%.lex.c: src/%.flex
@@ -64,10 +64,10 @@ build/%.lex.o: build/%.lex.c
 build/%.o: build/%.c
 	gcc $(CFLAGS) -c -o $@ $^
 
-build/reflect: src/reflect_parser.c build/reflect_parser.lex.o
-	gcc --std=c90 -g -o $@ $^
+build/reflect_app: src/reflect/reflect_parser.c build/reflect/reflect_parser.lex.o
+	gcc -Isrc --std=c90 -g -o $@ $^
 
-build/reflected.c: build/reflect
+build/reflected.c: build/reflect_app
 	./reflect.sh
 
 build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
