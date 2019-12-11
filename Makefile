@@ -75,3 +75,7 @@ build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 
 all: build_dir build/reflect build/project
 .PHONY: all
+
+clean:
+	rm -r build
+.PHONY: clean
