@@ -52,10 +52,11 @@ THIRD_PARTY_SRC=\
 third_party/glew/glew.c
 
 build_dir:
-	mkdir -p build/reflect
+	mkdir -p build
 .PHONY: build_dir
 
 build/%.lex.c: src/%.flex
+	mkdir -p $(dir $@)
 	flex --outfile $@ $^
 
 build/%.lex.o: build/%.lex.c
@@ -64,7 +65,11 @@ build/%.lex.o: build/%.lex.c
 build/%.o: build/%.c
 	gcc $(CFLAGS) -c -o $@ $^
 
-build/reflect_app: src/reflect/reflect_parser.c build/reflect/reflect_parser.lex.o
+FLEX=$(wildcard src/reflect/*.flex)
+FLEX_OBJ=$(patsubst src/reflect/%.flex,build/reflect/%.lex.o,$(FLEX))
+
+build/reflect_app: src/reflect/reflect_parser.c $(FLEX_OBJ)
+	echo $(FLEX_OBJ)
 	gcc -Isrc --std=c90 -g -o $@ $^
 
 build/reflected.c: build/reflect_app
@@ -73,7 +78,7 @@ build/reflected.c: build/reflect_app
 build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
 
-all: build_dir build/reflect build/project
+all: build_dir build/project
 .PHONY: all
 
 clean:
