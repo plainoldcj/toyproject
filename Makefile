@@ -67,12 +67,11 @@ build/%.o: build/%.c
 build/reflect: src/reflect_parser.c build/reflect_parser.lex.o
 	gcc --std=c90 -g -o $@ $^
 
-run_reflect: build/reflect
+build/reflected.c: build/reflect
 	./reflect.sh
-.PHONY: run_reflect
 
 build/project: $(SRC) $(THIRD_PARTY_SRC) $(OBJ_GEN)
 	gcc $(CFLAGS) -Wall -g $^ $(DEFINES) $(LIBS) -o $@
 
-all: build_dir build/reflect run_reflect build/project
+all: build_dir build/reflect build/project
 .PHONY: all
