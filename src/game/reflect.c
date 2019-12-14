@@ -1,8 +1,10 @@
 #include "common/reflect.h"
-#include "reflect/reflect_local.h"
 
 #include <stdio.h>
 #include <string.h>
+
+// Defined by automatically-generated file reflected.c
+extern struct ReflectedType* g_types;
 
 const struct ReflectedType* FindReflectedType(const char* typeName)
 {

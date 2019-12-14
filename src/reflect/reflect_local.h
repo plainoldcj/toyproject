@@ -28,8 +28,6 @@ extern int						g_primType; /* enum PrimitiveType */
 extern char*					yyrfltext;
 extern int						yyrfllineno;
 
-extern struct ReflectedType*	g_types;
-
 int		yyrfllex(void);
 
 void	Parse(const char* filename);
