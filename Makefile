@@ -8,9 +8,6 @@ LIBS=-lSDL2main -lSDL2
 
 include platform.mk
 
-SRC:=$(shell find src/game -name '*.c')
-OBJ:=$(patsubst src/%.c,build/%.o,$(SRC))
-
 build_dir:
 	mkdir -p build/game
 	mkdir -p build/reflect
@@ -30,14 +27,17 @@ build/%.lex.c: src/%.flex
 build/%.o: build/%.c
 	gcc $(CFLAGS) -c -o $@ $^
 
-build/reflect_app: build/reflect/reflect_parser.o build/reflect/reflect_parser.lex.o
-	gcc -o $@ $^
-
 build/reflected.c: build/reflect_app
 	./reflect.sh
 
-build/project: $(OBJ) build/third_party/glew.o build/reflected.o
-	gcc -o $@ $^ $(LIBS)
+SRC:=$(shell find src -name '*.c')
+FLEX:=$(shell find src -iname '*.flex')
+
+OBJ:=$(patsubst src/%.c,build/%.o,$(SRC))
+OBJ+=$(patsubst src/%.flex,build/%.lex.o,$(FLEX))
+
+include src/reflect/reflect.mk
+include src/game/game.mk
 
 all: build_dir build/project
 .PHONY: all
