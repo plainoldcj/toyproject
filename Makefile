@@ -1,4 +1,5 @@
 CFLAGS=\
+-I./src\
 -I./third_party/glew\
 -DGLEW_STATIC\
 -D__REFLECTED__=
@@ -31,19 +32,19 @@ else
 endif
 
 SRC=\
-src/alloc.c\
-src/alloc_tests.c\
-src/common.c\
-src/draw_system.c\
-src/editor.c\
-src/entity.c\
-src/grid.c\
-src/main.c\
-src/math.c\
-src/math_tests.c\
-src/reflect.c\
-src/renderer.c\
-src/shared_game.c
+src/game/alloc.c\
+src/game/alloc_tests.c\
+src/game/common.c\
+src/game/draw_system.c\
+src/game/editor.c\
+src/game/entity.c\
+src/game/grid.c\
+src/game/main.c\
+src/game/math.c\
+src/game/math_tests.c\
+src/game/reflect.c\
+src/game/renderer.c\
+src/game/shared_game.c
 
 OBJ_GEN=\
 build/reflected.o

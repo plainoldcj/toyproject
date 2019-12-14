@@ -1,5 +1,5 @@
-#include "reflect.h"
-#include "reflect_local.h"
+#include "common/reflect.h"
+#include "reflect/reflect_local.h"
 
 #include <stdio.h>
 #include <string.h>

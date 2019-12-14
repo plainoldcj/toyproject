@@ -3,8 +3,9 @@
 %option yylineno
 
 %{
-#include "reflect.h"
-#include "reflect_local.h"
+#include "common/reflect.h"
+
+#include "reflect/reflect_local.h"
 %}
 
 IDENT [a-zA-Z][a-zA-Z0-9]*

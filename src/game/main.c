@@ -2,7 +2,7 @@
 #include "alloc_tests.h"
 #include "editor.h"
 #include "math_tests.h"
-#include "reflect.h"
+#include "common/reflect.h"
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
