@@ -30,6 +30,10 @@ build/%.o: build/%.c
 build/reflected.c: build/reflect_app
 	./reflect.sh
 
+build/game_unit_tests.c:
+	python3 ./src/build/test_parser.py $@ src/game
+.PHONY: build/game_unit_tests.c
+
 SRC:=$(shell find src -name '*.c')
 FLEX:=$(shell find src -iname '*.flex')
 

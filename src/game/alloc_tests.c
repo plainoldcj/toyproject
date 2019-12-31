@@ -1,5 +1,7 @@
 #include "alloc.h"
 
+#include "common/unit_tests.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -29,7 +31,7 @@ static void ExpectNotEqual(void* p, void* e, const char* filename, int lineNumbe
 	}
 }
 
-static void TestFreeListAllocator(void)
+UNIT_TEST(TestFreeListAllocator)
 {
 	// Setup.
 

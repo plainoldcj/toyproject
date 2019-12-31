@@ -2,8 +2,10 @@
 #include "alloc_tests.h"
 #include "editor.h"
 #include "math_tests.h"
-#include "common/reflect.h"
 #include "renderer.h"
+
+#include "common/reflect.h"
+#include "common/unit_tests.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
@@ -26,6 +28,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 int main(int argc, char* argv[])
 #endif
 {
+	RunAllUnitTests();
 	RunAllocTests();
 	RunTests();
 
