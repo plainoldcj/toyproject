@@ -34,6 +34,7 @@ static void Ed_CreateGrid()
 	gridMesh.prim = ePrim_Lines;
 	gridMesh.vertexCount = gridVertexCount;
 	gridMesh.pos = &vertices->x;
+	gridMesh.texCoord = NULL;
 
 	hrmesh_t rmesh = R_CreateMesh(&gridMesh);
 	s_ed.grid = R_CreateObject(rmesh);
@@ -58,10 +59,22 @@ static void CreateTile()
 		{ 0.0f, size }
 	};
 
+	struct Vertex texCoord[] =
+	{
+		{ 0.0f, 0.0f },
+		{ 1.0f, 0.0f },
+		{ 1.0f, 1.0f },
+
+		{ 0.0f, 0.0f },
+		{ 1.0f, 1.0f },
+		{ 0.0f, 1.0f }
+	};
+
 	struct Mesh mesh;
 	mesh.prim = ePrim_Triangles;
 	mesh.vertexCount = 6;
 	mesh.pos = &vertices->x;
+	mesh.texCoord = &texCoord->x;
 
 	s_ed.tile = R_CreateMesh(&mesh);
 }

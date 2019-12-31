@@ -30,6 +30,7 @@ struct Mesh
 	enum Prim prim;
 	int vertexCount;
 	float* pos;
+	float* texCoord;
 };
 
 hrmesh_t	R_CreateMesh(const struct Mesh* mesh);

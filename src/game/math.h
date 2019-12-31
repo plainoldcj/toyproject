@@ -12,6 +12,12 @@ struct Mat4
 	float m30, m31, m32, m33;
 };
 
+struct Vec2
+{
+	float x;
+	float y;
+};
+
 struct Vec3
 {
 	float x;
