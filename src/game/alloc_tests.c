@@ -3,33 +3,6 @@
 #include "common/unit_tests.h"
 
 #include <stdlib.h>
-#include <stdio.h>
-
-#define EXPECT_EQUAL(...) ExpectEqual(__VA_ARGS__, __FILE__, __LINE__)
-#define EXPECT_NOT_EQUAL(...) ExpectNotEqual(__VA_ARGS__, __FILE__, __LINE__)
-
-static void ExpectEqual(void* p, void* e, const char* filename, int lineNumber)
-{
-	if(p != e)
-	{
-		printf("%s:%d: Expected pointers %p and %p to be equal.\n",
-			filename, lineNumber,
-			p, e);
-		exit(-1);
-	}
-}
-
-
-static void ExpectNotEqual(void* p, void* e, const char* filename, int lineNumber)
-{
-	if(p == e)
-	{
-		printf("%s:%d: Expected pointers %p and %p to be not equal.\n",
-			filename, lineNumber,
-			p, e);
-		exit(-1);
-	}
-}
 
 UNIT_TEST(TestFreeListAllocator)
 {
