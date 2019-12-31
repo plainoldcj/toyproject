@@ -1,5 +1,7 @@
 #include "math.h"
 
+#include "common/unit_tests.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +26,7 @@ static void ExpectEqualVec4(const struct Vec4* a, float x, float y, float z, flo
 	}
 }
 
-static void TestCreatePerspective(void)
+UNIT_TEST(TestCreatePerspective)
 {
 	const float fovy = DegToRad(45.0f);
 	const float aspect = 1.0f;
@@ -70,12 +72,4 @@ static void TestCreatePerspective(void)
 
 		EXPECT_EQUAL_VEC4(&v, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
-}
-
-// TODO(cj): Rename to RunMathTests because we now also have RunAllocTests.
-void RunTests(void)
-{
-	TestCreatePerspective();
-
-	printf("All tests passed.\n");
 }

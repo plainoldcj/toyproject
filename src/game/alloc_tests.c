@@ -82,9 +82,3 @@ UNIT_TEST(TestFreeListAllocator)
 
 	free(totalMem);
 }
-
-void RunAllocTests(void)
-{
-	TestFreeListAllocator();
-	printf("All alloc tests passed.\n");
-}

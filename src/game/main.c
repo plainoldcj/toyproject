@@ -29,8 +29,6 @@ int main(int argc, char* argv[])
 #endif
 {
 	RunAllUnitTests();
-	RunAllocTests();
-	RunTests();
 
 	COM_Init();
 
