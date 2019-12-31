@@ -61,7 +61,7 @@ def main():
 
 # Find all files in module directory.
 	mod_dir = pathlib.Path('.').resolve().joinpath(args.mod_dir)
-	test_filenames = [ f for f in mod_dir.iterdir() if "_tests.c" in f.name ]
+	test_filenames = [ f for f in mod_dir.iterdir() if f.name.endswith("_tests.c") ]
 
 	unit_tests = find_unit_tests(test_filenames)
 	print(unit_tests)
