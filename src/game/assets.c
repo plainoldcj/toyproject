@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_ASSET_PATH_LENGTH 128
 
@@ -67,6 +68,7 @@ struct Asset* AcquireAsset(const char* assetPath)
 {
 	// TODO
 	struct Asset* asset = malloc(sizeof(struct Asset));
+	memset(asset, 0, sizeof(struct Asset));
 	(void)ReadAssetFile(assetPath, asset);
 	return asset;
 }
