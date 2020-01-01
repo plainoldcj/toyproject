@@ -17,6 +17,7 @@ static struct
 {
 	hrobj_t grid;
 	hrmesh_t tile;
+	hrmat_t mat;
 
 	EntityId_t tilemap[TILEMAP_SIZE * TILEMAP_SIZE];
 } s_ed;
@@ -40,6 +41,8 @@ static void Ed_CreateGrid()
 
 	hrmesh_t rmesh = R_CreateMesh(&gridMesh);
 	s_ed.grid = R_CreateObject(rmesh);
+
+	R_SetObjectMaterial(s_ed.grid, s_ed.mat);
 
 	R_ReleaseMesh(rmesh);
 
@@ -105,10 +108,23 @@ static void CreateTileEntity(float posX, float posY)
 	transform->posY = posY;
 
 	drawable->hrobj = R_CreateObject(s_ed.tile);
+
+	R_SetObjectMaterial(drawable->hrobj, s_ed.mat);
+}
+
+static void CreateMaterial()
+{
+	struct Material mat;
+	memset(&mat, 0, sizeof(struct Material));
+	strcpy(mat.vertShader, "vert.glsl");
+	strcpy(mat.fragShader, "frag.glsl");
+
+	s_ed.mat = R_CreateMaterial(&mat);
 }
 
 void Ed_Init(void)
 {
+	CreateMaterial();
 	Ed_CreateGrid();
 	CreateTile();
 
@@ -122,6 +138,7 @@ void Ed_Shutdown(void)
 {
 	Sh_Shutdown();
 
+	R_DestroyMaterial(s_ed.mat);
 	R_DestroyObject(s_ed.grid);
 	R_ReleaseMesh(s_ed.tile);
 }

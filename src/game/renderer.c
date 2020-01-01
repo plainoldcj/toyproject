@@ -11,11 +11,17 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define REND_MESH_CAPACITY 2048
-#define REND_OBJECT_CAPACITY 2048
+#define REND_MESH_CAPACITY		2048
+#define REND_MATERIAL_CAPACITY	2048
+#define REND_OBJECT_CAPACITY	2048
+
+// TODO(cj): Renderer should not need to know about asset system.
+// Just feed shader sources directly.
+// Some other system can read materials + shaders from disk.
 
 #define GL_CALL(x) \
     do { \
@@ -53,11 +59,31 @@ struct RendMesh
 	bool ready;
 };
 
+struct RendMaterial
+{
+	uint16_t generation;
+	uint16_t next;
+
+	char vertShaderAsset[ASSET_PATH_LEN];
+	char fragShaderAsset[ASSET_PATH_LEN];
+
+	uint16_t refCount;
+
+	bool ready;
+
+	GLuint fragShader;
+	GLuint vertShader;
+	GLuint prog;
+};
+
+// TODO(cj): Add debug name.
+
 struct RendObject
 {
 	uint16_t	generation;
 
 	uint16_t	rmesh;
+	uint16_t	rmat;
 
 	int16_t		next;
 
@@ -79,11 +105,9 @@ struct Texture
 
 static struct
 {
-	GLuint fragShader;
-	GLuint vertShader;
-	GLuint prog;
-
 	struct Texture tex;
+
+	struct Mat4 perspective;
 
 	GLuint gridVbo;
 	int gridVertexCount;
@@ -93,6 +117,9 @@ static struct
 	struct RendMesh rendMeshes[REND_MESH_CAPACITY];
 	struct RendMesh* freeMeshes;
 	struct RendMesh* usedMeshes;
+
+	struct RendMaterial rendMaterials[REND_MATERIAL_CAPACITY];
+	int16_t freeMaterials;
 
 	struct RendObject rendObjects[REND_OBJECT_CAPACITY];
 	int16_t freeObjects;
@@ -299,55 +326,8 @@ void R_Init(int screenWidth, int screenHeight)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	struct Asset* fragShader = AcquireAsset("frag.glsl");
-
-	s_rend.fragShader = CreateShader(
-		GL_FRAGMENT_SHADER,
-		(const char*)Asset_GetData(fragShader),
-		Asset_GetSize(fragShader));
-
-	ReleaseAsset(fragShader);
-
-	struct Asset* vertShader = AcquireAsset("vert.glsl");
-
-	s_rend.vertShader = CreateShader(
-		GL_VERTEX_SHADER,
-		(const char*)Asset_GetData(vertShader),
-		Asset_GetSize(vertShader));
-
-	ReleaseAsset(vertShader);
-
-	s_rend.prog = glCreateProgram();
-	if(!s_rend.prog)
-	{
-		COM_LogPrintf("Unable to create program.");
-		exit(1);
-	}
-
-	GL_CALL(glAttachShader(s_rend.prog, s_rend.fragShader));
-	GL_CALL(glAttachShader(s_rend.prog, s_rend.vertShader));
-
-	GL_CALL(glLinkProgram(s_rend.prog));
-	GLint linkStatus;
-	GL_CALL(glGetProgramiv(s_rend.prog, GL_LINK_STATUS, &linkStatus));
-	if(linkStatus != GL_TRUE)
-	{
-		char logBuffer[2048] = { 0 };
-		GL_CALL(glGetProgramInfoLog(s_rend.prog, sizeof(logBuffer) - 1, NULL, logBuffer));
-
-		COM_LogPrintf("Failed to link program: %s", logBuffer);
-		exit(1);
-	}
-
-	GL_CALL(glUseProgram(s_rend.prog));
-
-	GL_CALL(glBindAttribLocation(s_rend.prog, IN_POSITION, "aPos"));
-	GL_CALL(glBindAttribLocation(s_rend.prog, IN_TEXCOORD, "aTexCoord"));
-
 	float aspect = (float)screenWidth / (float)screenHeight;
-	struct Mat4 perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
-
-	SetUniformMat4(s_rend.prog, "uProjection", &perspective);
+	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
 
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
@@ -369,6 +349,14 @@ void R_Init(int screenWidth, int screenHeight)
 	}
 	s_rend.freeObjects = REND_OBJECT_CAPACITY - 1;
 
+	// TODO(cj): Another dump loop.
+	s_rend.rendMaterials[0].next = -1;
+	for(int16_t i = 1; i < REND_MATERIAL_CAPACITY; ++i)
+	{
+		s_rend.rendMaterials[i].next = i - 1;
+	}
+	s_rend.freeMaterials = REND_MATERIAL_CAPACITY - 1;
+
 	LoadTexture("wall.tga", &s_rend.tex);
 }
 
@@ -376,14 +364,6 @@ void R_Init(int screenWidth, int screenHeight)
 void R_Shutdown(void)
 {
 	DestroyMeshes();
-
-	glDeleteShader(s_rend.fragShader);
-	glDeleteShader(s_rend.vertShader);
-	glDeleteProgram(s_rend.prog);
-
-	s_rend.fragShader = 0;
-	s_rend.vertShader = 0;
-	s_rend.prog = 0;
 }
 
 void R_Draw(void)
@@ -511,6 +491,61 @@ void R_DrawMesh(struct RendMesh* rmesh)
 	glDisableVertexAttribArray(IN_POSITION);
 }
 
+hrmat_t R_CreateMaterial(const struct Material* material)
+{
+	if(s_rend.freeMaterials == -1)
+	{
+		hrmat_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendMaterial* rmat = &s_rend.rendMaterials[s_rend.freeMaterials];
+
+	// Update free list.
+	s_rend.freeMaterials = rmat->next;
+	rmat->next = -1;
+
+	rmat->generation++;
+	rmat->refCount = 1;
+	rmat->ready = false;
+	// TODO(cj): Trailing 0?
+	memset(rmat->vertShaderAsset, 0, ASSET_PATH_LEN);
+	memset(rmat->fragShaderAsset, 0, ASSET_PATH_LEN);
+	snprintf(rmat->vertShaderAsset, ASSET_PATH_LEN, "%s", material->vertShader);
+	snprintf(rmat->fragShaderAsset, ASSET_PATH_LEN, "%s", material->fragShader);
+
+	hrmat_t hrmat;
+	hrmat.index = (uint16_t)(rmat - s_rend.rendMaterials);
+	hrmat.generation = rmat->generation;
+	return hrmat;
+}
+
+void R_DestroyMaterial(hrmat_t hrmat)
+{
+	struct RendMaterial* rmat = &s_rend.rendMaterials[hrmat.index];
+	if(hrmat.generation != rmat->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+// TODO(cj): Release GL resources.
+#if 0
+	glDeleteShader(s_rend.fragShader);
+	glDeleteShader(s_rend.vertShader);
+	glDeleteProgram(s_rend.prog);
+
+	s_rend.fragShader = 0;
+	s_rend.vertShader = 0;
+	s_rend.prog = 0;
+#endif
+
+	rmat->next = s_rend.freeMaterials;
+	s_rend.freeMaterials = (int16_t)(rmat - s_rend.rendMaterials);
+}
+
 hrobj_t R_CreateObject(hrmesh_t hrmesh)
 {
 	if(s_rend.freeObjects == -1)
@@ -539,6 +574,7 @@ hrobj_t R_CreateObject(hrmesh_t hrmesh)
 
 	robj->generation++;
 	robj->rmesh = hrmesh.index;
+	robj->rmat = (uint16_t)-1;
 	robj->posX = 0.0f;
 	robj->posY = 0.0f;
 
@@ -579,6 +615,72 @@ void R_SetObjectPos(hrobj_t hrobj, float x, float y)
 	robj->posY = y;
 }
 
+void R_SetObjectMaterial(hrobj_t hrobj, hrmat_t hrmat)
+{
+	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
+	if(hrobj.generation != robj->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	// TODO(cj): Release previously assigned material.
+
+	struct RendMaterial* rmat = &s_rend.rendMaterials[hrmat.index];
+	if(hrmat.generation != rmat->generation)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	robj->rmat = hrmat.index;
+
+	rmat->refCount++;
+}
+
+static void InitMaterial(struct RendMaterial* rmat)
+{
+	struct Asset* fragShader = AcquireAsset(rmat->fragShaderAsset);
+
+	rmat->fragShader = CreateShader(
+		GL_FRAGMENT_SHADER,
+		(const char*)Asset_GetData(fragShader),
+		Asset_GetSize(fragShader));
+
+	ReleaseAsset(fragShader);
+
+	struct Asset* vertShader = AcquireAsset(rmat->vertShaderAsset);
+
+	rmat->vertShader = CreateShader(
+		GL_VERTEX_SHADER,
+		(const char*)Asset_GetData(vertShader),
+		Asset_GetSize(vertShader));
+
+	ReleaseAsset(vertShader);
+
+	rmat->prog = glCreateProgram();
+	if(!rmat->prog)
+	{
+		COM_LogPrintf("Unable to create program.");
+		exit(1);
+	}
+
+	GL_CALL(glAttachShader(rmat->prog, rmat->fragShader));
+	GL_CALL(glAttachShader(rmat->prog, rmat->vertShader));
+
+	GL_CALL(glLinkProgram(rmat->prog));
+	GLint linkStatus;
+	GL_CALL(glGetProgramiv(rmat->prog, GL_LINK_STATUS, &linkStatus));
+	if(linkStatus != GL_TRUE)
+	{
+		char logBuffer[2048] = { 0 };
+		GL_CALL(glGetProgramInfoLog(rmat->prog, sizeof(logBuffer) - 1, NULL, logBuffer));
+
+		COM_LogPrintf("Failed to link program: %s", logBuffer);
+		exit(1);
+	}
+}
+
 void R_DrawObject(hrobj_t hrobj)
 {
 	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
@@ -587,11 +689,30 @@ void R_DrawObject(hrobj_t hrobj)
 		// TODO(cj): Error output.
 		return;
 	}
+
+	if(robj->rmat == (uint16_t)-1)
+	{
+		// TODO(cj): Error output.
+		return;
+	}
+
+	struct RendMaterial* rmat = &s_rend.rendMaterials[robj->rmat];
+	if(!rmat->ready)
+	{
+		InitMaterial(rmat);
+	}
+
+	GL_CALL(glUseProgram(rmat->prog));
+
+	GL_CALL(glBindAttribLocation(rmat->prog, IN_POSITION, "aPos"));
+	GL_CALL(glBindAttribLocation(rmat->prog, IN_TEXCOORD, "aTexCoord"));
+
+	SetUniformMat4(rmat->prog, "uProjection", &s_rend.perspective);
 	
 	struct Mat4 modelView = M_CreateTranslation(robj->posX, robj->posY, -5.0f);
 
-	SetUniformMat4(s_rend.prog, "uModelView", &modelView);
-	SetUniformInt(s_rend.prog, "uDiffuseTex", 0);
+	SetUniformMat4(rmat->prog, "uModelView", &modelView);
+	SetUniformInt(rmat->prog, "uDiffuseTex", 0);
 
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 
