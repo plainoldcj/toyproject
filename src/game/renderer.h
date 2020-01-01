@@ -25,12 +25,21 @@ enum Prim
 	ePrim_Triangles
 };
 
+struct Vertex
+{
+	float pos[2];
+	float texCoord[2];
+};
+
+#define VATT_POS		(1 << 0)
+#define VATT_TEXCOORD	(1 << 1)
+
 struct Mesh
 {
-	enum Prim prim;
-	int vertexCount;
-	float* pos;
-	float* texCoord;
+	enum Prim		prim;
+	int				vertexCount;
+	int				attrib;
+	struct Vertex*	vertices;
 };
 
 hrmesh_t	R_CreateMesh(const struct Mesh* mesh);

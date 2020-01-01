@@ -2,10 +2,12 @@
 
 #include "entity.h"
 #include "grid.h"
+#include "math.h"
 #include "renderer.h"
 #include "shared_game.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #define TILE_SIZE 1.0f
 
@@ -32,9 +34,9 @@ static void Ed_CreateGrid()
 
 	struct Mesh gridMesh;
 	gridMesh.prim = ePrim_Lines;
+	gridMesh.attrib = VATT_POS;
 	gridMesh.vertexCount = gridVertexCount;
-	gridMesh.pos = &vertices->x;
-	gridMesh.texCoord = NULL;
+	gridMesh.vertices = vertices;
 
 	hrmesh_t rmesh = R_CreateMesh(&gridMesh);
 	s_ed.grid = R_CreateObject(rmesh);
@@ -48,7 +50,7 @@ static void CreateTile()
 {
 	const float size = TILE_SIZE;
 	// TODO(cj): Index drawing maybe?
-	struct Vertex vertices[] =
+	struct Vec2 pos[] =
 	{
 		{ 0.0f, 0.0f },
 		{ size, 0.0f },
@@ -59,7 +61,7 @@ static void CreateTile()
 		{ 0.0f, size }
 	};
 
-	struct Vertex texCoord[] =
+	struct Vec2 texCoord[] =
 	{
 		{ 0.0f, 0.0f },
 		{ 1.0f, 0.0f },
@@ -70,13 +72,26 @@ static void CreateTile()
 		{ 0.0f, 1.0f }
 	};
 
+	struct Vertex* vertices = malloc(sizeof(struct Vertex) * 6);
+
+	for(int i = 0; i < 6; ++i)
+	{
+		vertices[i].pos[0] = pos[i].x;
+		vertices[i].pos[1] = pos[i].y;
+
+		vertices[i].texCoord[0] = texCoord[i].x;
+		vertices[i].texCoord[1] = texCoord[i].y;
+	}
+
 	struct Mesh mesh;
 	mesh.prim = ePrim_Triangles;
+	mesh.attrib = VATT_POS | VATT_TEXCOORD;
 	mesh.vertexCount = 6;
-	mesh.pos = &vertices->x;
-	mesh.texCoord = &texCoord->x;
+	mesh.vertices = vertices;
 
 	s_ed.tile = R_CreateMesh(&mesh);
+
+	free(vertices); // TODO(cj): Remove malloc.
 }
 
 static void CreateTileEntity(float posX, float posY)

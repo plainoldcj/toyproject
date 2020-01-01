@@ -1,11 +1,13 @@
 #include "grid.h"
 
+#include "renderer.h"
+
 #include <stdlib.h>
 
 static void SetVertex(struct Vertex* v, float x, float y)
 {
-	v->x = x;
-	v->y = y;
+	v->pos[0] = x;
+	v->pos[1] = y;
 }
 
 struct Vertex* CreateGrid(int n, float cellSize, float x, float y, int* vertexCount)

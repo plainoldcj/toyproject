@@ -61,8 +61,7 @@ struct RendMesh
 	struct RendMesh *prev, *next;
 	struct Mesh mesh;
 
-	struct Chunk posChunk;
-	struct Chunk texCoordChunk;
+	struct Chunk vertChunk;
 
 	uint16_t refCount;
 
@@ -114,12 +113,6 @@ static struct
 	struct RendObject rendObjects[REND_OBJECT_CAPACITY];
 	int16_t freeObjects;
 } s_rend;
-
-struct FatVertex
-{
-	struct Vec2 pos;
-	struct Vec2 texCoord;
-};
 
 static const int IN_POSITION = 0;
 static const int IN_TEXCOORD = 1;
@@ -431,22 +424,15 @@ hrmesh_t R_CreateMesh(const struct Mesh* mesh)
 	rmesh->refCount = 1;
 
 	// Copy mesh vertex data.
-	size_t vertSize = sizeof(float) * 2 * mesh->vertexCount;
 
-	rmesh->posChunk = FL_Alloc(&s_rend.meshAttrAlloc, vertSize);
-	memcpy(rmesh->posChunk.mem, mesh->pos, vertSize);
-
-	if(mesh->texCoord)
-	{
-		rmesh->texCoordChunk = FL_Alloc(&s_rend.meshAttrAlloc, vertSize);
-		memcpy(rmesh->texCoordChunk.mem, mesh->texCoord, vertSize);
-	}
+	size_t vertSize = sizeof(struct Vertex) * mesh->vertexCount;
+	rmesh->vertChunk = FL_Alloc(&s_rend.meshAttrAlloc, vertSize);
+	memcpy(rmesh->vertChunk.mem, mesh->vertices, vertSize);
 
 	// Copy mesh.
 	rmesh->mesh.prim = mesh->prim;
 	rmesh->mesh.vertexCount = mesh->vertexCount;
-	rmesh->mesh.pos = (float*)rmesh->posChunk.mem;
-	rmesh->mesh.texCoord = (float*)rmesh->texCoordChunk.mem;
+	rmesh->mesh.vertices = (struct Vertex*)rmesh->vertChunk.mem;
 
 	hrmesh_t handle;
 	handle.index = (uint16_t)(rmesh - s_rend.rendMeshes);
@@ -496,32 +482,15 @@ void R_DrawMesh(struct RendMesh* rmesh)
 {
 	if(!rmesh->ready)
 	{
-		// TODO(cj)
-		struct FatVertex* vertices = malloc(sizeof(struct FatVertex) * rmesh->mesh.vertexCount);
-
-		for(int i = 0; i < rmesh->mesh.vertexCount; ++i)
-		{
-			vertices[i].pos.x = rmesh->mesh.pos[2 * i + 0 ];
-			vertices[i].pos.y = rmesh->mesh.pos[2 * i + 1 ];
-
-			if( rmesh->mesh.texCoord )
-			{
-				vertices[i].texCoord.x = rmesh->mesh.texCoord[2 * i + 0 ];
-				vertices[i].texCoord.y = rmesh->mesh.texCoord[2 * i + 1 ];
-			}
-		}
-
 		// TODO(cj): Restore previous binding.
 		GL_CALL(glGenBuffers(1, &rmesh->vbo));
 		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo));
 		GL_CALL(glBufferData(GL_ARRAY_BUFFER,
-			rmesh->mesh.vertexCount * sizeof(struct FatVertex),
-			vertices,
+			rmesh->mesh.vertexCount * sizeof(struct Vertex),
+			rmesh->mesh.vertices,
 			GL_STATIC_DRAW));
 
 		rmesh->ready = true;
-
-		free(vertices);
 	}
 
 	// TODO(cj): Draw should just mark the mesh for rendering.
@@ -532,8 +501,8 @@ void R_DrawMesh(struct RendMesh* rmesh)
 
 	glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo);
 
-	glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct FatVertex), (void*)offsetof(struct FatVertex, pos));
-	glVertexAttribPointer(IN_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct FatVertex), (void*)offsetof(struct FatVertex, texCoord));
+	glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, pos));
+	glVertexAttribPointer(IN_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, texCoord));
 
 	glDrawArrays(GetPrimitiveType(rmesh->mesh.prim), 0, rmesh->mesh.vertexCount);
 
