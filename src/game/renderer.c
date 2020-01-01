@@ -38,22 +38,6 @@
         } \
     } while(false)
 
-static const char* fragmentShaderSource =
-"#version 150\n"
-"uniform sampler2D uDiffuseTex;" 
-"in vec2 vTexCoord;"
-"void main() {"
-"gl_FragColor = texture2D(uDiffuseTex, vTexCoord);"
-"}";
-static const char* vertexShaderSource =
-"#version 150\n"
-"uniform mat4 uProjection;"
-"uniform mat4 uModelView;"
-"in vec4 aPos;\n"
-"in vec2 aTexCoord;\n"
-"out vec2 vTexCoord;"
-"void main() { vTexCoord = aTexCoord; gl_Position = uProjection * uModelView * aPos; }";
-
 struct RendMesh
 {
 	uint16_t generation;
@@ -205,7 +189,7 @@ static void LoadTexture(const char* assetPath, struct Texture* tex)
 	}
 }
 
-static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
+static GLuint CreateShader(GLenum shaderType, const char* shaderSource, int length)
 {
 	GLuint shader = glCreateShader(shaderType);
 	GL_CHECK_ERROR;
@@ -216,7 +200,7 @@ static GLuint CreateShader(GLenum shaderType, const char* shaderSource)
 	}
 
 	const char* source[] = { shaderSource };
-	GL_CALL(glShaderSource(shader, 1, source, NULL));
+	GL_CALL(glShaderSource(shader, 1, source, &length));
 
 	GL_CALL(glCompileShader(shader));
 	GLint compileStatus;
@@ -315,8 +299,23 @@ void R_Init(int screenWidth, int screenHeight)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	s_rend.fragShader = CreateShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-	s_rend.vertShader = CreateShader(GL_VERTEX_SHADER, vertexShaderSource);
+	struct Asset* fragShader = AcquireAsset("frag.glsl");
+
+	s_rend.fragShader = CreateShader(
+		GL_FRAGMENT_SHADER,
+		(const char*)Asset_GetData(fragShader),
+		Asset_GetSize(fragShader));
+
+	ReleaseAsset(fragShader);
+
+	struct Asset* vertShader = AcquireAsset("vert.glsl");
+
+	s_rend.vertShader = CreateShader(
+		GL_VERTEX_SHADER,
+		(const char*)Asset_GetData(vertShader),
+		Asset_GetSize(vertShader));
+
+	ReleaseAsset(vertShader);
 
 	s_rend.prog = glCreateProgram();
 	if(!s_rend.prog)
