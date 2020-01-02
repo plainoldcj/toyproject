@@ -16,6 +16,7 @@
 #include <string.h>
 
 #define REND_MESH_CAPACITY		2048
+#define REND_TEXTURE_CAPACITY	2048
 #define REND_MATERIAL_CAPACITY	2048
 #define REND_OBJECT_CAPACITY	2048
 
@@ -74,6 +75,26 @@ struct RendMaterial
 	GLuint fragShader;
 	GLuint vertShader;
 	GLuint prog;
+
+	uint16_t diffuseTex;
+};
+
+// TODO(cj): Add debug name.
+struct RendTexture
+{
+	uint16_t 		generation;
+	uint16_t 		next;
+	uint16_t		refCount;
+
+	struct Chunk	imageChunk;
+
+	struct Image	image;
+
+	bool 			ready;
+
+	GLuint			id;
+	GLenum			internalFormat;
+	GLenum			format;
 };
 
 // TODO(cj): Add debug name.
@@ -91,22 +112,8 @@ struct RendObject
 	float		posY;
 };
 
-struct Texture
-{
-	GLuint id;
-	GLenum internalFormat;
-	GLenum format;
-	uint32_t width;
-	uint32_t height;
-
-	int32_t refCount;
-	bool isLoaded;
-};
-
 static struct
 {
-	struct Texture tex;
-
 	struct Mat4 perspective;
 
 	GLuint gridVbo;
@@ -117,6 +124,11 @@ static struct
 	struct RendMesh rendMeshes[REND_MESH_CAPACITY];
 	struct RendMesh* freeMeshes;
 	struct RendMesh* usedMeshes;
+
+	struct FLAlloc imageAlloc;
+
+	struct RendTexture rendTextures[REND_TEXTURE_CAPACITY];
+	int16_t freeTextures;
 
 	struct RendMaterial rendMaterials[REND_MATERIAL_CAPACITY];
 	int16_t freeMaterials;
@@ -144,11 +156,11 @@ static void InitGlew(void)
 	}
 }
 
-static void Texture_CreateInternal(struct Texture* tex, void* pixelData) {
+static void Texture_CreateInternal(struct RendTexture* tex, void* pixelData) {
 	GL_CALL(glGenTextures(1, &tex->id));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, tex->id));
 
-	GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, tex->internalFormat, tex->width, tex->height, 0, tex->format,
+	GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, tex->internalFormat, tex->image.width, tex->image.height, 0, tex->format,
 				GL_UNSIGNED_BYTE, pixelData));
 
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR));
@@ -158,17 +170,15 @@ static void Texture_CreateInternal(struct Texture* tex, void* pixelData) {
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
 
-void Texture_Create(struct Texture* tex, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, void* pixelData)
+void Texture_Create(struct RendTexture* tex, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, void* pixelData)
 {
-	tex->width = width;
-	tex->height = height;
 	tex->internalFormat = format;
 	tex->format = format;
 
 	Texture_CreateInternal(tex, pixelData);
 }
 
-void Texture_CreateFromImage(struct Texture* tex, const struct Image* image)
+void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 {
 	GLenum format;
 
@@ -184,36 +194,15 @@ void Texture_CreateFromImage(struct Texture* tex, const struct Image* image)
 	Texture_Create(tex, image->width, image->height, format, format, image->pixelData);
 }
 
-void Texture_Bind(struct Texture* tex, uint32_t level)
+void Texture_Bind(struct RendTexture* tex, uint32_t level)
 {
 	GL_CALL(glActiveTexture(GL_TEXTURE0 + level));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, tex->id));
 }
 
-static void LoadTexture(const char* assetPath, struct Texture* tex)
+static void InitTexture(struct RendTexture* rtex)
 {
-	if (tex->isLoaded)
-	{
-		return;
-	}
-
-	struct Asset* asset = AcquireAsset(assetPath);
-
-	struct Image image;
-	const char* result = LoadImageFromMemoryTGA(&image, Asset_GetData(asset), Asset_GetSize(asset));
-	if (result)
-	{
-		COM_LogPrintf("Loading image failed: %s", result);
-		ReleaseAsset(asset);
-	}
-	else
-	{
-		Texture_CreateFromImage(tex, &image);
-
-		tex->isLoaded = true;
-
-		Texture_Bind(tex, 0);
-	}
+	Texture_CreateFromImage(rtex, &rtex->image);
 }
 
 static GLuint CreateShader(GLenum shaderType, const char* shaderSource, int length)
@@ -332,6 +321,7 @@ void R_Init(int screenWidth, int screenHeight)
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
 	FL_Init(&s_rend.meshAttrAlloc, malloc(4096), 4096);
+	FL_Init(&s_rend.imageAlloc, malloc(400000), 400000);
 
 	// Create initial list for render meshes.
 	// TODO(cj): This is a dumb loop.
@@ -357,7 +347,13 @@ void R_Init(int screenWidth, int screenHeight)
 	}
 	s_rend.freeMaterials = REND_MATERIAL_CAPACITY - 1;
 
-	LoadTexture("wall.tga", &s_rend.tex);
+	// TODO(cj): Another dump loop.
+	s_rend.rendTextures[0].next = -1;
+	for(int16_t i = 1; i < REND_TEXTURE_CAPACITY; ++i)
+	{
+		s_rend.rendTextures[i].next = i - 1;
+	}
+	s_rend.freeTextures = REND_TEXTURE_CAPACITY - 1;
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -491,10 +487,78 @@ void R_DrawMesh(struct RendMesh* rmesh)
 	glDisableVertexAttribArray(IN_POSITION);
 }
 
+hrtex_t R_CreateTexture(const struct Image* image)
+{
+	if(s_rend.freeTextures == -1)
+	{
+		hrtex_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendTexture* rtex = &s_rend.rendTextures[s_rend.freeTextures];
+
+	// Update free list.
+	s_rend.freeTextures = rtex->next;
+	rtex->next = -1;
+
+	rtex->generation++;
+	rtex->refCount = 1;
+	rtex->ready = false;
+
+	// Copy image.
+
+	int bytesPerPixel = -1;
+	switch(image->format)
+	{
+	case PixelFormat_RGB8:
+		bytesPerPixel = 3;
+		break;
+	case PixelFormat_RGBA8:
+		bytesPerPixel = 4;
+		break;
+	default:
+		COM_LogPrintf("Unknown image format %d", image->format);
+		exit(1);
+		break;
+	}
+
+	size_t imageSize = image->width * image->height * bytesPerPixel;
+	rtex->imageChunk = FL_Alloc(&s_rend.imageAlloc, imageSize);
+
+	memcpy(rtex->imageChunk.mem, image->pixelData, imageSize);
+
+	rtex->image.width = image->width;
+	rtex->image.height = image->height;
+	rtex->image.format = image->format;
+	rtex->image.pixelData = rtex->imageChunk.mem;
+
+	hrtex_t hrtex;
+	hrtex.index = (uint16_t)(rtex - s_rend.rendTextures);
+	hrtex.generation = rtex->generation;
+	return hrtex;
+}
+
+void R_DestroyTexture(hrtex_t hrtex)
+{
+	// TODO(cj)
+}
+
 hrmat_t R_CreateMaterial(const struct Material* material)
 {
 	if(s_rend.freeMaterials == -1)
 	{
+		hrmat_t handle;
+		handle.index = 0;
+		handle.generation = 0;
+		return handle;
+	}
+
+	struct RendTexture* rtex = &s_rend.rendTextures[material->diffuseTex.index];
+	if(material->diffuseTex.generation != rtex->generation)
+	{
+		// TODO(cj): Error output.
 		hrmat_t handle;
 		handle.index = 0;
 		handle.generation = 0;
@@ -510,6 +574,9 @@ hrmat_t R_CreateMaterial(const struct Material* material)
 	rmat->generation++;
 	rmat->refCount = 1;
 	rmat->ready = false;
+
+	rmat->diffuseTex = material->diffuseTex.index;
+
 	// TODO(cj): Trailing 0?
 	memset(rmat->vertShaderAsset, 0, ASSET_PATH_LEN);
 	memset(rmat->fragShaderAsset, 0, ASSET_PATH_LEN);
@@ -640,6 +707,13 @@ void R_SetObjectMaterial(hrobj_t hrobj, hrmat_t hrmat)
 
 static void InitMaterial(struct RendMaterial* rmat)
 {
+	struct RendTexture* rtex = &s_rend.rendTextures[rmat->diffuseTex];
+	if(!rtex->ready)
+	{
+		InitTexture(rtex);
+		rtex->ready = true;
+	}
+
 	struct Asset* fragShader = AcquireAsset(rmat->fragShaderAsset);
 
 	rmat->fragShader = CreateShader(
@@ -700,6 +774,7 @@ void R_DrawObject(hrobj_t hrobj)
 	if(!rmat->ready)
 	{
 		InitMaterial(rmat);
+		rmat->ready = true;
 	}
 
 	GL_CALL(glUseProgram(rmat->prog));

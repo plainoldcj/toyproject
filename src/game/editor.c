@@ -1,10 +1,12 @@
 #include "editor.h"
 
+#include "assets.h"
 #include "entity.h"
 #include "grid.h"
 #include "math.h"
 #include "renderer.h"
 #include "shared_game.h"
+#include "tga_image.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -114,12 +116,27 @@ static void CreateTileEntity(float posX, float posY)
 
 static void CreateMaterial()
 {
+	struct Asset* asset = AcquireAsset("wall.tga");
+	struct Image image;
+
+	(void)LoadImageFromMemoryTGA(
+		&image,
+		Asset_GetData(asset),
+		Asset_GetSize(asset));
+
+	hrtex_t diffuseTex = R_CreateTexture(&image);
+
 	struct Material mat;
 	memset(&mat, 0, sizeof(struct Material));
 	strcpy(mat.vertShader, "vert.glsl");
 	strcpy(mat.fragShader, "frag.glsl");
+	mat.diffuseTex = diffuseTex;
 
 	s_ed.mat = R_CreateMaterial(&mat);
+
+	R_DestroyTexture(diffuseTex);
+
+	ReleaseAsset(asset);
 }
 
 void Ed_Init(void)

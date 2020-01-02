@@ -48,6 +48,23 @@ void		R_ReleaseMesh(hrmesh_t hrmesh);
 
 /*
 ================================================================
+Render Texture
+================================================================
+*/
+
+typedef struct
+{
+	uint16_t index;
+	uint16_t generation;
+} hrtex_t;
+
+struct Image;
+
+hrtex_t R_CreateTexture(const struct Image* image);
+void	R_DestroyTexture(hrtex_t hrtex);
+
+/*
+================================================================
 Render Material
 ================================================================
 */
@@ -62,8 +79,10 @@ typedef struct
 
 struct Material
 {
-	char vertShader[ASSET_PATH_LEN];
-	char fragShader[ASSET_PATH_LEN];
+	char	vertShader[ASSET_PATH_LEN];
+	char	fragShader[ASSET_PATH_LEN];
+
+	hrtex_t diffuseTex;
 };
 
 hrmat_t	R_CreateMaterial(const struct Material* material);
