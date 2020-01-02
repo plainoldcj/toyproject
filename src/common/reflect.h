@@ -2,6 +2,7 @@
 
 enum PrimitiveType
 {
+	PT_CHAR,
 	PT_FLOAT
 };
 

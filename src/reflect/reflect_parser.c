@@ -49,7 +49,7 @@ struct Type
 
 struct Type* s_types;
 
-#define MEMORY_SIZE 4096
+#define MEMORY_SIZE 100 * 4096
 
 static struct
 {

@@ -27,6 +27,7 @@ REFLECTED "__REFLECTED__"
 
 "struct"    { return TOK_STRUCT; }
 
+"char"		{ g_primType = PT_CHAR; return TOK_PRIM; }
 "float"     { g_primType = PT_FLOAT; return TOK_PRIM; }
 
 {REFLECTED}	{ return TOK_REFLECTED; }

@@ -13,6 +13,7 @@ struct Transform
 	float posY;
 
 	float testpos[2];
+	char teststring[256];
 };
 
 struct Drawable
