@@ -9,6 +9,7 @@
 %}
 
 IDENT [a-zA-Z][a-zA-Z0-9]*
+INTEGER [0-9]+
 
 REFLECTED "__REFLECTED__"
 
@@ -21,6 +22,8 @@ REFLECTED "__REFLECTED__"
 ";"         { return TOK_SEMICOL; }
 "{"         { return TOK_LBRACE; }
 "}"         { return TOK_RBRACE; }
+"["			{ return TOK_LBRACKET; }
+"]"			{ return TOK_RBRACKET; }
 
 "struct"    { return TOK_STRUCT; }
 
@@ -29,6 +32,8 @@ REFLECTED "__REFLECTED__"
 {REFLECTED}	{ return TOK_REFLECTED; }
 
 {IDENT}     { return TOK_IDENT; }
+
+{INTEGER}	{ return TOK_INTEGER; }
 
 .           { return TOK_UNKNOWN; }
 

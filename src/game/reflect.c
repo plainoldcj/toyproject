@@ -36,11 +36,13 @@ void PrintReflectedType(char* buffer, const char* typeName)
 	for(int i = 0; i < type->variableCount; ++i)
 	{
 		const struct ReflectedVariable* var = &type->variables[i];
-		buffer += sprintf(buffer, "%d: name: %s, type: %s, size: %d, offset: %d\n",
+		buffer += sprintf(buffer, "%d: name: %s, type: %s, size: %d, offset: %d, array: %d, elementCount: %d\n",
 			i,
 			var->name,
 			var->typeName,
 			var->size,
-			var->offset);
+			var->offset,
+			var->isArray,
+			var->elementCount);
 	}
 }

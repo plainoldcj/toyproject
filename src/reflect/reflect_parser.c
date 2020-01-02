@@ -35,6 +35,8 @@ struct Variable
 	char				typeIdent[MAX_IDENT_LEN];
 	enum PrimitiveType	primType;
 	bool				prim;
+	bool				array;
+	int					elementCount;
 };
 
 struct Type
@@ -123,7 +125,9 @@ static void WriteVariables(FILE* file)
 		"(int)sizeof(((struct %s*)0)->%s), "	/* size */
 		"(int)offsetof(struct %s, %s), "		/* offset */
 		"%d,"									/* primType */
-		"1"										/* isPrim */
+		"1,"									/* isPrim */
+		"%d,"									/* isArray */
+		"%d"									/* elementCount */
 		" },\n";
 
 	struct Type* type = s_types;
@@ -140,7 +144,9 @@ static void WriteVariables(FILE* file)
 				var->typeIdent,
 				type->ident, var->ident,
 				type->ident, var->ident,
-				var->primType);
+				var->primType,
+				var->array,
+				var->elementCount);
 
 			var = var->next;
 		}
@@ -258,6 +264,9 @@ static void ParseVariable(struct Type* type)
 
 	var->prim = true;
 	var->primType = g_primType;
+
+	var->array = false;
+	var->elementCount = 0;
 	
 	StoreIdentifier(var->typeIdent);
 
@@ -270,6 +279,21 @@ static void ParseVariable(struct Type* type)
 	StoreIdentifier(var->ident);
 
 	NextToken();
+	if(s_token == TOK_LBRACKET)
+	{
+		/* Parse array variable. */
+		NextToken();
+		ExpectToken(TOK_INTEGER);
+
+		var->array = true;
+		var->elementCount = atoi(yyrfltext);
+
+		NextToken();
+		ExpectToken(TOK_RBRACKET);
+
+		NextToken();
+	}
+
 	ExpectToken(TOK_SEMICOL);
 }
 

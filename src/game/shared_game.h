@@ -11,6 +11,8 @@ struct Transform
 {
 	float posX;
 	float posY;
+
+	float testpos[2];
 };
 
 struct Drawable

@@ -13,6 +13,8 @@ struct ReflectedVariable
 	int					offset;
 	enum PrimitiveType	primType;
 	int					isPrim;
+	int					isArray;
+	int					elementCount;
 };
 
 struct ReflectedType
