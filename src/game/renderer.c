@@ -795,7 +795,7 @@ void R_DrawObject(hrobj_t hrobj)
 	struct Mat4 modelView = M_CreateTranslation(
 		robj->posX - s_rend.cameraPos.x,
 		robj->posY - s_rend.cameraPos.y,
-		-5.0f);
+		-10.0f);
 
 	SetUniformMat4(rmat->prog, "uModelView", &modelView);
 	SetUniformInt(rmat->prog, "uDiffuseTex", 0);
