@@ -323,7 +323,7 @@ void R_Init(int screenWidth, int screenHeight)
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
 	FL_Init(&s_rend.meshAttrAlloc, malloc(4096), 4096);
-	FL_Init(&s_rend.imageAlloc, malloc(400000), 400000);
+	FL_Init(&s_rend.imageAlloc, malloc(8000000), 8000000);
 
 	// Create initial list for render meshes.
 	// TODO(cj): This is a dumb loop.
@@ -783,6 +783,11 @@ void R_DrawObject(hrobj_t hrobj)
 	{
 		InitMaterial(rmat);
 		rmat->ready = true;
+	}
+	else
+	{
+		struct RendTexture* rtex = &s_rend.rendTextures[rmat->diffuseTex];
+		Texture_Bind(rtex, 0);
 	}
 
 	GL_CALL(glUseProgram(rmat->prog));

@@ -15,6 +15,7 @@
 #define MAX_TILE_COUNT 128
 
 #define WALL_TILE 'x'
+#define PLAYER_TILE 'p'
 
 struct MapDesc
 {
@@ -28,7 +29,9 @@ static struct
 	struct MapDesc mapDesc;
 
 	hrmesh_t tile;
-	hrmat_t mat;
+
+	hrmat_t playerMat;
+	hrmat_t wallMat;
 
 	EntityId_t tilemap[MAX_TILE_COUNT];
 } s_game;
@@ -97,12 +100,27 @@ static void CreateTileEntity(float posX, float posY)
 
 	drawable->hrobj = R_CreateObject(s_game.tile);
 
-	R_SetObjectMaterial(drawable->hrobj, s_game.mat);
+	R_SetObjectMaterial(drawable->hrobj, s_game.wallMat);
 }
 
-static void CreateMaterial()
+static void CreatePlayerEntity(float posX, float posY)
 {
-	struct Asset* asset = AcquireAsset("wall.tga");
+	EntityId_t entId = CreateEntity();
+
+	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
+	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
+
+	transform->posX = posX;
+	transform->posY = posY;
+
+	drawable->hrobj = R_CreateObject(s_game.tile);
+
+	R_SetObjectMaterial(drawable->hrobj, s_game.playerMat);
+}
+
+static hrmat_t CreateMaterial(const char* tex)
+{
+	struct Asset* asset = AcquireAsset(tex);
 	struct Image image;
 
 	(void)LoadImageFromMemoryTGA(
@@ -118,11 +136,13 @@ static void CreateMaterial()
 	strcpy(mat.fragShader, "frag.glsl");
 	mat.diffuseTex = diffuseTex;
 
-	s_game.mat = R_CreateMaterial(&mat);
+	hrmat_t hrmat = R_CreateMaterial(&mat);
 
 	R_DestroyTexture(diffuseTex);
 
 	ReleaseAsset(asset);
+
+	return hrmat;
 }
 
 // END duplicated code
@@ -220,9 +240,15 @@ static void InstantiateMap(const struct MapDesc* map)
 			float posX = TILE_SIZE * col;
 			float posY = TILE_SIZE * row;
 
-			if(map->tiles[col + row * map->rowCount] == 'x')
+			char ent = map->tiles[col + row * map->rowCount];
+
+			if(ent == 'x')
 			{
 				CreateTileEntity(posX, posY);
+			}
+			else if(ent == 'p')
+			{
+				CreatePlayerEntity(posX, posY);
 			}
 		}
 	}
@@ -230,7 +256,8 @@ static void InstantiateMap(const struct MapDesc* map)
 
 void G_Init(void)
 {
-	CreateMaterial();
+	s_game.playerMat = CreateMaterial("player2.tga");
+	s_game.wallMat = CreateMaterial("wall.tga");
 	CreateTile();
 
 	Sh_Init();
@@ -244,7 +271,7 @@ void G_Shutdown(void)
 {
 	Sh_Shutdown();
 
-	R_DestroyMaterial(s_game.mat);
+	R_DestroyMaterial(s_game.wallMat);
 	R_ReleaseMesh(s_game.tile);
 }
 
