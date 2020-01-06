@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entity.h"
 #include "renderer.h"
 
 //==================================================
@@ -21,6 +22,28 @@ struct Drawable
 	hrobj_t hrobj;
 };
 
+enum
+{
+	BUTTON_LEFT,
+	BUTTON_UP,
+	BUTTON_RIGHT,
+	BUTTON_DOWN,
+
+	BUTTON_COUNT
+};
+
+struct Input
+{
+	int buttons[BUTTON_COUNT];
+};
+
+//==================================================
+// Well-known entities
+//==================================================
+
+extern EntityId_t g_activeInputEntity;
+extern EntityId_t g_cameraEntity;
+
 //==================================================
 // Component Arrays
 //==================================================
@@ -29,6 +52,7 @@ struct ComponentArray;
 
 extern struct ComponentArray s_transforms;
 extern struct ComponentArray s_drawables;
+extern struct ComponentArray s_inputs;
 
 //==================================================
 // Game Systems
@@ -37,12 +61,13 @@ extern struct ComponentArray s_drawables;
 struct GameSystem
 {
 	void(*tick)(float elapsedSeconds);
-	void(*draw)();
+	void(*draw)(void);
 
 	struct GameSystem* next;
 };
 
-struct GameSystem* AcquireDrawSystem();
+struct GameSystem* AcquireDrawSystem(void);
+struct GameSystem* AcquireCameraSystem(void);
 
 //==================================================
 // Shared Game

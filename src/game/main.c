@@ -1,9 +1,11 @@
 #include "common.h"
 #include "alloc_tests.h"
 #include "editor.h"
+#include "entity.h"
 #include "game.h"
 #include "math_tests.h"
 #include "renderer.h"
+#include "shared_game.h"
 
 #include "common/reflect.h"
 #include "common/unit_tests.h"
@@ -15,12 +17,60 @@
 #include <Windows.h>
 #endif
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 static float MillisecsToSecs(float ms)
 {
 	return ms / 1000.0f;
+}
+
+static void FillInput(SDL_Event* event)
+{
+	struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
+	assert(input);
+
+	if(event->type == SDL_KEYDOWN)
+	{
+		switch(event->key.keysym.sym)
+		{
+			case SDLK_LEFT:
+				input->buttons[BUTTON_LEFT] = 1;
+				break;
+			case SDLK_UP:
+				input->buttons[BUTTON_UP] = 1;
+				break;
+			case SDLK_RIGHT:
+				input->buttons[BUTTON_RIGHT] = 1;
+				break;
+			case SDLK_DOWN:
+				input->buttons[BUTTON_DOWN] = 1;
+				break;
+			default:
+				break;
+		}
+	}
+	else if(event->type == SDL_KEYUP)
+	{
+		switch(event->key.keysym.sym)
+		{
+			case SDLK_LEFT:
+				input->buttons[BUTTON_LEFT] = 0;
+				break;
+			case SDLK_UP:
+				input->buttons[BUTTON_UP] = 0;
+				break;
+			case SDLK_RIGHT:
+				input->buttons[BUTTON_RIGHT] = 0;
+				break;
+			case SDLK_DOWN:
+				input->buttons[BUTTON_DOWN] = 0;
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 #ifdef PLATFORM_WINDOWS
@@ -89,6 +139,8 @@ int main(int argc, char* argv[])
 			{
 				isDone = true;
 			}
+
+			FillInput(&event);
 		}
 
 		Uint32 ticks = SDL_GetTicks();

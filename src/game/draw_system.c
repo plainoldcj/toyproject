@@ -11,7 +11,7 @@ static void Tick(float elapsedSeconds)
 {
 }
 
-static void Draw()
+static void Draw(void)
 {
 	struct ComponentArray* requiredComponents[] =
 	{
@@ -39,7 +39,7 @@ static void Draw()
 	}
 }
 
-struct GameSystem* AcquireDrawSystem()
+struct GameSystem* AcquireDrawSystem(void)
 {
 	s_gameSystem.tick = &Tick;
 	s_gameSystem.draw = &Draw;

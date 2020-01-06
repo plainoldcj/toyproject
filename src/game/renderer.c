@@ -116,6 +116,8 @@ static struct
 {
 	struct Mat4 perspective;
 
+	struct Vec2 cameraPos;
+
 	GLuint gridVbo;
 	int gridVertexCount;
 
@@ -360,6 +362,12 @@ void R_Init(int screenWidth, int screenHeight)
 void R_Shutdown(void)
 {
 	DestroyMeshes();
+}
+
+void R_SetCameraPosition(float posX, float posY)
+{
+	s_rend.cameraPos.x = posX;
+	s_rend.cameraPos.y = posY;
 }
 
 void R_Draw(void)
@@ -784,7 +792,10 @@ void R_DrawObject(hrobj_t hrobj)
 
 	SetUniformMat4(rmat->prog, "uProjection", &s_rend.perspective);
 	
-	struct Mat4 modelView = M_CreateTranslation(robj->posX, robj->posY, -5.0f);
+	struct Mat4 modelView = M_CreateTranslation(
+		robj->posX - s_rend.cameraPos.x,
+		robj->posY - s_rend.cameraPos.y,
+		-5.0f);
 
 	SetUniformMat4(rmat->prog, "uModelView", &modelView);
 	SetUniformInt(rmat->prog, "uDiffuseTex", 0);
