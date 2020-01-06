@@ -1,6 +1,7 @@
 #include "common.h"
 #include "alloc_tests.h"
 #include "editor.h"
+#include "game.h"
 #include "math_tests.h"
 #include "renderer.h"
 
@@ -72,7 +73,8 @@ int main(int argc, char* argv[])
 
 	R_Init(screenWidth, screenHeight);
 
-	Ed_Init();
+	// Ed_Init();
+	G_Init();
 
 	Uint32 lastTicks = SDL_GetTicks();
 
@@ -93,15 +95,18 @@ int main(int argc, char* argv[])
 		float elapsedMillisecs = (float)(ticks - lastTicks);
 		lastTicks = ticks;
 
-		Ed_Tick(MillisecsToSecs(elapsedMillisecs));
+		// Ed_Tick(MillisecsToSecs(elapsedMillisecs));
+		G_Tick(MillisecsToSecs(elapsedMillisecs));
 
 		R_Draw();
-		Ed_Draw();
+		// Ed_Draw();
+		G_Draw();
 
 		SDL_GL_SwapWindow(window);
 	}
 
-	Ed_Shutdown();
+	// Ed_Shutdown();
+	G_Shutdown();
 
 	R_Shutdown();
 
