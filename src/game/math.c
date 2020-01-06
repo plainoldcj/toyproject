@@ -4,6 +4,21 @@
 
 const float PI = 3.14159265f;
 
+float Absf(float x)
+{
+	return x >= 0.0f ? x : -x;
+}
+
+float Maxf(float a, float b)
+{
+	return a > b ? a : b;
+}
+
+float Minf(float a, float b)
+{
+	return a < b ? a : b;
+}
+
 float DegToRad(float deg)
 {
 	const float f = PI / 180.0f;
@@ -14,6 +29,41 @@ float RadToDeg(float rad)
 {
 	const float f = 180.0f / PI;
 	return rad * f;
+}
+
+void Vec2_SetF(struct Vec2* v, float x, float y)
+{
+	v->x = x;
+	v->y = y;
+}
+
+float Vec2_Get(const struct Vec2* v, int coord)
+{
+	return (&v->x)[coord];
+}
+
+void Vec2_Copy(struct Vec2* v, const struct Vec2* w)
+{
+	v->x = w->x;
+	v->y = w->y;
+}
+
+void Vec2_Add(struct Vec2* out, const struct Vec2* v, const struct Vec2* w)
+{
+	out->x = v->x + w->x;
+	out->y = v->y + w->y;
+}
+
+void Vec2_Sub(struct Vec2* out, const struct Vec2* v, const struct Vec2* w)
+{
+	out->x = v->x - w->x;
+	out->y = v->y - w->y;
+}
+
+void Vec2_Mul(struct Vec2* out, struct Vec2* v, float s)
+{
+	out->x = v->x * s;
+	out->y = v->y * s;
 }
 
 void Vec4_DivI(struct Vec4* v, float f)
@@ -59,4 +109,32 @@ struct Mat4 M_CreateTranslation(float x, float y, float z)
 		0.0f, 0.0f, 0.0f, 1.0f,
 	};
 	return m;
+}
+
+bool Rect_Intersect(const struct Rect* lhp, const struct Rect* rhp, struct Vec2* outPen)
+{
+	const struct Rect *a, *b;
+	float sign;
+
+	float pen[2];
+	for (int i = 0; i < 2; ++i)
+	{
+		if (Vec2_Get(&lhp->lowerLeft, i ) > Vec2_Get(&rhp->lowerLeft, i ))
+		{
+			a = rhp;
+			b = lhp;
+			sign = 1.0f;
+		}
+		else
+		{
+			a = lhp;
+			b = rhp;
+			sign = -1.0f;
+		}
+		pen[i] = sign * Maxf(0.0f, Vec2_Get(&a->upperRight, i ) - Vec2_Get(&b->lowerLeft, i ));
+	}
+
+	Vec2_SetF(outPen, pen[0], pen[1]);
+
+	return outPen->x != 0.0f && outPen->y != 0.0f;
 }

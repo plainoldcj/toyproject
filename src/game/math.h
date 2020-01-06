@@ -1,5 +1,11 @@
 #pragma once
 
+#include <stdbool.h>
+
+float Absf(float x);
+float Maxf(float a, float b);
+float Minf(float a, float b);
+
 float DegToRad(float deg);
 float RadToDeg(float rad);
 
@@ -17,6 +23,14 @@ struct Vec2
 	float x;
 	float y;
 };
+
+void	Vec2_SetF(struct Vec2* v, float x, float y);
+float	Vec2_Get(const struct Vec2* v, int coord);
+
+void Vec2_Copy(struct Vec2* v, const struct Vec2* w);
+void Vec2_Add(struct Vec2* out, const struct Vec2* v, const struct Vec2* w);
+void Vec2_Sub(struct Vec2* out, const struct Vec2* v, const struct Vec2* w);
+void Vec2_Mul(struct Vec2* out, struct Vec2* v, float s);
 
 struct Vec3
 {
@@ -46,3 +60,11 @@ struct Vec4 Mat4_MulVec(const struct Mat4* m, const struct Vec4* v);
 struct Mat4 M_CreatePerspective(float fovy, float aspect, float nearZ, float farZ);
 
 struct Mat4 M_CreateTranslation(float x, float y, float z);
+
+struct Rect
+{
+	struct Vec2 lowerLeft;
+	struct Vec2 upperRight;
+};
+
+bool Rect_Intersect(const struct Rect* lhp, const struct Rect* rhp, struct Vec2* outPen);

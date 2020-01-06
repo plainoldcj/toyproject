@@ -7,17 +7,22 @@
 struct ComponentArray s_transforms;
 struct ComponentArray s_drawables;
 struct ComponentArray s_inputs;
+struct ComponentArray s_colliders;
 
 static struct GameSystem* s_gameSystems;
 
 EntityId_t g_activeInputEntity;
 EntityId_t g_cameraEntity;
+EntityId_t g_playerEntity;
+
+static float s_physAccu = 0.0f;
 
 static void CreateComponentArrays()
 {
 	CreateComponentArray(&s_transforms, sizeof(struct Transform), NULL, NULL);
 	CreateComponentArray(&s_drawables, sizeof(struct Drawable), NULL, NULL);
 	CreateComponentArray(&s_inputs, sizeof(struct Input), NULL, NULL);
+	CreateComponentArray(&s_colliders, 0, NULL, NULL);
 }
 
 static void CreateSpecialEntities()
@@ -41,6 +46,7 @@ static void InitGameSystems()
 {
 	AddGameSystem(AcquireDrawSystem());
 	AddGameSystem(AcquireCameraSystem());
+	AddGameSystem(AcquirePhysicsSystem());
 }
 
 void Sh_Init(void)
@@ -58,6 +64,22 @@ void Sh_Shutdown(void)
 
 void Sh_Tick(float elapsedSeconds)
 {
+	s_physAccu += elapsedSeconds;
+	while (s_physAccu >= PHYS_DT)
+	{
+		struct GameSystem* sysIt = s_gameSystems;
+		while (sysIt)
+		{
+			if (sysIt->physicsTick)
+			{
+				sysIt->physicsTick();
+			}
+			sysIt = sysIt->next;
+		}
+
+		s_physAccu -= PHYS_DT;
+	}
+
 	struct GameSystem* sysIt = s_gameSystems;
 	while (sysIt)
 	{

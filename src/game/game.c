@@ -95,6 +95,8 @@ static void CreateTileEntity(float posX, float posY)
 	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
 
+	(void)AddEntityComponent(&s_colliders, entId);
+
 	transform->posX = posX;
 	transform->posY = posY;
 
@@ -116,6 +118,8 @@ static void CreatePlayerEntity(float posX, float posY)
 	drawable->hrobj = R_CreateObject(s_game.tile);
 
 	R_SetObjectMaterial(drawable->hrobj, s_game.playerMat);
+
+	g_playerEntity = entId;
 }
 
 static hrmat_t CreateMaterial(const char* tex)

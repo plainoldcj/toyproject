@@ -3,6 +3,9 @@
 #include "entity.h"
 #include "renderer.h"
 
+// Physics time-step in seconds.
+#define PHYS_DT 0.001f
+
 //==================================================
 // Components
 //==================================================
@@ -43,6 +46,7 @@ struct Input
 
 extern EntityId_t g_activeInputEntity;
 extern EntityId_t g_cameraEntity;
+extern EntityId_t g_playerEntity;
 
 //==================================================
 // Component Arrays
@@ -53,6 +57,7 @@ struct ComponentArray;
 extern struct ComponentArray s_transforms;
 extern struct ComponentArray s_drawables;
 extern struct ComponentArray s_inputs;
+extern struct ComponentArray s_colliders;
 
 //==================================================
 // Game Systems
@@ -60,6 +65,7 @@ extern struct ComponentArray s_inputs;
 
 struct GameSystem
 {
+	void(*physicsTick)(void);
 	void(*tick)(float elapsedSeconds);
 	void(*draw)(void);
 
@@ -68,6 +74,7 @@ struct GameSystem
 
 struct GameSystem* AcquireDrawSystem(void);
 struct GameSystem* AcquireCameraSystem(void);
+struct GameSystem* AcquirePhysicsSystem(void);
 
 //==================================================
 // Shared Game
