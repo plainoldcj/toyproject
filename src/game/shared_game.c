@@ -34,6 +34,8 @@ static void CreateSpecialEntities()
 	g_cameraEntity = CreateEntity();
 	struct Transform* transform = AddEntityComponent(&s_transforms, g_cameraEntity);
 	memset(transform, 0, sizeof(struct Transform));
+	transform->posX = 2.0f;
+	transform->posY = 2.0f;
 }
 
 static void AddGameSystem(struct GameSystem* gameSystem)

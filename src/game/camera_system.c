@@ -9,6 +9,7 @@ static struct GameSystem s_gameSystem;
 
 static void Tick(float elapsedSeconds)
 {
+#if 0
 	struct Transform* cameraTransform = FindComponent(&s_transforms, g_cameraEntity);
 	struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
 	assert(cameraTransform && input);
@@ -34,6 +35,7 @@ static void Tick(float elapsedSeconds)
 	{
 		cameraTransform->posY -= delta;
 	}
+#endif
 }
 
 static void Draw(void)
