@@ -28,6 +28,11 @@ struct Transform
 	char teststring[256];
 };
 
+struct Bomb
+{
+	float age;
+};
+
 struct Drawable
 {
 	hrobj_t hrobj;
@@ -72,6 +77,7 @@ extern struct ComponentArray s_drawables;
 extern struct ComponentArray s_inputs;
 extern struct ComponentArray s_colliders;
 extern struct ComponentArray s_triggers;
+extern struct ComponentArray s_bombs;
 
 //==================================================
 // Game Systems
@@ -81,7 +87,8 @@ extern struct ComponentArray s_triggers;
 	FOR_GAMESYSTEM(DrawSystem)\
 	FOR_GAMESYSTEM(CameraSystem)\
 	FOR_GAMESYSTEM(PhysicsSystem)\
-	FOR_GAMESYSTEM(TriggerSystem)
+	FOR_GAMESYSTEM(TriggerSystem)\
+	FOR_GAMESYSTEM(BombSystem)
 
 struct GameSystem
 {
@@ -106,3 +113,5 @@ void Sh_Init(void);
 void Sh_Shutdown(void);
 void Sh_Tick(float elapsedTime);
 void Sh_Draw(void);
+
+void DeleteLater(EntityId_t entId);

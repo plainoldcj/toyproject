@@ -9,6 +9,7 @@ struct ComponentArray s_drawables;
 struct ComponentArray s_inputs;
 struct ComponentArray s_colliders;
 struct ComponentArray s_triggers;
+struct ComponentArray s_bombs;
 
 static struct GameSystem* s_gameSystems;
 
@@ -18,6 +19,9 @@ EntityId_t g_playerEntity;
 
 static float s_physAccu = 0.0f;
 
+static EntityId_t s_deathRow[64];
+int s_deathRowCount;
+
 static void CreateComponentArrays()
 {
 	CreateComponentArray(&s_transforms, sizeof(struct Transform), NULL, NULL);
@@ -25,6 +29,7 @@ static void CreateComponentArrays()
 	CreateComponentArray(&s_inputs, sizeof(struct Input), NULL, NULL);
 	CreateComponentArray(&s_colliders, 0, NULL, NULL);
 	CreateComponentArray(&s_triggers, sizeof(struct Trigger), NULL, NULL);
+	CreateComponentArray(&s_bombs, sizeof(struct Bomb), NULL, NULL);
 }
 
 static void CreateSpecialEntities()
@@ -93,6 +98,13 @@ void Sh_Tick(float elapsedSeconds)
 		}
 		sysIt = sysIt->next;
 	}
+
+	// Kill all entities.
+	for (int i = 0; i < s_deathRowCount; ++i)
+	{
+		RemoveAllEntityComponents(s_deathRow[i]);
+	}
+	s_deathRowCount = 0;
 }
 
 void Sh_Draw()
@@ -122,4 +134,9 @@ void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink)
 	Vec2_SetF(&rect->lowerLeft, shrink, shrink);
 	Vec2_SetF(&rect->upperRight, 1.0f - shrink, 1.0f - shrink);
 	Rect_Translate(rect, posX, posY);
+}
+
+void DeleteLater(EntityId_t entId)
+{
+	s_deathRow[s_deathRowCount++] = entId;
 }
