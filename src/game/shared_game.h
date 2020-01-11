@@ -49,6 +49,7 @@ enum
 	BUTTON_UP,
 	BUTTON_RIGHT,
 	BUTTON_DOWN,
+	BUTTON_DROP_BOMB,
 
 	BUTTON_COUNT
 };
@@ -88,7 +89,8 @@ extern struct ComponentArray s_bombs;
 	FOR_GAMESYSTEM(CameraSystem)\
 	FOR_GAMESYSTEM(PhysicsSystem)\
 	FOR_GAMESYSTEM(TriggerSystem)\
-	FOR_GAMESYSTEM(BombSystem)
+	FOR_GAMESYSTEM(BombSystem)\
+	FOR_GAMESYSTEM(PlayerSystem)
 
 struct GameSystem
 {

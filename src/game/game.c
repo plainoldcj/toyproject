@@ -32,6 +32,7 @@ static struct
 
 	hrmat_t playerMat;
 	hrmat_t wallMat;
+	hrmat_t bombMat;
 
 	EntityId_t tilemap[MAX_TILE_COUNT];
 } s_game;
@@ -258,10 +259,18 @@ static void InstantiateMap(const struct MapDesc* map)
 	}
 }
 
+void G_SetBomb(struct Drawable* drawable)
+{
+	drawable->hrobj = R_CreateObject(s_game.tile);
+
+	R_SetObjectMaterial(drawable->hrobj, s_game.bombMat);
+}
+
 void G_Init(void)
 {
 	s_game.playerMat = CreateMaterial("player2.tga");
 	s_game.wallMat = CreateMaterial("wall.tga");
+	s_game.bombMat = CreateMaterial("bomb.tga");
 	CreateTile();
 
 	Sh_Init();

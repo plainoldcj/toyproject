@@ -47,6 +47,9 @@ static void FillInput(SDL_Event* event)
 			case SDLK_DOWN:
 				input->buttons[BUTTON_DOWN] = 1;
 				break;
+			case SDLK_SPACE:
+				input->buttons[BUTTON_DROP_BOMB] = 1;
+				break;
 			default:
 				break;
 		}
@@ -64,8 +67,8 @@ static void FillInput(SDL_Event* event)
 			case SDLK_RIGHT:
 				input->buttons[BUTTON_RIGHT] = 0;
 				break;
-			case SDLK_DOWN:
-				input->buttons[BUTTON_DOWN] = 0;
+			case SDLK_SPACE:
+				input->buttons[BUTTON_DROP_BOMB] = 0;
 				break;
 			default:
 				break;
