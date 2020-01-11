@@ -63,6 +63,11 @@ extern struct ComponentArray s_colliders;
 // Game Systems
 //==================================================
 
+#define FORALL_GAMESYSTEMS\
+	FOR_GAMESYSTEM(DrawSystem)\
+	FOR_GAMESYSTEM(CameraSystem)\
+	FOR_GAMESYSTEM(PhysicsSystem)
+
 struct GameSystem
 {
 	void(*physicsTick)(void);
@@ -72,9 +77,11 @@ struct GameSystem
 	struct GameSystem* next;
 };
 
-struct GameSystem* AcquireDrawSystem(void);
-struct GameSystem* AcquireCameraSystem(void);
-struct GameSystem* AcquirePhysicsSystem(void);
+// Function prototypes
+
+#define FOR_GAMESYSTEM(x) struct GameSystem* Acquire##x(void);
+FORALL_GAMESYSTEMS
+#undef FOR_GAMESYSTEM
 
 //==================================================
 // Shared Game

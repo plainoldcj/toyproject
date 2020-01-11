@@ -44,9 +44,9 @@ static void AddGameSystem(struct GameSystem* gameSystem)
 
 static void InitGameSystems()
 {
-	AddGameSystem(AcquireDrawSystem());
-	AddGameSystem(AcquireCameraSystem());
-	AddGameSystem(AcquirePhysicsSystem());
+#define FOR_GAMESYSTEM(x) AddGameSystem(Acquire##x());
+	FORALL_GAMESYSTEMS
+#undef FOR_GAMESYSTEM
 }
 
 void Sh_Init(void)
