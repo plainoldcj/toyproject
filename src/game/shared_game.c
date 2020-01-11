@@ -1,5 +1,5 @@
+#include "math.h"
 #include "renderer.h"
-
 #include "shared_game.h"
 
 #include <string.h>
@@ -8,6 +8,7 @@ struct ComponentArray s_transforms;
 struct ComponentArray s_drawables;
 struct ComponentArray s_inputs;
 struct ComponentArray s_colliders;
+struct ComponentArray s_triggers;
 
 static struct GameSystem* s_gameSystems;
 
@@ -23,6 +24,7 @@ static void CreateComponentArrays()
 	CreateComponentArray(&s_drawables, sizeof(struct Drawable), NULL, NULL);
 	CreateComponentArray(&s_inputs, sizeof(struct Input), NULL, NULL);
 	CreateComponentArray(&s_colliders, 0, NULL, NULL);
+	CreateComponentArray(&s_triggers, sizeof(struct Trigger), NULL, NULL);
 }
 
 static void CreateSpecialEntities()
@@ -104,4 +106,20 @@ void Sh_Draw()
 		}
 		sysIt = sysIt->next;
 	}
+}
+
+static void Rect_Translate(struct Rect* rect, float x, float y)
+{
+	rect->lowerLeft.x += x;
+	rect->lowerLeft.y += y;
+
+	rect->upperRight.x += x;
+	rect->upperRight.y += y;
+}
+
+void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink)
+{
+	Vec2_SetF(&rect->lowerLeft, shrink, shrink);
+	Vec2_SetF(&rect->upperRight, 1.0f - shrink, 1.0f - shrink);
+	Rect_Translate(rect, posX, posY);
 }

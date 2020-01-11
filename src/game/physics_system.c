@@ -5,10 +5,6 @@
 
 #define TILE_SIZE 1.0f
 
-#define PLAYER_SHRINK 0.1f
-
-#define CB_ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
-
 /*
 gravity -20.000000
 playerJumpVelocity 11.042001
@@ -27,22 +23,6 @@ struct Player
 } g_player;
 
 static struct GameSystem s_gameSystem;
-
-static void Rect_Translate(struct Rect* rect, float x, float y)
-{
-	rect->lowerLeft.x += x;
-	rect->lowerLeft.y += y;
-
-	rect->upperRight.x += x;
-	rect->upperRight.y += y;
-}
-
-static void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink)
-{
-	Vec2_SetF(&rect->lowerLeft, shrink, shrink);
-	Vec2_SetF(&rect->upperRight, 1.0f - shrink, 1.0f - shrink);
-	Rect_Translate(rect, posX, posY);
-}
 
 static bool Player_IntersectsColliders(struct Vec2* outPen)
 {

@@ -3,8 +3,16 @@
 #include "entity.h"
 #include "renderer.h"
 
+struct Rect;
+
 // Physics time-step in seconds.
 #define PHYS_DT 0.001f
+
+#define PLAYER_SHRINK 0.1f
+
+#define CB_ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
+
+void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink);
 
 //==================================================
 // Components
@@ -23,6 +31,11 @@ struct Transform
 struct Drawable
 {
 	hrobj_t hrobj;
+};
+
+struct Trigger
+{
+	bool isPlayerTouching;
 };
 
 enum
@@ -58,6 +71,7 @@ extern struct ComponentArray s_transforms;
 extern struct ComponentArray s_drawables;
 extern struct ComponentArray s_inputs;
 extern struct ComponentArray s_colliders;
+extern struct ComponentArray s_triggers;
 
 //==================================================
 // Game Systems
@@ -66,7 +80,8 @@ extern struct ComponentArray s_colliders;
 #define FORALL_GAMESYSTEMS\
 	FOR_GAMESYSTEM(DrawSystem)\
 	FOR_GAMESYSTEM(CameraSystem)\
-	FOR_GAMESYSTEM(PhysicsSystem)
+	FOR_GAMESYSTEM(PhysicsSystem)\
+	FOR_GAMESYSTEM(TriggerSystem)
 
 struct GameSystem
 {
