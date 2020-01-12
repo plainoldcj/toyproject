@@ -112,6 +112,9 @@ static void CreatePlayerEntity(float posX, float posY)
 
 	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
+	struct Player* player = AddEntityComponent(&s_players, entId);
+
+	memset(player, 0, sizeof(struct Player));
 
 	transform->posX = posX;
 	transform->posY = posY;

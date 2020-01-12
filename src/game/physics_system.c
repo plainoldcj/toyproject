@@ -13,15 +13,6 @@ playerDropBombTimeout 0.521000
 bombLifetime 1.901000
 */
 
-// TODO(cj): Move this to a component.
-struct Player
-{
-	struct Vec2 accel;
-	struct Vec2 vel;
-
-	bool isWedged;
-} g_player;
-
 static struct GameSystem s_gameSystem;
 
 static bool Player_IntersectsColliders(struct Vec2* outPen)
@@ -102,18 +93,19 @@ static void Player_GetInputVel(struct Vec2* vel)
 static void UpdatePlayerGravity()
 {
 	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
+	struct Player* player = FindComponent(&s_players, g_playerEntity);
 
 	struct Vec2 gravity;
 	Vec2_SetF(&gravity, 0.0f, -20.000000f /* g_gameConfig.gravity */);
 
 	struct Vec2 a_dt;
-	Vec2_Add(&a_dt, &g_player.accel, &gravity);
+	Vec2_Add(&a_dt, &player->accel, &gravity);
 	Vec2_Mul(&a_dt, &a_dt, PHYS_DT);
 
-	Vec2_Add(&g_player.vel, &g_player.vel, &a_dt);
+	Vec2_Add(&player->vel, &player->vel, &a_dt);
 
-	playerTransform->posX += PHYS_DT * g_player.vel.x;
-	playerTransform->posY += PHYS_DT * g_player.vel.y;
+	playerTransform->posX += PHYS_DT * player->vel.x;
+	playerTransform->posY += PHYS_DT * player->vel.y;
 
 	struct Vec2 inputVel;
 	Player_GetInputVel(&inputVel);
@@ -242,28 +234,30 @@ static bool Player_IsTouchingUp()
 
 static void UpdatePlayerPhysicsTick()
 {
+	struct Player* player = FindComponent(&s_players, g_playerEntity);
+
 	bool isTouchingDown = Player_IsTouchingDown();
 	bool isTouchingUp = Player_IsTouchingUp();
 
 	if (isTouchingDown)
 	{
-		if (g_player.vel.y < 0.0f)
+		if (player->vel.y < 0.0f)
 		{
-			g_player.vel.y = 0.0f;
+			player->vel.y = 0.0f;
 		}
 
-		g_player.vel.y = 11.042001f; // g_gameConfig.playerJumpVelocity;
+		player->vel.y = 11.042001f; // g_gameConfig.playerJumpVelocity;
 	}
 
 	if (isTouchingUp)
 	{
-		if (g_player.vel.y > 0.0f)
+		if (player->vel.y > 0.0f)
 		{
-			g_player.vel.y = 0.0f;
+			player->vel.y = 0.0f;
 		}
 	}
 
-	g_player.isWedged = isTouchingUp && isTouchingDown;
+	player->isWedged = isTouchingUp && isTouchingDown;
 }
 
 static void PhysicsTick()
@@ -272,9 +266,9 @@ static void PhysicsTick()
 	UpdatePlayerPhysicsTick();
 }
 
+#if 0
 static void DrawPlayerProbes(const struct Player* player)
 {
-#if 0
 	struct Vec2 probes[2];
 
 	struct Transform* playerTransform = FindComponent(&s_transforms, s_playerEntId);
@@ -295,25 +289,25 @@ static void DrawPlayerProbes(const struct Player* player)
 	{
 		DrawPoint(&probes[i]);
 	}
-#endif
 }
+#endif
 
+#if 0
 static void DrawPlayerCollisionRect(const struct Player* player)
 {
-#if 0
 	struct Transform* playerTransform = FindComponent(&s_transforms, s_playerEntId);
 
 	struct Rect collisionRect;
 	GetCollisionRect(playerTransform->posX, playerTransform->posY, &collisionRect, PLAYER_SHRINK);
 
 	DrawRect(&collisionRect);
-#endif
 }
+#endif
 
 static void Draw()
 {
-	DrawPlayerProbes(&g_player);
-	DrawPlayerCollisionRect(&g_player);
+	// DrawPlayerProbes(&g_player);
+	// DrawPlayerCollisionRect(&g_player);
 }
 
 struct GameSystem* AcquirePhysicsSystem()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.h"
+#include "math.h"
 #include "renderer.h"
 
 struct Rect;
@@ -59,6 +60,16 @@ struct Input
 	int buttons[BUTTON_COUNT];
 };
 
+struct Player
+{
+	struct Vec2	accel;
+	struct Vec2	vel;
+
+	bool		isWedged;
+
+	float		bombTimeout;
+};
+
 //==================================================
 // Well-known entities
 //==================================================
@@ -79,6 +90,7 @@ extern struct ComponentArray s_inputs;
 extern struct ComponentArray s_colliders;
 extern struct ComponentArray s_triggers;
 extern struct ComponentArray s_bombs;
+extern struct ComponentArray s_players;
 
 //==================================================
 // Game Systems

@@ -6,11 +6,6 @@
 
 static struct GameSystem s_gameSystem;
 
-struct Player
-{
-	float bombTimeout;
-} g_player;
-
 void Rect_GetCenter(const struct Rect* rect, struct Vec2* outCenter)
 {
 	struct Vec2 size, halfSize;
@@ -71,23 +66,25 @@ static void SpawnBomb(const struct Vec2* playerPos)
 
 static void Player_Tick(float elapsedSeconds)
 {
-	g_player.bombTimeout -= elapsedSeconds;
-	if (g_player.bombTimeout < 0.0f)
+	struct Player* player = FindComponent(&s_players, g_playerEntity);
+
+	player->bombTimeout -= elapsedSeconds;
+	if (player->bombTimeout < 0.0f)
 	{
-		g_player.bombTimeout = 0.0f;
+		player->bombTimeout = 0.0f;
 	}
 
 	const struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
 	assert(input);
 
-	if (g_player.bombTimeout == 0.0f && input->buttons[BUTTON_DROP_BOMB])
+	if (player->bombTimeout == 0.0f && input->buttons[BUTTON_DROP_BOMB])
 	{
 		struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
 
 		struct Vec2 playerPos = { playerTransform->posX, playerTransform->posY };
 		SpawnBomb(&playerPos);
 
-		g_player.bombTimeout = 0.5f /* g_gameConfig.playerDropBombTimeout */;
+		player->bombTimeout = 0.5f /* g_gameConfig.playerDropBombTimeout */;
 	}
 }
 
