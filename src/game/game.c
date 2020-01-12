@@ -143,7 +143,7 @@ static void LoadMap(struct MapDesc* map, const char* assetPath)
 		exit(1);
 	}
 
-	for(int row = 0; row < map->rowCount; ++row)
+	for(int row = map->rowCount - 1; row >= 0; --row)
 	{
 		// Read next line.
 		it = GetLine(it, line, sizeof(line));
