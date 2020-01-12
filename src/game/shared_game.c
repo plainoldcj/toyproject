@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "shared_game.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 struct ComponentArray s_transforms;
@@ -22,6 +23,57 @@ static float s_physAccu = 0.0f;
 
 static EntityId_t s_deathRow[64];
 int s_deathRowCount;
+
+static hrmesh_t s_tile;
+
+static void CreateTile()
+{
+	const float size = TILE_SIZE;
+	// TODO(cj): Index drawing maybe?
+	struct Vec2 pos[] =
+	{
+		{ 0.0f, 0.0f },
+		{ size, 0.0f },
+		{ size, size },
+
+		{ 0.0f, 0.0f },
+		{ size, size },
+		{ 0.0f, size }
+	};
+
+	struct Vec2 texCoord[] =
+	{
+		{ 0.0f, 0.0f },
+		{ 1.0f, 0.0f },
+		{ 1.0f, 1.0f },
+
+		{ 0.0f, 0.0f },
+		{ 1.0f, 1.0f },
+		{ 0.0f, 1.0f }
+	};
+
+	struct Vertex* vertices = malloc(sizeof(struct Vertex) * 6);
+
+	for(int i = 0; i < 6; ++i)
+	{
+		vertices[i].pos[0] = pos[i].x;
+		vertices[i].pos[1] = pos[i].y;
+
+		vertices[i].texCoord[0] = texCoord[i].x;
+		vertices[i].texCoord[1] = texCoord[i].y;
+	}
+
+	struct Mesh mesh;
+	mesh.prim = ePrim_Triangles;
+	mesh.attrib = VATT_POS | VATT_TEXCOORD;
+	mesh.vertexCount = 6;
+	mesh.vertices = vertices;
+
+	s_tile = R_CreateMesh(&mesh);
+
+	free(vertices); // TODO(cj): Remove malloc.
+}
+
 
 static void CreateComponentArrays()
 {
@@ -66,10 +118,14 @@ void Sh_Init(void)
 	InitGameSystems();
 
 	CreateSpecialEntities();
+
+	CreateTile();
 }
 
 void Sh_Shutdown(void)
 {
+	R_ReleaseMesh(s_tile);
+
 	DestroyAllComponentArrays();
 }
 
@@ -141,4 +197,9 @@ void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink)
 void DeleteLater(EntityId_t entId)
 {
 	s_deathRow[s_deathRowCount++] = entId;
+}
+
+hrmesh_t GetTileMesh(void)
+{
+	return s_tile;
 }

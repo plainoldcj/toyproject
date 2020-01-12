@@ -6,6 +6,8 @@
 
 struct Rect;
 
+#define TILE_SIZE 1.0f
+
 // Physics time-step in seconds.
 #define PHYS_DT 0.001f
 
@@ -131,3 +133,5 @@ void Sh_Tick(float elapsedTime);
 void Sh_Draw(void);
 
 void DeleteLater(EntityId_t entId);
+
+hrmesh_t GetTileMesh(void);

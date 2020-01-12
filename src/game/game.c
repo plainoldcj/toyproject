@@ -28,8 +28,6 @@ static struct
 {
 	struct MapDesc mapDesc;
 
-	hrmesh_t tile;
-
 	hrmat_t playerMat;
 	hrmat_t wallMat;
 	hrmat_t bombMat;
@@ -38,56 +36,6 @@ static struct
 } s_game;
 
 // BEGIN duplicated code from editor.c
-
-#define TILE_SIZE 1.0f
-
-static void CreateTile()
-{
-	const float size = TILE_SIZE;
-	// TODO(cj): Index drawing maybe?
-	struct Vec2 pos[] =
-	{
-		{ 0.0f, 0.0f },
-		{ size, 0.0f },
-		{ size, size },
-
-		{ 0.0f, 0.0f },
-		{ size, size },
-		{ 0.0f, size }
-	};
-
-	struct Vec2 texCoord[] =
-	{
-		{ 0.0f, 0.0f },
-		{ 1.0f, 0.0f },
-		{ 1.0f, 1.0f },
-
-		{ 0.0f, 0.0f },
-		{ 1.0f, 1.0f },
-		{ 0.0f, 1.0f }
-	};
-
-	struct Vertex* vertices = malloc(sizeof(struct Vertex) * 6);
-
-	for(int i = 0; i < 6; ++i)
-	{
-		vertices[i].pos[0] = pos[i].x;
-		vertices[i].pos[1] = pos[i].y;
-
-		vertices[i].texCoord[0] = texCoord[i].x;
-		vertices[i].texCoord[1] = texCoord[i].y;
-	}
-
-	struct Mesh mesh;
-	mesh.prim = ePrim_Triangles;
-	mesh.attrib = VATT_POS | VATT_TEXCOORD;
-	mesh.vertexCount = 6;
-	mesh.vertices = vertices;
-
-	s_game.tile = R_CreateMesh(&mesh);
-
-	free(vertices); // TODO(cj): Remove malloc.
-}
 
 static void CreateTileEntity(float posX, float posY)
 {
@@ -101,7 +49,7 @@ static void CreateTileEntity(float posX, float posY)
 	transform->posX = posX;
 	transform->posY = posY;
 
-	drawable->hrobj = R_CreateObject(s_game.tile);
+	drawable->hrobj = R_CreateObject(GetTileMesh());
 
 	R_SetObjectMaterial(drawable->hrobj, s_game.wallMat);
 }
@@ -119,7 +67,7 @@ static void CreatePlayerEntity(float posX, float posY)
 	transform->posX = posX;
 	transform->posY = posY;
 
-	drawable->hrobj = R_CreateObject(s_game.tile);
+	drawable->hrobj = R_CreateObject(GetTileMesh());
 
 	R_SetObjectMaterial(drawable->hrobj, s_game.playerMat);
 
@@ -264,7 +212,7 @@ static void InstantiateMap(const struct MapDesc* map)
 
 void G_SetBomb(struct Drawable* drawable)
 {
-	drawable->hrobj = R_CreateObject(s_game.tile);
+	drawable->hrobj = R_CreateObject(GetTileMesh());
 
 	R_SetObjectMaterial(drawable->hrobj, s_game.bombMat);
 }
@@ -274,7 +222,6 @@ void G_Init(void)
 	s_game.playerMat = CreateMaterial("player2.tga");
 	s_game.wallMat = CreateMaterial("wall.tga");
 	s_game.bombMat = CreateMaterial("bomb.tga");
-	CreateTile();
 
 	Sh_Init();
 
@@ -288,7 +235,6 @@ void G_Shutdown(void)
 	Sh_Shutdown();
 
 	R_DestroyMaterial(s_game.wallMat);
-	R_ReleaseMesh(s_game.tile);
 }
 
 void G_Tick(float elapsedSeconds)
