@@ -14,8 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_TILE_COUNT 128
-
 #define WALL_TILE 'x'
 #define PLAYER_TILE 'p'
 
@@ -33,13 +31,11 @@ static struct
 	hrmat_t playerMat;
 	hrmat_t wallMat;
 	hrmat_t bombMat;
-
-	EntityId_t tilemap[MAX_TILE_COUNT];
 } s_game;
 
 // BEGIN duplicated code from editor.c
 
-static void CreateTileEntity(float posX, float posY)
+static void CreateTileEntity(float posX, float posY, uint16_t row, uint16_t col)
 {
 	EntityId_t entId = CreateEntity();
 
@@ -47,6 +43,11 @@ static void CreateTileEntity(float posX, float posY)
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
 
 	(void)AddEntityComponent(&s_colliders, entId);
+
+	struct Tile* tile = AddEntityComponent(&s_tiles, entId);
+	tile->row = row;
+	tile->col = col;
+	g_tilemap.tiles[g_tilemap.rowCount * tile->row + tile->col] = entId;
 
 	transform->posX = posX;
 	transform->posY = posY;
@@ -164,6 +165,13 @@ static void LoadMap(struct MapDesc* map, const char* assetPath)
 
 static void InstantiateMap(const struct MapDesc* map)
 {
+	for(int i = 0; i < MAX_TILE_COUNT; ++i)
+	{
+		g_tilemap.tiles[i] = 0;
+	}
+	g_tilemap.rowCount = map->rowCount;
+	g_tilemap.colCount = map->colCount;
+
 	for(int row = 0; row < map->rowCount; ++row)
 	{
 		for(int col = 0; col < map->colCount; ++col)
@@ -175,7 +183,7 @@ static void InstantiateMap(const struct MapDesc* map)
 
 			if(ent == 'x')
 			{
-				CreateTileEntity(posX, posY);
+				CreateTileEntity(posX, posY, (uint16_t)row, (uint16_t)col);
 			}
 			else if(ent == 'p')
 			{

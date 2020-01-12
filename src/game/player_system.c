@@ -48,6 +48,7 @@ static void SpawnBomb(const struct Vec2* playerPos)
 	struct Bomb* newBomb = AddEntityComponent(&s_bombs, entId);
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
 	struct Trigger* trigger = AddEntityComponent(&s_triggers, entId);
+	struct Tile* tile = AddEntityComponent(&s_tiles, entId);
 
 	// TODO(cj): We know that bombs are spawned at the player position and thus touch the player.
 	// We need to initialize this field because bombs are spawned during the player system tick
@@ -60,6 +61,10 @@ static void SpawnBomb(const struct Vec2* playerPos)
 	newBomb->age = 0.0f;
 	transform->posX = bombPos.x;
 	transform->posY = bombPos.y;
+
+	tile->row = (uint16_t)bombPos.y;
+	tile->col = (uint16_t)bombPos.x;
+	printf("create at %d, %d\n", tile->row, tile->col);
 
 	// AcquireMaterial(&drawable->material, eMaterialId_Bomb);
 	// drawable->posZ = 0.0f;

@@ -18,6 +18,21 @@ struct Rect;
 void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink);
 
 //==================================================
+// Tilemap
+//==================================================
+
+#define MAX_TILE_COUNT 128
+
+struct Tilemap
+{
+	EntityId_t	tiles[MAX_TILE_COUNT];
+	uint16_t	rowCount;
+	uint16_t	colCount;
+};
+
+extern struct Tilemap g_tilemap;
+
+//==================================================
 // Components
 //==================================================
 
@@ -29,6 +44,12 @@ struct Transform
 
 	float testpos[2];
 	char teststring[256];
+};
+
+struct Tile
+{
+	uint16_t row;
+	uint16_t col;
 };
 
 struct Bomb
@@ -89,6 +110,7 @@ extern EntityId_t g_playerEntity;
 struct ComponentArray;
 
 extern struct ComponentArray s_transforms;
+extern struct ComponentArray s_tiles;
 extern struct ComponentArray s_drawables;
 extern struct ComponentArray s_inputs;
 extern struct ComponentArray s_colliders;

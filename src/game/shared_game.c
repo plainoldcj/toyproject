@@ -12,6 +12,7 @@ struct ComponentArray s_colliders;
 struct ComponentArray s_triggers;
 struct ComponentArray s_bombs;
 struct ComponentArray s_players;
+struct ComponentArray s_tiles;
 
 static struct GameSystem* s_gameSystems;
 
@@ -25,6 +26,8 @@ static EntityId_t s_deathRow[64];
 int s_deathRowCount;
 
 static hrmesh_t s_tile;
+
+struct Tilemap g_tilemap;
 
 static void CreateTile()
 {
@@ -84,6 +87,7 @@ static void CreateComponentArrays()
 	CreateComponentArray(&s_triggers, sizeof(struct Trigger), NULL, NULL);
 	CreateComponentArray(&s_bombs, sizeof(struct Bomb), NULL, NULL);
 	CreateComponentArray(&s_players, sizeof(struct Player), NULL, NULL);
+	CreateComponentArray(&s_tiles, sizeof(struct Tile), NULL, NULL);
 }
 
 static void CreateSpecialEntities()
@@ -160,6 +164,12 @@ void Sh_Tick(float elapsedSeconds)
 	// Kill all entities.
 	for (int i = 0; i < s_deathRowCount; ++i)
 	{
+		struct Tile* tile = FindComponent(&s_tiles, s_deathRow[i]);
+		if(tile)
+		{
+			g_tilemap.tiles[g_tilemap.rowCount * tile->row + tile->col] = 0;
+		}
+
 		RemoveAllEntityComponents(s_deathRow[i]);
 	}
 	s_deathRowCount = 0;
