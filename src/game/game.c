@@ -1,8 +1,10 @@
 #include "game.h"
+#include "renderer.h"
 
 #include "assets.h"
 #include "common.h"
 #include "entity.h"
+#include "material_manager.h"
 #include "math.h"
 #include "shared_game.h"
 #include "tga_image.h"
@@ -72,33 +74,6 @@ static void CreatePlayerEntity(float posX, float posY)
 	R_SetObjectMaterial(drawable->hrobj, s_game.playerMat);
 
 	g_playerEntity = entId;
-}
-
-static hrmat_t CreateMaterial(const char* tex)
-{
-	struct Asset* asset = AcquireAsset(tex);
-	struct Image image;
-
-	(void)LoadImageFromMemoryTGA(
-		&image,
-		Asset_GetData(asset),
-		Asset_GetSize(asset));
-
-	hrtex_t diffuseTex = R_CreateTexture(&image);
-
-	struct Material mat;
-	memset(&mat, 0, sizeof(struct Material));
-	strcpy(mat.vertShader, "vert.glsl");
-	strcpy(mat.fragShader, "frag.glsl");
-	mat.diffuseTex = diffuseTex;
-
-	hrmat_t hrmat = R_CreateMaterial(&mat);
-
-	R_DestroyTexture(diffuseTex);
-
-	ReleaseAsset(asset);
-
-	return hrmat;
 }
 
 // END duplicated code
@@ -210,18 +185,11 @@ static void InstantiateMap(const struct MapDesc* map)
 	}
 }
 
-void G_SetBomb(struct Drawable* drawable)
-{
-	drawable->hrobj = R_CreateObject(GetTileMesh());
-
-	R_SetObjectMaterial(drawable->hrobj, s_game.bombMat);
-}
-
 void G_Init(void)
 {
-	s_game.playerMat = CreateMaterial("player2.tga");
-	s_game.wallMat = CreateMaterial("wall.tga");
-	s_game.bombMat = CreateMaterial("bomb.tga");
+	s_game.playerMat = Materials_Get(MAT_PLAYER);
+	s_game.wallMat = Materials_Get(MAT_WALL);
+	s_game.bombMat = Materials_Get(MAT_BOMB);
 
 	Sh_Init();
 

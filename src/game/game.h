@@ -6,5 +6,3 @@ void G_Tick(float elapsedSeconds);
 void G_Draw(void);
 
 struct Drawable;
-
-void G_SetBomb(struct Drawable* drawable);

@@ -1,5 +1,8 @@
+#include "renderer.h"
+
 #include "game.h"
 #include "math.h"
+#include "material_manager.h"
 #include "shared_game.h"
 
 #include <assert.h>
@@ -60,7 +63,8 @@ static void SpawnBomb(const struct Vec2* playerPos)
 
 	// AcquireMaterial(&drawable->material, eMaterialId_Bomb);
 	// drawable->posZ = 0.0f;
-	G_SetBomb(drawable);
+	drawable->hrobj = R_CreateObject(GetTileMesh());
+	R_SetObjectMaterial(drawable->hrobj, Materials_Get(MAT_BOMB));
 }
 
 static float Player_GetInputVel()
