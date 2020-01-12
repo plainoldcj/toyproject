@@ -65,6 +65,8 @@ struct Player
 	struct Vec2	accel;
 	struct Vec2	vel;
 
+	float		inputVelX;
+
 	bool		isWedged;
 
 	float		bombTimeout;

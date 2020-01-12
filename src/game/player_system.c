@@ -63,6 +63,27 @@ static void SpawnBomb(const struct Vec2* playerPos)
 	G_SetBomb(drawable);
 }
 
+static float Player_GetInputVel()
+{
+	const float speed = 2.396000f; // g_gameConfig.playerMovementVelocity;
+
+	float velX = 0.0f;
+
+	const struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
+	assert(input);
+
+	if(input->buttons[BUTTON_LEFT])
+	{
+		velX -= speed;
+	}
+
+	if(input->buttons[BUTTON_RIGHT])
+	{
+		velX += speed;
+	}
+
+	return velX;
+}
 
 static void Player_Tick(float elapsedSeconds)
 {
@@ -86,6 +107,8 @@ static void Player_Tick(float elapsedSeconds)
 
 		player->bombTimeout = 0.5f /* g_gameConfig.playerDropBombTimeout */;
 	}
+
+	player->inputVelX = Player_GetInputVel();
 }
 
 struct GameSystem* AcquirePlayerSystem()

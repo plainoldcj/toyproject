@@ -69,27 +69,6 @@ static bool Player_IntersectsColliders(struct Vec2* outPen)
 	return outPen->x != 0.0f || outPen->y != 0.0f;
 }
 
-
-static void Player_GetInputVel(struct Vec2* vel)
-{
-	const float speed = 2.396000f; // g_gameConfig.playerMovementVelocity;
-
-	Vec2_SetF(vel, 0.0f, 0.0f);
-
-	const struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
-	assert(input);
-
-	if(input->buttons[BUTTON_LEFT])
-	{
-		vel->x -= speed;
-	}
-
-	if(input->buttons[BUTTON_RIGHT])
-	{
-		vel->x += speed;
-	}
-}
-
 static void UpdatePlayerGravity()
 {
 	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
@@ -107,11 +86,7 @@ static void UpdatePlayerGravity()
 	playerTransform->posX += PHYS_DT * player->vel.x;
 	playerTransform->posY += PHYS_DT * player->vel.y;
 
-	struct Vec2 inputVel;
-	Player_GetInputVel(&inputVel);
-
-	playerTransform->posX += PHYS_DT * inputVel.x;
-	playerTransform->posY += PHYS_DT * inputVel.y;
+	playerTransform->posX += PHYS_DT * player->inputVelX;
 
 	struct Vec2 pen;
 	struct Vec2 sep;
