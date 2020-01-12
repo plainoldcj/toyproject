@@ -97,17 +97,6 @@ static void Player_GetInputVel(struct Vec2* vel)
 	{
 		vel->x += speed;
 	}
-
-	/*
-	if (g_input.left)
-	{
-		vel->x -= speed;
-	}
-	if (g_input.right)
-	{
-		vel->x += speed;
-	}
-	*/
 }
 
 static void UpdatePlayerGravity()
@@ -116,13 +105,6 @@ static void UpdatePlayerGravity()
 
 	struct Vec2 gravity;
 	Vec2_SetF(&gravity, 0.0f, -20.000000f /* g_gameConfig.gravity */);
-
-	struct Vec2 oldPos;
-	struct Vec2 oldVel;
-	// Vec2_Copy(&oldPos, &playerTransform->pos);
-	Vec2_SetF(&oldPos, playerTransform->posX, playerTransform->posY);
-	Vec2_Copy(&oldVel, &g_player.vel);
-
 
 	struct Vec2 a_dt;
 	Vec2_Add(&a_dt, &g_player.accel, &gravity);

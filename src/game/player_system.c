@@ -91,26 +91,8 @@ static void Player_Tick(float elapsedSeconds)
 	}
 }
 
-#if 0
-static void DrawPlayerDebugGui()
-{
-	struct Transform* playerTransform = FindComponent(&s_transforms, s_playerEntId);
-
-	Gui_BeginWindow("Player");
-	Gui_FloatValue("Position X", playerTransform->pos.x);
-	Gui_FloatValue("Position Y", playerTransform->pos.y);
-	Gui_FloatValue("Velocity X", g_player.vel.x);
-	Gui_FloatValue("Velocity Y", g_player.vel.y);
-	Gui_Checkbox("Is Wedged", &g_player.isWedged);
-	Gui_Checkbox("Draw Probes Down", &g_player.drawProbesDown);
-	Gui_Checkbox("Draw Probes Up", &g_player.drawProbesUp);
-	Gui_EndWindow();
-}
-#endif
-
 struct GameSystem* AcquirePlayerSystem()
 {
 	s_gameSystem.tick = &Player_Tick;
-	// s_gameSystem.drawGui = &DrawPlayerDebugGui;
 	return &s_gameSystem;
 }
