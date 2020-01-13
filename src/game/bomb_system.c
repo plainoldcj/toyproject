@@ -1,3 +1,4 @@
+#include "common.h"
 #include "shared_game.h"
 
 #include <assert.h>
@@ -16,7 +17,7 @@ static void MakeBombsSolid()
 		&s_triggers
 	};
 	struct EntityIterator entIt;
-	InitEntityIterator(&entIt, requiredComponents, CB_ARRAY_COUNT(requiredComponents));
+	InitEntityIterator(&entIt, requiredComponents, KQ_ARRAY_COUNT(requiredComponents));
 
 	EntityId_t solidBombs[64];
 	int solidBombCount = 0;
@@ -133,7 +134,7 @@ static void ExplodeExpiredBombs(float elapsedSeconds)
 		&s_bombs,
 	};
 	struct EntityIterator entIt;
-	InitEntityIterator(&entIt, requiredComponents, CB_ARRAY_COUNT(requiredComponents));
+	InitEntityIterator(&entIt, requiredComponents, KQ_ARRAY_COUNT(requiredComponents));
 
 	EntityId_t entId;
 	while (NextEntityId(&entIt, &entId))
@@ -159,7 +160,7 @@ static void ExplodeExplodedBombs(float elapsedSeconds)
 		&s_healths
 	};
 	struct EntityIterator entIt;
-	InitEntityIterator(&entIt, requiredComponents, CB_ARRAY_COUNT(requiredComponents));
+	InitEntityIterator(&entIt, requiredComponents, KQ_ARRAY_COUNT(requiredComponents));
 
 	EntityId_t entId;
 	while(NextEntityId(&entIt, &entId))

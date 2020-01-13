@@ -13,8 +13,6 @@ struct Rect;
 
 #define PLAYER_SHRINK 0.1f
 
-#define CB_ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
-
 void GetCollisionRect(float posX, float posY, struct Rect* rect, float shrink);
 
 //==================================================

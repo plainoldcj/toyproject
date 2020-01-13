@@ -1,6 +1,6 @@
 #pragma once
 
-#define CB_ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
+#define KQ_ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
 
 void COM_Init(void);
 

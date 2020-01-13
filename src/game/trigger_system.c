@@ -1,3 +1,4 @@
+#include "common.h"
 #include "math.h"
 #include "shared_game.h"
 
@@ -18,7 +19,7 @@ static void PhysicsTick()
 		&s_triggers
 	};
 	struct EntityIterator entIt;
-	InitEntityIterator(&entIt, requiredComponents, CB_ARRAY_COUNT(requiredComponents));
+	InitEntityIterator(&entIt, requiredComponents, KQ_ARRAY_COUNT(requiredComponents));
 
 	EntityId_t entId;
 	while (NextEntityId(&entIt, &entId))
