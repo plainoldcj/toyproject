@@ -5,6 +5,9 @@
 
 static struct GameSystem s_gameSystem;
 
+#define BOMB_LIFETIME 1.9f
+#define BOMB_CHAIN_TIME 0.2f
+
 static void MakeBombsSolid()
 {
 	struct ComponentArray* requiredComponents[] =
@@ -86,6 +89,14 @@ static void ExplodeDirection(struct Explosion* expl, int dir)
 			{
 				expl->range[dir] = range;
 			}
+			else
+			{
+				struct Health* health = FindComponent(&s_healths, hitEnt);
+				if(health)
+				{
+					health->bombHits++;
+				}
+			}
 		}
 
 		if(expl->range[dir] < range)
@@ -130,7 +141,7 @@ static void ExplodeExpiredBombs(float elapsedSeconds)
 		struct Bomb* bomb = FindComponent(&s_bombs, entId);
 
 		bomb->age += elapsedSeconds;
-		if (bomb->age >= 1.9 /* g_gameConfig.bombLifetime */)
+		if (bomb->age >= BOMB_LIFETIME)
 		{
 			DoExplosion(entId);
 
@@ -140,10 +151,42 @@ static void ExplodeExpiredBombs(float elapsedSeconds)
 	}
 }
 
+static void ExplodeExplodedBombs(float elapsedSeconds)
+{
+	struct ComponentArray* requiredComponents[] =
+	{
+		&s_bombs,
+		&s_healths
+	};
+	struct EntityIterator entIt;
+	InitEntityIterator(&entIt, requiredComponents, CB_ARRAY_COUNT(requiredComponents));
+
+	EntityId_t entId;
+	while(NextEntityId(&entIt, &entId))
+	{
+		struct Health* health = FindComponent(&s_healths, entId);
+		if(health->bombHits > 0)
+		{
+			struct Bomb* bomb = FindComponent(&s_bombs, entId);
+
+			bomb->chain += elapsedSeconds;
+			if(bomb->chain >= BOMB_CHAIN_TIME)
+			{
+				DoExplosion(entId);
+
+				// Delete bomb.
+				DeleteLater(entId);
+			}
+		}
+	}
+}
+
 static void Tick(float elapsedSeconds)
 {
 	MakeBombsSolid();
 	ExplodeExpiredBombs(elapsedSeconds);
+
+	ExplodeExplodedBombs(elapsedSeconds);
 }
 
 struct GameSystem* AcquireBombSystem()

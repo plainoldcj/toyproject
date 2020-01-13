@@ -13,6 +13,7 @@ struct ComponentArray s_triggers;
 struct ComponentArray s_bombs;
 struct ComponentArray s_players;
 struct ComponentArray s_tiles;
+struct ComponentArray s_healths;
 
 static struct GameSystem* s_gameSystems;
 
@@ -88,6 +89,7 @@ static void CreateComponentArrays()
 	CreateComponentArray(&s_bombs, sizeof(struct Bomb), NULL, NULL);
 	CreateComponentArray(&s_players, sizeof(struct Player), NULL, NULL);
 	CreateComponentArray(&s_tiles, sizeof(struct Tile), NULL, NULL);
+	CreateComponentArray(&s_healths, sizeof(struct Health), NULL, NULL);
 }
 
 static void CreateSpecialEntities()

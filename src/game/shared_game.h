@@ -55,6 +55,7 @@ struct Tile
 struct Bomb
 {
 	float age;
+	float chain;
 };
 
 struct Drawable
@@ -95,6 +96,11 @@ struct Player
 	float		bombTimeout;
 };
 
+struct Health
+{
+	uint8_t bombHits;
+};
+
 //==================================================
 // Well-known entities
 //==================================================
@@ -117,6 +123,7 @@ extern struct ComponentArray s_colliders;
 extern struct ComponentArray s_triggers;
 extern struct ComponentArray s_bombs;
 extern struct ComponentArray s_players;
+extern struct ComponentArray s_healths;
 
 //==================================================
 // Game Systems
