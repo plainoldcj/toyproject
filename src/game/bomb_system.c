@@ -1,4 +1,7 @@
+#include "renderer.h"
+
 #include "common.h"
+#include "material_manager.h"
 #include "shared_game.h"
 
 #include <assert.h>
@@ -107,6 +110,51 @@ static void ExplodeDirection(struct Explosion* expl, int dir)
 	}
 }
 
+static void CreateExplosionEntity(float posX, float posY)
+{
+	EntityId_t entId = CreateEntity();
+
+	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
+	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
+	struct ExplosionComp* explosion = AddEntityComponent(&s_explosions, entId);
+
+	explosion->age = 0.0f;
+
+	transform->posX = posX;
+	transform->posY = posY;
+
+	drawable->hrobj = R_CreateObject(GetTileMesh());
+
+	R_SetObjectMaterial(drawable->hrobj, Materials_Get(MAT_EXPLOSION));
+}
+
+// TODO(cj): Maybe add new entities at a later time?
+static void SpawnExplosionEntities(struct Explosion* expl)
+{
+	struct Transform* bombTransform = FindComponent(&s_transforms, expl->bombEnt);
+	assert(bombTransform);
+
+	static struct { int32_t rowOff, colOff; } off[] =
+	{
+		{ 0, -1 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ -1, 0 }
+	};
+
+	for(int dir = 0; dir < 4; ++dir)
+	{
+		for(int i = 1; i <= expl->range[dir]; ++i)
+		{
+			float posY = off[dir].rowOff * TILE_SIZE * i + bombTransform->posY;
+			float posX = off[dir].colOff * TILE_SIZE * i + bombTransform->posX;
+
+			CreateExplosionEntity(posX, posY);
+		}
+	}
+	CreateExplosionEntity(bombTransform->posX, bombTransform->posY);
+}
+
 static void DoExplosion(EntityId_t bombEnt)
 {
 	printf("--------------\n");
@@ -119,6 +167,7 @@ static void DoExplosion(EntityId_t bombEnt)
 		expl.range[dir] = RANGE;
 		ExplodeDirection(&expl, dir);
 	}
+	SpawnExplosionEntities(&expl);
 
 	for(int i = 0; i < 4; ++i)
 	{
