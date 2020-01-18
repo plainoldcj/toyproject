@@ -86,7 +86,7 @@ static void ExplodeDirection(struct Explosion* expl, int dir)
 		if(validTile)
 		{
 			EntityId_t hitEnt = g_tilemap.tiles[hitRow * g_tilemap.rowCount + hitCol];
-			if(hitEnt == expl->bombEnt || !hitEnt || !FindComponent(&s_colliders, hitEnt))
+			if(hitEnt == expl->bombEnt || !hitEnt || !(FindComponent(&s_colliders, hitEnt) || FindComponent(&s_triggers, hitEnt)))
 			{
 				expl->range[dir] = range;
 			}
