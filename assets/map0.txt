@@ -1,7 +1,7 @@
 5
-5
-xxxcx
-_x___
-_x_p_
-_xxxx
-xxxxx
+6
+xxxcxx
+x____x
+x__x_x
+x__p_x
+xxxxxx
