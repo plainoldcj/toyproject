@@ -71,6 +71,10 @@ struct ExplosionComp
 	float age;
 };
 
+struct Chest
+{
+};
+
 enum
 {
 	BUTTON_LEFT,
@@ -128,6 +132,7 @@ extern struct ComponentArray s_bombs;
 extern struct ComponentArray s_players;
 extern struct ComponentArray s_healths;
 extern struct ComponentArray s_explosions;
+extern struct ComponentArray s_chests;
 
 //==================================================
 // Game Systems
@@ -140,7 +145,8 @@ extern struct ComponentArray s_explosions;
 	FOR_GAMESYSTEM(TriggerSystem)\
 	FOR_GAMESYSTEM(BombSystem)\
 	FOR_GAMESYSTEM(PlayerSystem)\
-	FOR_GAMESYSTEM(ExplosionSystem)
+	FOR_GAMESYSTEM(ExplosionSystem)\
+	FOR_GAMESYSTEM(ChestSystem)
 
 struct GameSystem
 {

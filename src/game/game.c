@@ -85,8 +85,12 @@ static void CreateChestEntity(float posX, float posY, uint16_t row, uint16_t col
 
 	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
 	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
+	struct Health* health = AddEntityComponent(&s_healths, entId);
+
+	health->bombHits = 0;
 
 	(void)AddEntityComponent(&s_colliders, entId);
+	(void)AddEntityComponent(&s_chests, entId);
 
 	struct Tile* tile = AddEntityComponent(&s_tiles, entId);
 	tile->row = row;
