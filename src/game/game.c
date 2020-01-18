@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define CHEST_TILE 'c'
 #define WALL_TILE 'x'
 #define PLAYER_TILE 'p'
 
@@ -31,6 +32,7 @@ static struct
 	hrmat_t playerMat;
 	hrmat_t wallMat;
 	hrmat_t bombMat;
+	hrmat_t chestMat;
 } s_game;
 
 // BEGIN duplicated code from editor.c
@@ -75,6 +77,28 @@ static void CreatePlayerEntity(float posX, float posY)
 	R_SetObjectMaterial(drawable->hrobj, s_game.playerMat);
 
 	g_playerEntity = entId;
+}
+
+static void CreateChestEntity(float posX, float posY, uint16_t row, uint16_t col)
+{
+	EntityId_t entId = CreateEntity();
+
+	struct Transform* transform = AddEntityComponent(&s_transforms, entId);
+	struct Drawable* drawable = AddEntityComponent(&s_drawables, entId);
+
+	(void)AddEntityComponent(&s_colliders, entId);
+
+	struct Tile* tile = AddEntityComponent(&s_tiles, entId);
+	tile->row = row;
+	tile->col = col;
+	g_tilemap.tiles[g_tilemap.rowCount * tile->row + tile->col] = entId;
+
+	transform->posX = posX;
+	transform->posY = posY;
+
+	drawable->hrobj = R_CreateObject(GetTileMesh());
+
+	R_SetObjectMaterial(drawable->hrobj, s_game.chestMat);
 }
 
 // END duplicated code
@@ -181,13 +205,17 @@ static void InstantiateMap(const struct MapDesc* map)
 
 			char ent = map->tiles[col + row * map->rowCount];
 
-			if(ent == 'x')
+			if(ent == WALL_TILE)
 			{
 				CreateTileEntity(posX, posY, (uint16_t)row, (uint16_t)col);
 			}
-			else if(ent == 'p')
+			else if(ent == PLAYER_TILE)
 			{
 				CreatePlayerEntity(posX, posY);
+			}
+			else if(ent == CHEST_TILE)
+			{
+				CreateChestEntity(posX, posY, (uint16_t)row, (uint16_t)col);
 			}
 		}
 	}
@@ -198,6 +226,7 @@ void G_Init(void)
 	s_game.playerMat = Materials_Get(MAT_PLAYER);
 	s_game.wallMat = Materials_Get(MAT_WALL);
 	s_game.bombMat = Materials_Get(MAT_BOMB);
+	s_game.chestMat = Materials_Get(MAT_CHEST);
 
 	Sh_Init();
 
