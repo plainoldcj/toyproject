@@ -9,33 +9,14 @@ static struct GameSystem s_gameSystem;
 
 static void Tick(float elapsedSeconds)
 {
-#if 0
+	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
+	assert(playerTransform);
+
 	struct Transform* cameraTransform = FindComponent(&s_transforms, g_cameraEntity);
-	struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
-	assert(cameraTransform && input);
+	assert(cameraTransform);
 
-	const float delta = 2.0f * elapsedSeconds;
-
-	if(input->buttons[BUTTON_LEFT])
-	{
-		cameraTransform->posX -= delta;
-	}
-
-	if(input->buttons[BUTTON_RIGHT])
-	{
-		cameraTransform->posX += delta;
-	}
-
-	if(input->buttons[BUTTON_UP])
-	{
-		cameraTransform->posY += delta;
-	}
-
-	if(input->buttons[BUTTON_DOWN])
-	{
-		cameraTransform->posY -= delta;
-	}
-#endif
+	cameraTransform->posX = playerTransform->posX;
+	cameraTransform->posY = playerTransform->posY;
 }
 
 static void Draw(void)
