@@ -8,7 +8,7 @@
 
 static const float eps = 0.001f;
 
-void ExpectEqual(void* p, void* e, const char* filename, int lineNumber)
+void ExpectEqualPtr(void* p, void* e, const char* filename, int lineNumber)
 {
 	if(p != e)
 	{
@@ -19,12 +19,33 @@ void ExpectEqual(void* p, void* e, const char* filename, int lineNumber)
 	}
 }
 
-
-void ExpectNotEqual(void* p, void* e, const char* filename, int lineNumber)
+void ExpectNotEqualPtr(void* p, void* e, const char* filename, int lineNumber)
 {
 	if(p == e)
 	{
 		printf("%s:%d: Expected pointers %p and %p to be not equal.\n",
+			filename, lineNumber,
+			p, e);
+		exit(-1);
+	}
+}
+
+void ExpectEqualInt(int p, int e, const char* filename, int lineNumber)
+{
+	if(p != e)
+	{
+		printf("%s:%d: Expected integers %d and %d to be equal.\n",
+			filename, lineNumber,
+			p, e);
+		exit(-1);
+	}
+}
+
+void ExpectNotEqualInt(int p, int e, const char* filename, int lineNumber)
+{
+	if(p == e)
+	{
+		printf("%s:%d: Expected integers %d and %d to be not equal.\n",
 			filename, lineNumber,
 			p, e);
 		exit(-1);
