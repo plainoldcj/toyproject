@@ -82,9 +82,11 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showC
 int main(int argc, char* argv[])
 #endif
 {
-	RunAllUnitTests();
-
+	// Make sure the logfile is already initialized when running the unit-test.
+	// TODO(cj): Mock the logfile and redirect output.
 	COM_Init();
+
+	RunAllUnitTests();
 
 	// TODO(cj): Remove this.
 	{

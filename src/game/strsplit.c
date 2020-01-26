@@ -12,6 +12,7 @@ struct StrSplitImpl
 	const char* sep;
 };
 
+// TODO(cj): Make a version that takes a str size parameter.
 void StrSplit_Init(struct StrSplit* strSplit, const char* str, const char* sep)
 {
 	KQ_STATIC_ASSERT(sizeof(struct StrSplitImpl) <= sizeof(struct StrSplit));
@@ -71,7 +72,7 @@ int StrSplit_Next(struct StrSplit* strSplit)
 		c = *impl->end;
 	}
 
-	return *impl->end != '\0';
+	return impl->begin != impl->end;
 }
 
 const char* StrSplit_String(struct StrSplit* strSplit)

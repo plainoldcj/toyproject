@@ -67,3 +67,23 @@ void ExpectEqualVec4(const struct Vec4* a, float x, float y, float z, float w,
 		exit(-1);
 	}
 }
+
+void ExpectTrue(bool value, const char* filename, int lineNumber)
+{
+	if(value == false)
+	{
+		printf("%s:%d: Expected condition to be true\n",
+			filename, lineNumber);
+		exit(-1);
+	}
+}
+
+void ExpectFalse(bool value, const char* filename, int lineNumber)
+{
+	if(value == true)
+	{
+		printf("%s:%d: Expected condition to be false\n",
+			filename, lineNumber);
+		exit(-1);
+	}
+}
