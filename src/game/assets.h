@@ -4,6 +4,9 @@
 
 struct Asset;
 
+void			InitAssets(void);
+void			DeinitAssets(void);
+
 struct Asset*	AcquireAsset(const char* path);
 void			ReleaseAsset(struct Asset* asset);
 

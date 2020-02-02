@@ -1,3 +1,4 @@
+#include "assets.h"
 #include "common.h"
 #include "alloc_tests.h"
 #include "editor.h"
@@ -88,6 +89,8 @@ int main(int argc, char* argv[])
 
 	RunAllUnitTests();
 
+	InitAssets();
+
 	// TODO(cj): Remove this.
 	{
 		char buffer[4096] = { 0 };
@@ -169,6 +172,8 @@ int main(int argc, char* argv[])
 
 	SDL_GL_DeleteContext(glContext);
 	SDL_DestroyWindow(window);
+
+	DeinitAssets();
 
 	return 0;
 }

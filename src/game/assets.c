@@ -8,7 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <dirent.h>
+
 #define MAX_ASSET_PATH_LENGTH 128
+
+static struct
+{
+	char projectRoot[PATH_MAX];
+} s_assets;
 
 struct Asset
 {
@@ -17,10 +24,92 @@ struct Asset
 	uint32_t	size;
 };
 
+static bool FindRootDirectory(void)
+{
+	const char* const rootFiles[] =
+	{
+		".gitignore",
+		".git"
+	};
+
+	char relative[256] = ".";
+	int cur = 1;
+
+	const int rootFileCount = (int)KQ_ARRAY_COUNT(rootFiles);
+
+	bool done = false;
+
+	for(int step = 0; step < 4; ++step)
+	{
+		DIR* dir = opendir(relative);
+		if(!dir)
+		{
+			return false;
+		}
+
+		int filesFound = 0;
+
+		struct dirent* dirEnt;
+		while((dirEnt = readdir(dir)))
+		{
+			for(int i = 0; i < rootFileCount; ++i)
+			{
+				if(!strcmp(dirEnt->d_name, rootFiles[i]))
+				{
+					++filesFound;
+					break;
+				}
+			}
+		}
+
+		if(filesFound == rootFileCount)
+		{
+			done = true;
+			break;
+		}
+
+		if(cur + 4 >= sizeof(relative))
+		{
+			return false;
+		}
+
+		sprintf(relative + cur, "/..");
+		cur += 3;
+	}
+
+	if(!done)
+	{
+		return false;
+	}
+
+	if(!realpath(relative, s_assets.projectRoot))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void InitAssets(void)
+{
+	if(FindRootDirectory())
+	{
+		COM_LogPrintf("Found project root: '%s'");
+	}
+	else
+	{
+		COM_LogPrintf("Unable to find project root.");
+		exit(-1);
+	}
+}
+
+void DeinitAssets(void)
+{
+}
+
 static bool GetFilePath(const char* assetPath, char* buffer, size_t bufferSize)
 {
-	const char* assetBasePath = "/home/christianj/Projects/toyproject/assets";
-	snprintf(buffer, bufferSize, "%s/%s", assetBasePath, assetPath);
+	snprintf(buffer, bufferSize, "%s/assets/%s", s_assets.projectRoot, assetPath);
 	return true; // TODO(cj): Return false when buffer is too small.
 }
 
