@@ -28,7 +28,7 @@ void FNT_Init(void)
 	const char* desc = (const char*)Asset_GetData(asset);
 	int descLen = Asset_GetSize(asset);
 
-	if(!CreateFont(&s_fnt.font, desc, descLen, "sdf font"))
+	if(!InitFont(&s_fnt.font, desc, descLen, "sdf font"))
 	{
 		COM_LogPrintf("Unable to create font.");
 		exit(-1);
@@ -39,7 +39,6 @@ void FNT_Init(void)
 
 void FNT_Deinit(void)
 {
-	DestroyFont(&s_fnt.font);
 }
 
 static void DrawChar(float posX, float posY, const struct FontChar* fontChar, float yy)

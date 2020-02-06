@@ -13,7 +13,7 @@ const char* fontDesc =
 UNIT_TEST(TestCreateFont)
 {
 	struct Font font;
-	bool success = CreateFont(&font, fontDesc, strlen(fontDesc), "test_font");
+	bool success = InitFont(&font, fontDesc, strlen(fontDesc), "test_font");
 	EXPECT_TRUE(success);
 
 	EXPECT_EQUAL_INT(strcmp("test_font", font.debugName), 0);
@@ -32,6 +32,4 @@ UNIT_TEST(TestCreateFont)
 	EXPECT_EQUAL_INT(font.chars[0].height, 4);
 	EXPECT_EQUAL_INT(font.chars[0].page, 0);
 	EXPECT_EQUAL_INT(font.chars[0].chnl, 0);
-
-	DestroyFont(&font);
 }

@@ -133,13 +133,13 @@ static float ExpectFloat(struct FontReader* reader, const char* key)
 	return atof(reader->valueTok);
 }
 
-bool CreateFont(
+bool InitFont(
 	struct Font*	font,
 	const char*		desc,
 	int				descLen,
 	const char*		debugName)
 {
-	font->chars = 0;
+	memset(font->chars, 0, sizeof(struct FontChar) * FONT_CHAR_COUNT);
 
 	struct FontReader reader;
 
@@ -170,33 +170,34 @@ bool CreateFont(
 
 	font->count = (uint16_t)ExpectInt(&reader, "count");
 
-	font->chars = malloc(sizeof(struct FontChar) * font->count);
-
 	for(int i = 0; i < font->count; ++i)
 	{
-		struct FontChar* fontChar = &font->chars[i];
+		struct FontChar fontChar;
 
 		ExpectToken(&reader, "char");
 
-		fontChar->id		= (uint16_t)ExpectInt(&reader, "id");
-		fontChar->x			= (uint16_t)ExpectInt(&reader, "x");
-		fontChar->y			= (uint16_t)ExpectInt(&reader, "y");
-		fontChar->width		= (uint8_t)ExpectInt(&reader, "width");
-		fontChar->height	= (uint8_t)ExpectInt(&reader, "height");
-		fontChar->xoffset	= ExpectFloat(&reader, "xoffset");
-		fontChar->yoffset	= ExpectFloat(&reader, "yoffset");
-		fontChar->xadvance	= ExpectFloat(&reader, "xadvance");
-		fontChar->page		= (uint8_t)ExpectInt(&reader, "page");
-		fontChar->chnl		= (uint8_t)ExpectInt(&reader, "chnl");
+		fontChar.id			= (uint16_t)ExpectInt(&reader, "id");
+		fontChar.x			= (uint16_t)ExpectInt(&reader, "x");
+		fontChar.y			= (uint16_t)ExpectInt(&reader, "y");
+		fontChar.width		= (uint8_t)ExpectInt(&reader, "width");
+		fontChar.height		= (uint8_t)ExpectInt(&reader, "height");
+		fontChar.xoffset	= ExpectFloat(&reader, "xoffset");
+		fontChar.yoffset	= ExpectFloat(&reader, "yoffset");
+		fontChar.xadvance	= ExpectFloat(&reader, "xadvance");
+		fontChar.page		= (uint8_t)ExpectInt(&reader, "page");
+		fontChar.chnl		= (uint8_t)ExpectInt(&reader, "chnl");
+
+		if(fontChar.id >= FONT_CHAR_COUNT)
+		{
+			COM_LogPrintf("Parsing font '%s' failed: Character id %d is out of range.",
+					reader.font->debugName,
+					fontChar.id);
+
+			longjmp(reader.except, 1);
+		}
+
+		font->chars[fontChar.id] = fontChar;
 	}
 
 	return true;
-}
-
-void DestroyFont(struct Font* font)
-{
-	if(font->chars)
-	{
-		free(font->chars);
-	}
 }

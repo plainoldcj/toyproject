@@ -6,6 +6,8 @@
 #define FONT_FACE_NAME_SIZE		128
 #define FONT_DEBUG_NAME_SIZE	256
 
+#define FONT_CHAR_COUNT			256
+
 struct FontChar
 {
 	uint16_t	id;
@@ -29,10 +31,10 @@ struct Font
 	uint16_t			scaleW;
 	uint16_t			scaleH;
 	uint16_t			count;
-	struct FontChar*	chars;
+	struct FontChar		chars[FONT_CHAR_COUNT];
 };
 
-bool CreateFont(
+bool InitFont(
 	struct Font*	font,
 	const char*		desc,
 	int				descLen,
