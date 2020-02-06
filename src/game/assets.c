@@ -94,7 +94,7 @@ void InitAssets(void)
 {
 	if(FindRootDirectory())
 	{
-		COM_LogPrintf("Found project root: '%s'");
+		COM_LogPrintf("Found project root: '%s'", s_assets.projectRoot);
 	}
 	else
 	{
