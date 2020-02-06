@@ -109,3 +109,28 @@ void	R_SetObjectPos(hrobj_t hrobj, float x, float y);
 void	R_SetObjectMaterial(hrobj_t hrobj, hrmat_t hrmat);
 
 void	R_DrawObject(hrobj_t hrobj);
+
+/*
+================================================================
+Immediate Mode
+================================================================
+*/
+
+void IMM_Begin(hrmat_t hrmat);
+void IMM_End(void);
+
+void IMM_Vertex(float x, float y);
+void IMM_TexCoord(float s, float t);
+
+/*
+================================================================
+Renderer Configuration
+================================================================
+*/
+
+struct R_Config
+{
+	hrmat_t immMatDefault;
+};
+
+void R_SetConfig(const struct R_Config* conf);

@@ -51,6 +51,8 @@ void Vec4_DivI(struct Vec4* v, float f);
 
 struct Vec4 Mat4_MulVec(const struct Mat4* m, const struct Vec4* v);
 
+struct Mat4 Mat4_CreateIdentity(void);
+
 // Creates a perspective projection matrix that transforms points from camera space to
 // normalized device space (NDC). More precisely:
 // Let P the projection matrix and v = Pu = (vx, vy, vz, vw).

@@ -84,6 +84,18 @@ struct Vec4 Mat4_MulVec(const struct Mat4* m, const struct Vec4* v)
 	return out;
 }
 
+struct Mat4 Mat4_CreateIdentity(void)
+{
+	struct Mat4 m =
+	{
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	return m;
+}
+
 struct Mat4 M_CreatePerspective(float fovy, float aspect, float zNear, float zFar)
 {
 	const float f = 1.0f / tan(0.5f * fovy);

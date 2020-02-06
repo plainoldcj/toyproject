@@ -20,6 +20,9 @@
 #define REND_MATERIAL_CAPACITY	2048
 #define REND_OBJECT_CAPACITY	2048
 
+#define REND_IMMEDIATE_BUFFER_CAPACITY 2048
+#define REND_IMMEDIATE_BUFFER_DRAW_CALL_CAPACITY 128
+
 // TODO(cj): Renderer should not need to know about asset system.
 // Just feed shader sources directly.
 // Some other system can read materials + shaders from disk.
@@ -112,6 +115,35 @@ struct RendObject
 	float		posY;
 };
 
+struct ImmBatch
+{
+	float	texCoordS;
+	float	texCoordT;
+	int16_t	count;
+	bool	recording;
+};
+
+struct ImmDrawCall
+{
+	uint16_t irmat; // TODO(cj): Release materials.
+	uint16_t first;
+	uint16_t count;
+};
+
+struct ImmBuffer
+{
+	struct Vertex		vertices[REND_IMMEDIATE_BUFFER_CAPACITY];
+	int16_t				vertexCount;
+
+	struct ImmDrawCall	drawCalls[REND_IMMEDIATE_BUFFER_DRAW_CALL_CAPACITY];
+	uint16_t			drawCallCount;
+};
+
+static struct
+{
+	uint16_t immMatDefault;
+} s_config;
+
 static struct
 {
 	struct Mat4 perspective;
@@ -137,10 +169,21 @@ static struct
 
 	struct RendObject rendObjects[REND_OBJECT_CAPACITY];
 	int16_t freeObjects;
+
+	struct ImmBuffer	immBuf;
+	struct ImmBatch		immBatch;
 } s_rend;
 
 static const int IN_POSITION = 0;
 static const int IN_TEXCOORD = 1;
+
+static void InitImmBatch(void)
+{
+	s_rend.immBatch.texCoordS = 0.0f;
+	s_rend.immBatch.texCoordT = 0.0f;
+	s_rend.immBatch.count = 0;
+	s_rend.immBatch.recording = false;
+}
 
 static void InitGlew(void)
 {
@@ -356,6 +399,11 @@ void R_Init(int screenWidth, int screenHeight)
 		s_rend.rendTextures[i].next = i - 1;
 	}
 	s_rend.freeTextures = REND_TEXTURE_CAPACITY - 1;
+
+	s_rend.immBuf.vertexCount = 0;
+	s_rend.immBuf.drawCallCount = 0;
+
+	InitImmBatch();
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -368,13 +416,6 @@ void R_SetCameraPosition(float posX, float posY)
 {
 	s_rend.cameraPos.x = posX;
 	s_rend.cameraPos.y = posY;
-}
-
-void R_Draw(void)
-{
-	DestroyMeshes();
-
-	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 hrmesh_t R_CreateMesh(const struct Mesh* mesh)
@@ -690,6 +731,28 @@ void R_SetObjectPos(hrobj_t hrobj, float x, float y)
 	robj->posY = y;
 }
 
+static uint16_t AcquireMaterial(hrmat_t hrmat)
+{
+	struct RendMaterial* rmat = &s_rend.rendMaterials[hrmat.index];
+	if(hrmat.generation != rmat->generation)
+	{
+		// TODO(cj): Error output.
+		return 0;
+	}
+
+	++rmat->refCount;
+
+	return hrmat.index;
+}
+
+#if 0
+static void ReleaseMaterial(uint16_t irmat) // TODO(cj): Make irmat for index to render material a convention?
+{
+	struct RendMaterial* rmat = &s_rend.rendMaterials[irmat];
+	--rmat->refCount;
+}
+#endif
+
 void R_SetObjectMaterial(hrobj_t hrobj, hrmat_t hrmat)
 {
 	struct RendObject* robj = &s_rend.rendObjects[hrobj.index];
@@ -701,16 +764,7 @@ void R_SetObjectMaterial(hrobj_t hrobj, hrmat_t hrmat)
 
 	// TODO(cj): Release previously assigned material.
 
-	struct RendMaterial* rmat = &s_rend.rendMaterials[hrmat.index];
-	if(hrmat.generation != rmat->generation)
-	{
-		// TODO(cj): Error output.
-		return;
-	}
-
-	robj->rmat = hrmat.index;
-
-	rmat->refCount++;
+	robj->rmat = AcquireMaterial(hrmat);
 }
 
 static void InitMaterial(struct RendMaterial* rmat)
@@ -808,4 +862,148 @@ void R_DrawObject(hrobj_t hrobj)
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 
 	R_DrawMesh(rmesh);
+}
+
+void IMM_Begin(hrmat_t hrmat)
+{
+	assert(!s_rend.immBatch.recording);
+	s_rend.immBatch.recording = true;
+
+	uint16_t irmat = AcquireMaterial(hrmat);
+	assert(irmat != 0);
+
+	struct ImmBuffer* immBuf = &s_rend.immBuf;
+
+	if(!immBuf->drawCallCount || immBuf->drawCalls[ immBuf->drawCallCount - 1 ].irmat != irmat)
+	{
+		if(immBuf->drawCallCount == REND_IMMEDIATE_BUFFER_DRAW_CALL_CAPACITY)
+		{
+			// TODO(cj): Print error.
+			assert(false);
+		}
+
+		struct ImmDrawCall* drawCall = &immBuf->drawCalls[ immBuf->drawCallCount++ ];
+		drawCall->irmat = irmat;
+		drawCall->first = immBuf->vertexCount;
+		drawCall->count = 0;
+	}
+}
+
+void IMM_End(void)
+{
+	assert(s_rend.immBatch.recording);
+	assert((s_rend.immBatch.count % 3) == 0);
+
+	struct ImmBuffer* immBuf = &s_rend.immBuf;
+
+	struct ImmDrawCall* drawCall = &immBuf->drawCalls[ immBuf->drawCallCount - 1 ];
+	drawCall->count = s_rend.immBatch.count;
+
+	InitImmBatch();
+}
+
+void IMM_Vertex(float x, float y)
+{
+	assert(s_rend.immBuf.vertexCount < REND_IMMEDIATE_BUFFER_CAPACITY);
+	struct Vertex* vert = &s_rend.immBuf.vertices[s_rend.immBuf.vertexCount];
+	++s_rend.immBuf.vertexCount;
+
+	vert->pos[0] = x;
+	vert->pos[1] = y;
+	vert->texCoord[0] = s_rend.immBatch.texCoordS;
+	vert->texCoord[1] = s_rend.immBatch.texCoordT;
+
+	++s_rend.immBatch.count; // TODO(cj): I don't think we need this.
+}
+
+void IMM_TexCoord(float s, float t)
+{
+	assert(s_rend.immBatch.recording);
+	s_rend.immBatch.texCoordS = s;
+	s_rend.immBatch.texCoordT = t;
+}
+
+void R_SetConfig(const struct R_Config* conf)
+{
+	s_config.immMatDefault = AcquireMaterial(conf->immMatDefault);
+}
+
+static void ImmDraw(void)
+{
+	struct ImmBuffer* immBuf = &s_rend.immBuf;
+
+	if(!immBuf->vertexCount) return;
+
+	GLuint vbo;
+
+	GL_CALL(glGenBuffers(1, &vbo));
+	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+	GL_CALL(glBufferData(GL_ARRAY_BUFFER,
+				immBuf->vertexCount * sizeof(struct Vertex),
+				immBuf->vertices,
+				GL_STATIC_DRAW));
+
+	for(uint16_t drawCallIndex = 0; drawCallIndex < immBuf->drawCallCount; ++drawCallIndex)
+	{
+		struct ImmDrawCall* drawCall = &immBuf->drawCalls[ drawCallIndex ];
+
+		// TODO(cj): Duplicated code.
+		struct RendMaterial* rmat = &s_rend.rendMaterials[drawCall->irmat];
+		if(!rmat->ready)
+		{
+			InitMaterial(rmat);
+			rmat->ready = true;
+		}
+		else
+		{
+			struct RendTexture* rtex = &s_rend.rendTextures[rmat->diffuseTex];
+			Texture_Bind(rtex, 0);
+		}
+
+		GL_CALL(glUseProgram(rmat->prog));
+
+		GL_CALL(glBindAttribLocation(rmat->prog, IN_POSITION, "aPos"));
+		GL_CALL(glBindAttribLocation(rmat->prog, IN_TEXCOORD, "aTexCoord"));
+
+		struct Mat4 ident = Mat4_CreateIdentity();
+
+		SetUniformMat4(rmat->prog, "uProjection", &ident);
+
+		SetUniformMat4(rmat->prog, "uModelView", &ident);
+		SetUniformInt(rmat->prog, "uDiffuseTex", 0);
+
+		// TODO(cj): Duplicated code.
+
+		// TODO(cj): Draw should just mark the mesh for rendering.
+		// Draw calls should be issued in a single place.
+		// TODO(cj): Restore previous binding.
+		glEnableVertexAttribArray(IN_POSITION);
+		glEnableVertexAttribArray(IN_TEXCOORD);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+		glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, pos));
+		glVertexAttribPointer(IN_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, texCoord));
+
+		glDrawArrays(GL_TRIANGLES, 0, immBuf->vertexCount);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glDisableVertexAttribArray(IN_TEXCOORD);
+		glDisableVertexAttribArray(IN_POSITION);
+	}
+
+	GL_CALL(glDeleteBuffers(1, &vbo));
+
+	immBuf->vertexCount = 0;
+	immBuf->drawCallCount = 0;
+}
+
+void R_Draw(void)
+{
+	DestroyMeshes();
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ImmDraw();
 }

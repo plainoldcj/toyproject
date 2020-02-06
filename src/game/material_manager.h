@@ -7,6 +7,7 @@ enum
 	MAT_WALL,
 	MAT_CHEST,
 	MAT_EXPLOSION,
+	MAT_FONT,
 
 	MAT_COUNT
 };

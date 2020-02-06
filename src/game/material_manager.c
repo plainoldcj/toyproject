@@ -22,7 +22,8 @@ static struct ManagedMaterial s_materials[] =
 	{ MAT_WALL, "wall.tga" },
 	{ MAT_BOMB, "bomb.tga" },
 	{ MAT_CHEST, "chest.tga" },
-	{ MAT_EXPLOSION, "explosion.tga" }
+	{ MAT_EXPLOSION, "explosion.tga" },
+	{ MAT_FONT, "Fonts/consolas_32_0.tga" }
 };
 
 static hrmat_t CreateMaterial(const char* tex)
