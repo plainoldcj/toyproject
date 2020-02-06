@@ -80,12 +80,21 @@ typedef struct
 
 #define ASSET_PATH_LEN 64 // Put the limit in a common header somewhere.
 
+enum AlphaTestFunc
+{
+	ALPHA_TEST_GEQUAL
+};
+
 struct Material
 {
 	char	vertShader[ASSET_PATH_LEN];
 	char	fragShader[ASSET_PATH_LEN];
 
 	hrtex_t diffuseTex;
+
+	int		alphaTestEnabled;
+	int		alphaTestFunc;
+	float	alphaTestRef;
 };
 
 hrmat_t	R_CreateMaterial(const struct Material* material);

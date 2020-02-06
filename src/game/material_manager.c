@@ -27,7 +27,7 @@ static struct ManagedMaterial s_materials[] =
 	{ MAT_FONT, "Fonts/consola.ttf_sdf.tga", "font_frag.glsl" }
 };
 
-static hrmat_t CreateMaterial(const char* tex, const char* frag)
+static hrmat_t CreateMaterial(int name, const char* tex, const char* frag)
 {
 	struct Asset* asset = AcquireAsset(tex);
 	struct Image image;
@@ -44,6 +44,13 @@ static hrmat_t CreateMaterial(const char* tex, const char* frag)
 	strcpy(mat.vertShader, "vert.glsl");
 	strcpy(mat.fragShader, frag);
 	mat.diffuseTex = diffuseTex;
+
+	if(MAT_FONT == name)
+	{
+		mat.alphaTestEnabled = 1;
+		mat.alphaTestFunc = ALPHA_TEST_GEQUAL;
+		mat.alphaTestRef = 0.5f;
+	}
 
 	hrmat_t hrmat = R_CreateMaterial(&mat);
 
@@ -64,7 +71,7 @@ hrmat_t Materials_Get(int mat)
 
 	if(!mmat->ready)
 	{
-		mmat->hrmat = CreateMaterial(mmat->tex, mmat->frag);
+		mmat->hrmat = CreateMaterial(mat, mmat->tex, mmat->frag);
 		mmat->ready = true;
 	}
 	return mmat->hrmat;

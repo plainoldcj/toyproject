@@ -65,21 +65,25 @@ struct RendMesh
 
 struct RendMaterial
 {
-	uint16_t generation;
-	uint16_t next;
+	uint16_t	generation;
+	uint16_t	next;
 
-	char vertShaderAsset[ASSET_PATH_LEN];
-	char fragShaderAsset[ASSET_PATH_LEN];
+	char		vertShaderAsset[ASSET_PATH_LEN];
+	char		fragShaderAsset[ASSET_PATH_LEN];
 
-	uint16_t refCount;
+	int			alphaTestEnabled;
+	int			alphaTestFunc;
+	float		alphaTestRef;
 
-	bool ready;
+	uint16_t	refCount;
 
-	GLuint fragShader;
-	GLuint vertShader;
-	GLuint prog;
+	bool 		ready;
 
-	uint16_t diffuseTex;
+	GLuint		fragShader;
+	GLuint		vertShader;
+	GLuint		prog;
+
+	uint16_t	diffuseTex;
 };
 
 // TODO(cj): Add debug name.
@@ -638,6 +642,10 @@ hrmat_t R_CreateMaterial(const struct Material* material)
 	snprintf(rmat->vertShaderAsset, ASSET_PATH_LEN, "%s", material->vertShader);
 	snprintf(rmat->fragShaderAsset, ASSET_PATH_LEN, "%s", material->fragShader);
 
+	rmat->alphaTestEnabled = material->alphaTestEnabled;
+	rmat->alphaTestFunc = material->alphaTestFunc;
+	rmat->alphaTestRef = material->alphaTestRef;
+
 	hrmat_t hrmat;
 	hrmat.index = (uint16_t)(rmat - s_rend.rendMaterials);
 	hrmat.generation = rmat->generation;
@@ -934,6 +942,19 @@ void R_SetConfig(const struct R_Config* conf)
 	s_config.immMatDefault = AcquireMaterial(conf->immMatDefault);
 }
 
+static GLenum GetAlphaTestFunc(int alphaTestFunc)
+{
+	switch(alphaTestFunc)
+	{
+		case ALPHA_TEST_GEQUAL:
+			return GL_GEQUAL;
+		default:
+			// TODO(cj): Error handling
+			assert(false);
+			return 0;
+	};
+}
+
 static void ImmDraw(void)
 {
 	struct ImmBuffer* immBuf = &s_rend.immBuf;
@@ -978,6 +999,12 @@ static void ImmDraw(void)
 		SetUniformMat4(rmat->prog, "uModelView", &ident);
 		SetUniformInt(rmat->prog, "uDiffuseTex", 0);
 
+		if(rmat->alphaTestEnabled)
+		{
+			GL_CALL(glEnable(GL_ALPHA_TEST));
+			GL_CALL(glAlphaFunc(GetAlphaTestFunc(rmat->alphaTestFunc), rmat->alphaTestRef));
+		}
+
 		// TODO(cj): Duplicated code.
 
 		// TODO(cj): Draw should just mark the mesh for rendering.
@@ -997,6 +1024,11 @@ static void ImmDraw(void)
 
 		glDisableVertexAttribArray(IN_TEXCOORD);
 		glDisableVertexAttribArray(IN_POSITION);
+
+		if(rmat->alphaTestEnabled)
+		{
+			GL_CALL(glDisable(GL_ALPHA_TEST));
+		}
 	}
 
 	GL_CALL(glDeleteBuffers(1, &vbo));
