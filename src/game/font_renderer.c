@@ -5,14 +5,19 @@
 #include "renderer.h"
 #include "material_manager.h"
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define FNT_FORMATTED_BUFFER_SIZE 256
 
 #define FNT_CHAR_SCALE 1.0f
 
 static struct
 {
-	struct Font font;
+	struct Font	font;
+	char		formatted[FNT_FORMATTED_BUFFER_SIZE];
 } s_fnt;
 
 void FNT_Init(void)
@@ -71,12 +76,18 @@ static void DrawChar(float posX, float posY, const struct FontChar* fontChar)
 	}
 }
 
-void FNT_Print(float posX, float posY, const char* str)
+void FNT_Printf(float posX, float posY, const char* format, ...)
 {
+	va_list args;
+	va_start(args, format);
+	memset(s_fnt.formatted, 0, sizeof(s_fnt.formatted));
+	vsnprintf(s_fnt.formatted, FNT_FORMATTED_BUFFER_SIZE - 1, format, args);
+	va_end(args);
+
 	IMM_Begin(Materials_Get(MAT_FONT));
 
-	const char* c = str;
-	while(c && *c != '\0')
+	const char* c = s_fnt.formatted;
+	while(*c != '\0')
 	{
 		// TODO(cj): Dumb loop, can be index lookup.
 		struct FontChar* fontChar;
