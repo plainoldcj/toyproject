@@ -2,6 +2,7 @@
 #include "common.h"
 #include "font.h"
 #include "font_renderer.h"
+#include "math.h"
 #include "renderer.h"
 #include "material_manager.h"
 
@@ -41,38 +42,50 @@ void FNT_Deinit(void)
 	DestroyFont(&s_fnt.font);
 }
 
-static void DrawChar(float posX, float posY, const struct FontChar* fontChar)
+static void DrawChar(float posX, float posY, const struct FontChar* fontChar, float yy)
 {
 	const float width = s_fnt.font.scaleW;
 	const float height = s_fnt.font.scaleH;
 
-	float ns0 = (float)fontChar->x / width;
-	float nt1 = (float)fontChar->y / height;
+	struct Rect texRect;
+	texRect.lowerLeft.x = fontChar->x;
+	texRect.lowerLeft.y = fontChar->y + fontChar->height;
+	texRect.upperRight.x = fontChar->x + fontChar->width;
+	texRect.upperRight.y = fontChar->y;
 
-	float ns1 = ns0 + (float)fontChar->width / width;
-	float nt0 = nt1 + (float)fontChar->height / height;
+	// Normalize texture coordinates
+	texRect.lowerLeft.x /= width;
+	texRect.lowerLeft.y /= height;
+	texRect.upperRight.x /= width;
+	texRect.upperRight.y /= height;
 
-	const float sx = FNT_CHAR_SCALE * fontChar->width;
-	const float sy = FNT_CHAR_SCALE * fontChar->height;
+	// Flip y-coordinate
+	texRect.lowerLeft.y = 1.0f - texRect.lowerLeft.y;
+	texRect.upperRight.y = 1.0f - texRect.upperRight.y;
 
+	struct Vec2 vertices[] =
 	{
-		IMM_TexCoord(ns0, 1.0f - nt0);
-		IMM_Vertex(posX + 0.0f, posY + 0.0f);
+		{ posX + fontChar->xoffset + fontChar->width * 0.0f, posY - fontChar->yoffset + fontChar->height * 0.0f },
+		{ posX + fontChar->xoffset + fontChar->width * 0.0f, posY - fontChar->yoffset + fontChar->height * -1.0f },
+		{ posX + fontChar->xoffset + fontChar->width * 1.0f, posY - fontChar->yoffset + fontChar->height * -1.0f },
+		{ posX + fontChar->xoffset + fontChar->width * 1.0f, posY - fontChar->yoffset + fontChar->height * 0.0f }
+	};
 
-		IMM_TexCoord(ns1, 1.0f - nt1);
-		IMM_Vertex(posX + sx, posY + sy);
+	struct Vec2 texCoords[] =
+	{
+		{ texRect.lowerLeft.x, texRect.upperRight.y },
+		{ texRect.lowerLeft.x, texRect.lowerLeft.y },
+		{ texRect.upperRight.x, texRect.lowerLeft.y },
+		{ texRect.upperRight.x, texRect.upperRight.y }
+	};
 
-		IMM_TexCoord(ns0, 1.0f - nt1);
-		IMM_Vertex(posX + 0.0f, posY + sy);
+	int indices[] = { 0, 1, 2, 0, 2, 3 };
 
-		IMM_TexCoord(ns0, 1.0f - nt0);
-		IMM_Vertex(posX + 0.0f, posY + 0.0f);
-
-		IMM_TexCoord(ns1, 1.0f - nt0);
-		IMM_Vertex(posX + sx, posY + 0.0f);
-
-		IMM_TexCoord(ns1, 1.0f - nt1);
-		IMM_Vertex(posX + sx, posY + sy);
+	for(int i = 0; i < 6; ++i)
+	{
+		int v = indices[i];
+		IMM_TexCoord( texCoords[v].x, texCoords[v].y );
+		IMM_Vertex( vertices[v].x, vertices[v].y );
 	}
 }
 
@@ -100,7 +113,8 @@ void FNT_Printf(float posX, float posY, const char* format, ...)
 			}
 		}
 
-		DrawChar(posX, posY, fontChar);
+		// DrawChar(posX, posY, fontChar, 0.0f);
+		DrawChar(posX, posY, fontChar, 1.0f);
 		++c;
 
 		posX += fontChar->xadvance * FNT_CHAR_SCALE;
