@@ -61,6 +61,9 @@ struct Mat4 Mat4_CreateIdentity(void);
 // Camera space is right-handed with the z-axis going out of the screen.
 struct Mat4 M_CreatePerspective(float fovy, float aspect, float nearZ, float farZ);
 
+// TODO(cj): Unit test this.
+struct Mat4 M_CreateOrthographic(float left, float right, float bottom, float top, float zNear, float zFar);
+
 struct Mat4 M_CreateTranslation(float x, float y, float z);
 
 struct Rect

@@ -24,7 +24,7 @@ static struct ManagedMaterial s_materials[] =
 	{ MAT_BOMB, "bomb.tga", "frag.glsl" },
 	{ MAT_CHEST, "chest.tga", "frag.glsl" },
 	{ MAT_EXPLOSION, "explosion.tga", "frag.glsl" },
-	{ MAT_FONT, "Fonts/consolas_32_0.tga", "font_frag.glsl" }
+	{ MAT_FONT, "Fonts/consola.ttf_sdf.tga", "font_frag.glsl" }
 };
 
 static hrmat_t CreateMaterial(const char* tex, const char* frag)

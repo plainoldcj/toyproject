@@ -111,6 +111,18 @@ struct Mat4 M_CreatePerspective(float fovy, float aspect, float zNear, float zFa
 	return m;
 }
 
+struct Mat4 M_CreateOrthographic(float left, float right, float bottom, float top, float zNear, float zFar)
+{
+	struct Mat4 m =
+	{
+		2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
+		0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
+		0.0f, 0.0f, -2.0f / (zFar - zNear), -(zFar + zNear) / (zFar - zNear),
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	return m;
+}
+
 struct Mat4 M_CreateTranslation(float x, float y, float z)
 {
 	struct Mat4 m =

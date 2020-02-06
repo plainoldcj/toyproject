@@ -147,6 +147,7 @@ static struct
 static struct
 {
 	struct Mat4 perspective;
+	struct Mat4 orthographic;
 
 	struct Vec2 cameraPos;
 
@@ -365,6 +366,8 @@ void R_Init(int screenWidth, int screenHeight)
 
 	float aspect = (float)screenWidth / (float)screenHeight;
 	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
+
+	s_rend.orthographic = M_CreateOrthographic(0.0f, screenWidth, 0.0f, screenHeight, -1.0f, 1.0f);
 
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
@@ -968,10 +971,10 @@ static void ImmDraw(void)
 		GL_CALL(glBindAttribLocation(rmat->prog, IN_POSITION, "aPos"));
 		GL_CALL(glBindAttribLocation(rmat->prog, IN_TEXCOORD, "aTexCoord"));
 
+
+		SetUniformMat4(rmat->prog, "uProjection", &s_rend.orthographic);
+
 		struct Mat4 ident = Mat4_CreateIdentity();
-
-		SetUniformMat4(rmat->prog, "uProjection", &ident);
-
 		SetUniformMat4(rmat->prog, "uModelView", &ident);
 		SetUniformInt(rmat->prog, "uDiffuseTex", 0);
 

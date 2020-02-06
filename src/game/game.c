@@ -4,6 +4,7 @@
 #include "assets.h"
 #include "common.h"
 #include "entity.h"
+#include "font_renderer.h"
 #include "material_manager.h"
 #include "math.h"
 #include "shared_game.h"
@@ -255,6 +256,8 @@ void G_Draw(void)
 {
 	Sh_Draw();
 
+	FNT_Print(0.0f, 0.0f, "hello, world?0123");
+#if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));
 	{
@@ -277,4 +280,5 @@ void G_Draw(void)
 		IMM_Vertex(1.0f, 1.0f);
 	}
 	IMM_End();
+#endif
 }

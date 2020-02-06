@@ -3,6 +3,7 @@
 #include "alloc_tests.h"
 #include "editor.h"
 #include "entity.h"
+#include "font_renderer.h"
 #include "game.h"
 #include "math_tests.h"
 #include "renderer.h"
@@ -108,8 +109,8 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-	const int screenWidth = 1024;
-	const int screenHeight = 1024;
+	const int screenWidth = 800;
+	const int screenHeight = 600;
 
 	SDL_Window* window = SDL_CreateWindow("Project",
 		SDL_WINDOWPOS_CENTERED,
@@ -130,6 +131,8 @@ int main(int argc, char* argv[])
 	}
 
 	R_Init(screenWidth, screenHeight);
+
+	FNT_Init();
 
 	// Ed_Init();
 	G_Init();
@@ -168,6 +171,8 @@ int main(int argc, char* argv[])
 
 	// Ed_Shutdown();
 	G_Shutdown();
+
+	FNT_Deinit();
 
 	R_Shutdown();
 
