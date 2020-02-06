@@ -158,9 +158,10 @@ int main(int argc, char* argv[])
 		// Ed_Tick(MillisecsToSecs(elapsedMillisecs));
 		G_Tick(MillisecsToSecs(elapsedMillisecs));
 
-		R_Draw();
+		R_BeginFrame();
 		// Ed_Draw();
 		G_Draw();
+		R_EndFrame();
 
 		SDL_GL_SwapWindow(window);
 	}

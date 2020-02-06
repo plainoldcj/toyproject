@@ -999,11 +999,14 @@ static void ImmDraw(void)
 	immBuf->drawCallCount = 0;
 }
 
-void R_Draw(void)
+void R_BeginFrame(void)
 {
 	DestroyMeshes();
 
 	glClear(GL_COLOR_BUFFER_BIT);
+}
 
+void R_EndFrame(void)
+{
 	ImmDraw();
 }

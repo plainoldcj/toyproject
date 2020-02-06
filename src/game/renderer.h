@@ -7,7 +7,8 @@ void R_Shutdown(void);
 
 void R_SetCameraPosition(float posX, float posY);
 
-void R_Draw(void);
+void R_BeginFrame(void);
+void R_EndFrame(void);
 
 /*
 ================================================================
