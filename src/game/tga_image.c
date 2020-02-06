@@ -102,11 +102,29 @@ const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t sou
 	memcpy(pixelData, cursor, size);
 
 	byte_t tmp;
+
 	for(int i = 0; i < size; i += bytesPerPixel) {
 		tmp = pixelData[i];
 		pixelData[i] = pixelData[i + 2];
 		pixelData[i + 2] = tmp;
 	}
+
+    if(0 != (32 & header->imageSpec.attributes)) {
+        // the origin is in the upper left hand corner instead of the lower
+        // left hand corner, so we have to flip the image
+        const int stride = bytesPerPixel * header->imageSpec.width;
+        int h = 0, l = header->imageSpec.height - 1;
+        while(h < l) {
+            // swap rows h and l
+            for(int i = 0; i < stride; ++i) {
+				tmp = pixelData[stride * h + i];
+                pixelData[stride * h + i] = pixelData[stride * l + i];
+				pixelData[stride * l + i] = tmp;
+            }
+            h++;
+            l--;
+        }
+    }
 
 	int width = header->imageSpec.width;
 	int height = header->imageSpec.height;
