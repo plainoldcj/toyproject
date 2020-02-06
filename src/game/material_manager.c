@@ -12,21 +12,22 @@ struct ManagedMaterial
 {
 	int				id;
 	const char*		tex;
+	const char*		frag;
 	hrmat_t			hrmat;
 	bool			ready;
 };
 
 static struct ManagedMaterial s_materials[] =
 {
-	{ MAT_PLAYER, "player2.tga" },
-	{ MAT_WALL, "wall.tga" },
-	{ MAT_BOMB, "bomb.tga" },
-	{ MAT_CHEST, "chest.tga" },
-	{ MAT_EXPLOSION, "explosion.tga" },
-	{ MAT_FONT, "Fonts/consolas_32_0.tga" }
+	{ MAT_PLAYER, "player2.tga", "frag.glsl" },
+	{ MAT_WALL, "wall.tga", "frag.glsl" },
+	{ MAT_BOMB, "bomb.tga", "frag.glsl" },
+	{ MAT_CHEST, "chest.tga", "frag.glsl" },
+	{ MAT_EXPLOSION, "explosion.tga", "frag.glsl" },
+	{ MAT_FONT, "Fonts/consolas_32_0.tga", "font_frag.glsl" }
 };
 
-static hrmat_t CreateMaterial(const char* tex)
+static hrmat_t CreateMaterial(const char* tex, const char* frag)
 {
 	struct Asset* asset = AcquireAsset(tex);
 	struct Image image;
@@ -41,7 +42,7 @@ static hrmat_t CreateMaterial(const char* tex)
 	struct Material mat;
 	memset(&mat, 0, sizeof(struct Material));
 	strcpy(mat.vertShader, "vert.glsl");
-	strcpy(mat.fragShader, "frag.glsl");
+	strcpy(mat.fragShader, frag);
 	mat.diffuseTex = diffuseTex;
 
 	hrmat_t hrmat = R_CreateMaterial(&mat);
@@ -63,7 +64,7 @@ hrmat_t Materials_Get(int mat)
 
 	if(!mmat->ready)
 	{
-		mmat->hrmat = CreateMaterial(mmat->tex);
+		mmat->hrmat = CreateMaterial(mmat->tex, mmat->frag);
 		mmat->ready = true;
 	}
 	return mmat->hrmat;

@@ -256,11 +256,25 @@ void G_Draw(void)
 	Sh_Draw();
 
 	// TODO(cj): Dummy triangle.
-	IMM_Begin(Materials_Get(MAT_PLAYER));
+	IMM_Begin(Materials_Get(MAT_FONT));
 	{
+		IMM_TexCoord(0.0f, 0.0f);
 		IMM_Vertex(-1.0f, 0.0f);
+
+		IMM_TexCoord(1.0f, 1.0f);
+		IMM_Vertex(1.0f, 1.0f);
+
+		IMM_TexCoord(0.0f, 1.0f);
+		IMM_Vertex(-1.0f, 1.0f);
+
+		IMM_TexCoord(0.0f, 0.0f);
+		IMM_Vertex(-1.0f, 0.0f);
+
+		IMM_TexCoord(1.0f, 0.0f);
 		IMM_Vertex(1.0f, 0.0f);
-		IMM_Vertex(0.0f, 1.0f);
+
+		IMM_TexCoord(1.0f, 1.0f);
+		IMM_Vertex(1.0f, 1.0f);
 	}
 	IMM_End();
 }
