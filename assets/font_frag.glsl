@@ -6,5 +6,6 @@ in vec2 vTexCoord;
 
 void main()
 {
-	gl_FragColor.xyz = vec3(1.0, 1.0, 1.0) * texture2D(uDiffuseTex, vTexCoord).w;
+	vec4 c = texture2D(uDiffuseTex, vTexCoord);
+	gl_FragColor = c.w * vec4(1.0, 1.0, 1.0, 1.0);
 }

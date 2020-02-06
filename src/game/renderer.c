@@ -360,6 +360,9 @@ void R_Init(int screenWidth, int screenHeight)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
 	float aspect = (float)screenWidth / (float)screenHeight;
 	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
 
