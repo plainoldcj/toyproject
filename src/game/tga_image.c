@@ -1,6 +1,8 @@
+#include "common.h"
 #include "tga_image.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -109,7 +111,8 @@ const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t sou
 		pixelData[i + 2] = tmp;
 	}
 
-    if(0 != (32 & header->imageSpec.attributes)) {
+    if(0 != (32 & header->imageSpec.attributes))
+	{
         // the origin is in the upper left hand corner instead of the lower
         // left hand corner, so we have to flip the image
         const int stride = bytesPerPixel * header->imageSpec.width;
@@ -137,4 +140,37 @@ const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t sou
 	image->pixelData = pixelData;
 
 	return 0;
+}
+
+void WriteTGAHeader(tgaWord_t width, tgaWord_t height, FILE* file) {
+    TGAHeader_t header;
+
+    memcpy(&header.fileSpec, &supportedFileSpec, sizeof(FileSpec_t));
+    memset(&header.imageSpec, 0, sizeof(ImageSpec_t));
+
+    header.imageSpec.width          = width;
+    header.imageSpec.height         = height;
+    header.imageSpec.bitsPerPixel   = 24;
+    header.imageSpec.attributes		= 32; // <-- flips the origin
+
+    fwrite(&header, sizeof(TGAHeader_t), 1, file);
+}
+
+void WriteTGA_BGR(
+    const char* filename,
+    tgaWord_t width,
+    tgaWord_t height,
+    byte_t* pixelData)
+{
+    FILE* file = fopen(filename, "wb");
+    if(NULL == file) {
+		// TODO(cj): Return error message instead of printing directly.
+        COM_LogPrintf("ERROR - WriteTGA_BGR: unable to open file '%s'\n", filename);
+        return;
+    }
+
+    WriteTGAHeader(width, height, file);
+
+    unsigned sz = width * height * 3;
+    fwrite(pixelData, sz, 1, file);
 }

@@ -23,7 +23,8 @@ static struct
 
 void FNT_Init(void)
 {
-	struct Asset* asset = AcquireAsset("Fonts/consola.ttf_sdf.txt");
+	// struct Asset* asset = AcquireAsset("Fonts/consola.ttf_sdf.txt");
+	struct Asset* asset = AcquireAsset("Fonts/tf2desc.txt");
 
 	const char* desc = (const char*)Asset_GetData(asset);
 	int descLen = Asset_GetSize(asset);
@@ -101,15 +102,12 @@ void FNT_Printf(float posX, float posY, const char* format, ...)
 	const char* c = s_fnt.formatted;
 	while(*c != '\0')
 	{
-		// TODO(cj): Dumb loop, can be index lookup.
-		struct FontChar* fontChar;
-		for(int i = 0; i < s_fnt.font.count; ++i)
+		struct FontChar* fontChar = &s_fnt.font.chars[(int)*c];
+		if(fontChar->id != (int)*c)
 		{
-			fontChar = &s_fnt.font.chars[i];
-			if(fontChar->id == (int)*c)
-			{
-				break;
-			}
+			// char not in charset, skip.
+			// TODO(cj): Draw ? or some other placeholder.
+			continue;
 		}
 
 		// DrawChar(posX, posY, fontChar, 0.0f);

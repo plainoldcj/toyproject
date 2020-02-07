@@ -1,7 +1,9 @@
+#include "font_baker.h"
 #include "math.h"
 #include "renderer.h"
 #include "shared_game.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -130,6 +132,9 @@ void Sh_Init(void)
 	CreateSpecialEntities();
 
 	CreateTile();
+
+	int ret = BakeFont("Fonts/tf2build.ttf");
+	assert(!ret);
 }
 
 void Sh_Shutdown(void)

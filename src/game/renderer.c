@@ -236,8 +236,13 @@ void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 	{
 		case PixelFormat_RGB8:
 			format = GL_RGB;
+			break;
 		case PixelFormat_RGBA8:
 			format = GL_RGBA;
+			break;
+		default:
+			COM_LogPrintf("Unknown image format");
+			exit(-1);
 	}
 	// TODO: error handling.
 	
@@ -376,7 +381,7 @@ void R_Init(int screenWidth, int screenHeight)
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
 	FL_Init(&s_rend.meshAttrAlloc, malloc(4096), 4096);
-	FL_Init(&s_rend.imageAlloc, malloc(8000000), 8000000);
+	FL_Init(&s_rend.imageAlloc, malloc(160000000), 160000000);
 
 	// Create initial list for render meshes.
 	// TODO(cj): This is a dumb loop.

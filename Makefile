@@ -1,6 +1,7 @@
 CFLAGS=\
 -I./src\
 -I./third_party/glew\
+-I./third_party/stb\
 -DGLEW_STATIC\
 -D__REFLECTED__=
 

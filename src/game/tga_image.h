@@ -18,3 +18,10 @@ struct Image
 };
 
 const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t size);
+
+// TODO(cj): Write to memory instead of file.
+void WriteTGA_BGR(
+    const char* filename,
+    unsigned short width,
+    unsigned short height,
+    unsigned char* pixelData);

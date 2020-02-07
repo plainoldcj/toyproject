@@ -1,9 +1,11 @@
 #include "renderer.h"
 
 #include "assets.h"
+#include "common.h"
 #include "material_manager.h"
 #include "tga_image.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,18 +26,25 @@ static struct ManagedMaterial s_materials[] =
 	{ MAT_BOMB, "bomb.tga", "frag.glsl" },
 	{ MAT_CHEST, "chest.tga", "frag.glsl" },
 	{ MAT_EXPLOSION, "explosion.tga", "frag.glsl" },
-	{ MAT_FONT, "Fonts/consola.ttf_sdf.tga", "font_frag.glsl" }
+	// { MAT_FONT, "Fonts/consola.ttf_sdf.tga", "font_frag.glsl" }
+	{ MAT_FONT, "Fonts/output_font.tga", "font_frag.glsl" }
 };
 
 static hrmat_t CreateMaterial(int name, const char* tex, const char* frag)
 {
 	struct Asset* asset = AcquireAsset(tex);
+	assert(asset);
 	struct Image image;
 
-	(void)LoadImageFromMemoryTGA(
+	const char* err = LoadImageFromMemoryTGA(
 		&image,
 		Asset_GetData(asset),
 		Asset_GetSize(asset));
+	if(err)
+	{
+		COM_LogPrintf("Error loading image: %s", err);
+		exit(-1);
+	}
 
 	hrtex_t diffuseTex = R_CreateTexture(&image);
 
