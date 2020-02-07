@@ -252,11 +252,51 @@ void G_Tick(float elapsedSeconds)
 	Sh_Tick(elapsedSeconds);
 }
 
+// Origin in lower left corner.
+static void DrawButton(float x, float y, float w, float h)
+{
+	struct Vec2 pos[] =
+	{
+		{ 0.0f, 0.0f },
+		{ 1.0f, 0.0f },
+		{ 1.0f, 1.0f },
+		{ 0.0f, 1.0f }
+	};
+
+	struct Vec2 texCoords[] =
+	{
+		{ 0.0f, 0.0f },
+		{ 1.0f, 0.0f },
+		{ 1.0f, 1.0f },
+		{ 0.0f, 1.0f }
+	};
+
+	int indices[] = { 0, 1, 2, 0, 2, 3 };
+
+	for(int i = 0; i < 4; ++i)
+	{
+		pos[i].x = x + pos[i].x * w;
+		pos[i].y = y + pos[i].y * h;
+	}
+
+	IMM_Begin(Materials_Get(MAT_BUTTON));
+	{
+		for(int i = 0; i < 6; ++i)
+		{
+			int v = indices[i];
+			IMM_TexCoord(texCoords[v].x, texCoords[v].y);
+			IMM_Vertex(pos[v].x, pos[v].y);
+		}
+	}
+	IMM_End();
+}
+
 void G_Draw(void)
 {
 	Sh_Draw();
 
-	FNT_Printf(0.0f, 100.0f, "hello, %s%d", "you", 54);
+	DrawButton(0.0f, 100.0f, 100.0f, 50.0f);
+	FNT_Printf(0.0f, 100.0f, "!\"hello, %s%d", "you", 54);
 #if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));
