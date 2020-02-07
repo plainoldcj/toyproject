@@ -25,3 +25,10 @@ void WriteTGA_BGR(
     unsigned short width,
     unsigned short height,
     unsigned char* pixelData);
+
+// TODO(cj): Write to memory instead of file.
+void WriteTGA_BGRA(
+    const char* filename,
+    unsigned short width,
+    unsigned short height,
+    unsigned char* pixelData);

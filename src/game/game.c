@@ -256,8 +256,7 @@ void G_Draw(void)
 {
 	Sh_Draw();
 
-	FNT_Printf(0.0f, 100.0f, "abc");
-	// FNT_Printf(0.0f, 100.0f, "hello, %s%d", "you", 54);
+	FNT_Printf(0.0f, 100.0f, "hello, %s%d", "you", 54);
 #if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));

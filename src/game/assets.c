@@ -176,3 +176,8 @@ int32_t Asset_GetSize(struct Asset* asset)
 {
 	return asset->size;
 }
+
+const char* GetProjectRoot(void)
+{
+	return s_assets.projectRoot;
+}

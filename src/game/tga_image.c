@@ -142,7 +142,7 @@ const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t sou
 	return 0;
 }
 
-void WriteTGAHeader(tgaWord_t width, tgaWord_t height, FILE* file) {
+void WriteTGAHeader(tgaWord_t width, tgaWord_t height, FILE* file, int bitsPerPixel) {
     TGAHeader_t header;
 
     memcpy(&header.fileSpec, &supportedFileSpec, sizeof(FileSpec_t));
@@ -150,7 +150,7 @@ void WriteTGAHeader(tgaWord_t width, tgaWord_t height, FILE* file) {
 
     header.imageSpec.width          = width;
     header.imageSpec.height         = height;
-    header.imageSpec.bitsPerPixel   = 24;
+    header.imageSpec.bitsPerPixel   = bitsPerPixel;
     header.imageSpec.attributes		= 32; // <-- flips the origin
 
     fwrite(&header, sizeof(TGAHeader_t), 1, file);
@@ -169,8 +169,27 @@ void WriteTGA_BGR(
         return;
     }
 
-    WriteTGAHeader(width, height, file);
+    WriteTGAHeader(width, height, file, 24);
 
     unsigned sz = width * height * 3;
+    fwrite(pixelData, sz, 1, file);
+}
+
+void WriteTGA_BGRA(
+    const char* filename,
+    tgaWord_t width,
+    tgaWord_t height,
+    byte_t* pixelData)
+{
+    FILE* file = fopen(filename, "wb");
+    if(NULL == file) {
+		// TODO(cj): Return error message instead of printing directly.
+        COM_LogPrintf("ERROR - WriteTGA_BGR: unable to open file '%s'\n", filename);
+        return;
+    }
+
+    WriteTGAHeader(width, height, file, 32);
+
+    unsigned sz = width * height * 4;
     fwrite(pixelData, sz, 1, file);
 }

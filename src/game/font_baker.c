@@ -15,6 +15,7 @@ struct ColorBgr
 	unsigned char b;
 	unsigned char g;
 	unsigned char r;
+	unsigned char a;
 };
 
 unsigned char temp_bitmap[512*512];
@@ -43,7 +44,7 @@ static void WriteFontDesc(FILE* file)
 
 int BakeFont(const char* assetPath)
 {
-	assert(sizeof(struct ColorBgr) == 3);
+	assert(sizeof(struct ColorBgr) == 4);
 
 	struct Asset* asset = AcquireAsset(assetPath);
 	if(!asset)
@@ -61,18 +62,25 @@ int BakeFont(const char* assetPath)
 	for(int i = 0; i < 512 * 512; ++i)
 	{
 		struct ColorBgr* col = &tgaPixelData[i];
-		col->b = temp_bitmap[i];
-		col->g = temp_bitmap[i];
-		col->r = temp_bitmap[i];
+		col->b = 255;
+		col->g = 255;
+		col->r = 255;
+		col->a = temp_bitmap[i];
 	}
 
-	WriteTGA_BGR(
-			"output_font.tga",
+	char output[256];
+
+	sprintf(output, "%s/assets/Fonts/tf2.tga", GetProjectRoot());
+
+	WriteTGA_BGRA(
+			output,
 			512,
 			512,
 			(unsigned char*)tgaPixelData);
 
-	FILE* desc = fopen("/home/cj/Projects/toyproject/assets/Fonts/tf2desc.txt", "w");
+	sprintf(output, "%s/assets/Fonts/tf2desc.txt", GetProjectRoot());
+
+	FILE* desc = fopen(output, "w");
 	WriteFontDesc(desc);
 	fclose(desc);
 
