@@ -10,6 +10,11 @@
 
 // TODO(cj): We need some kind of big stack allocator.
 
+/*
+Baseline is at bottom of upper-case characters.
+Everything-font assumes positive y goes down.
+*/
+
 struct ColorBgr
 {
 	unsigned char b;
