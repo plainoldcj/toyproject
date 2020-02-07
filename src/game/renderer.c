@@ -1023,7 +1023,7 @@ static void ImmDraw(void)
 		glVertexAttribPointer(IN_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, pos));
 		glVertexAttribPointer(IN_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(struct Vertex), (void*)offsetof(struct Vertex, texCoord));
 
-		glDrawArrays(GL_TRIANGLES, 0, immBuf->vertexCount);
+		glDrawArrays(GL_TRIANGLES, drawCall->first, drawCall->count);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
