@@ -1,3 +1,4 @@
+#include "app_states.h"
 #include "assets.h"
 #include "common.h"
 #include "alloc_tests.h"
@@ -137,6 +138,8 @@ int main(int argc, char* argv[])
 
 	UI_Init(screenWidth, screenHeight);
 
+	AS_Init();
+
 	// Ed_Init();
 	G_Init();
 
@@ -178,14 +181,21 @@ int main(int argc, char* argv[])
 		lastTicks = ticks;
 
 		// Ed_Tick(MillisecsToSecs(elapsedMillisecs));
-		G_Tick(MillisecsToSecs(elapsedMillisecs));
+		// G_Tick(MillisecsToSecs(elapsedMillisecs));
+		AS_Tick(MillisecsToSecs(elapsedMillisecs));
 
 		R_BeginFrame();
 		// Ed_Draw();
-		G_Draw();
+		// G_Draw();
+		AS_Draw();
 		R_EndFrame();
 
 		SDL_GL_SwapWindow(window);
+
+		if(AS_IsDone())
+		{
+			isDone = true;
+		}
 	}
 
 	// Ed_Shutdown();
@@ -203,6 +213,8 @@ int main(int argc, char* argv[])
 	DeinitAssets();
 
 	COM_Deinit();
+
+	printf("Exited normally. That's all!\n");
 
 	return 0;
 }
