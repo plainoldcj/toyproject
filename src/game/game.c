@@ -295,8 +295,10 @@ void G_Draw(void)
 {
 	Sh_Draw();
 
-	DrawButton(0.0f, 100.0f, 100.0f, 50.0f);
-	FNT_Printf(0.0f, 100.0f, "!\"hello, %s%d", "you", 54);
+	FNT_Printf(50.0f, 100.0f, "!\"hello, %s%d", "you", 54);
+	const struct Rect* br = FNT_GetBoundingRect();
+	DrawButton(br->lowerLeft.x, br->lowerLeft.y, br->upperRight.x - br->lowerLeft.x, br->upperRight.y - br->lowerLeft.y);
+	FNT_Printf(50.0f, 100.0f, "!\"hello, %s%d", "you", 54);
 #if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));

@@ -6,6 +6,7 @@
 #include "renderer.h"
 #include "material_manager.h"
 
+#include <float.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,8 @@ static struct
 {
 	struct Font	font;
 	char		formatted[FNT_FORMATTED_BUFFER_SIZE];
+
+	struct Rect	brect; // Bounding rect in world-space (y goes up)
 } s_fnt;
 
 void FNT_Init(void)
@@ -87,6 +90,27 @@ static void DrawChar(float posX, float posY, const struct FontChar* fontChar, fl
 		IMM_TexCoord( texCoords[v].x, texCoords[v].y );
 		IMM_Vertex( vertices[v].x, vertices[v].y );
 	}
+
+	struct Rect* br = &s_fnt.brect;
+	for(int i = 0; i < 4; ++i)
+	{
+		if(vertices[i].x < br->lowerLeft.x)
+		{
+			br->lowerLeft.x = vertices[i].x;
+		}
+		if(vertices[i].y < br->lowerLeft.y)
+		{
+			br->lowerLeft.y = vertices[i].y;
+		}
+		if(vertices[i].x > br->upperRight.x)
+		{
+			br->upperRight.x = vertices[i].x;
+		}
+		if(vertices[i].y > br->upperRight.y)
+		{
+			br->upperRight.y = vertices[i].y;
+		}
+	}
 }
 
 void FNT_Printf(float posX, float posY, const char* format, ...)
@@ -96,6 +120,11 @@ void FNT_Printf(float posX, float posY, const char* format, ...)
 	memset(s_fnt.formatted, 0, sizeof(s_fnt.formatted));
 	vsnprintf(s_fnt.formatted, FNT_FORMATTED_BUFFER_SIZE - 1, format, args);
 	va_end(args);
+
+	s_fnt.brect.lowerLeft.x = FLT_MAX;
+	s_fnt.brect.lowerLeft.y = FLT_MAX;
+	s_fnt.brect.upperRight.x = -FLT_MAX;
+	s_fnt.brect.upperRight.y = -FLT_MAX;
 
 	IMM_Begin(Materials_Get(MAT_FONT));
 
@@ -118,4 +147,9 @@ void FNT_Printf(float posX, float posY, const char* format, ...)
 	}
 
 	IMM_End();
+}
+
+const struct Rect* FNT_GetBoundingRect(void)
+{
+	return &s_fnt.brect;
 }
