@@ -146,6 +146,8 @@ int main(int argc, char* argv[])
 	bool isDone = false;
 	while(!isDone)
 	{
+		bool mouseUp = false;
+
 		while(SDL_PollEvent(&event))
 		{
 			if(event.type == SDL_QUIT
@@ -164,8 +166,12 @@ int main(int argc, char* argv[])
 				UI_SetMousePos(mouseX, mouseY);
 			}
 
+			mouseUp |= event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT;
+
 			FillInput(&event);
 		}
+
+		UI_SetMouseButtonUp(mouseUp);
 
 		Uint32 ticks = SDL_GetTicks();
 		float elapsedMillisecs = (float)(ticks - lastTicks);

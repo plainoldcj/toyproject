@@ -259,7 +259,13 @@ void G_Draw(void)
 {
 	Sh_Draw();
 
-	UI_Button(50.0f, 100.0f, "This is it!");
+	static int msg = 0;
+	const char* msgs[] = { "Hello", "Bye" };
+
+	if(UI_Button(50.0f, 100.0f, msgs[msg]))
+	{
+		msg = 1 - msg;
+	}
 #if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));

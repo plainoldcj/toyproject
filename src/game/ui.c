@@ -13,11 +13,13 @@
 
 static struct
 {
-	int screenWidth;
-	int screenHeight;
+	int		screenWidth;
+	int		screenHeight;
 
-	int mouseX;
-	int mouseY;
+	int		mouseX;
+	int		mouseY;
+
+	bool	mouseUp;
 } s_ui;
 
 void UI_Init(int screenWidth, int screenHeight)
@@ -34,6 +36,11 @@ void UI_SetMousePos(int screenX, int screenY)
 {
 	s_ui.mouseX = screenX;
 	s_ui.mouseY = screenY;
+}
+
+void UI_SetMouseButtonUp(bool up)
+{
+	s_ui.mouseUp = up;
 }
 
 // Origin in lower left corner.
@@ -75,7 +82,7 @@ static void DrawButtonBackground(float x, float y, float w, float h)
 	IMM_End();
 }
 
-void UI_Button(float posX, float posY, const char* format, ...)
+bool UI_Button(float posX, float posY, const char* format, ...)
 {
 	struct SScope stack;
 	BigStack_Begin(&stack);
@@ -92,10 +99,12 @@ void UI_Button(float posX, float posY, const char* format, ...)
 	FNT_Printf(posX, posY, "%s", buffer);
 	const struct Rect* br = FNT_GetBoundingRect();
 
+	bool r = false;
+
 	struct Vec2 mousePos = { s_ui.mouseX, s_ui.screenHeight - s_ui.mouseY };
-	if(Rect_ContainsPoint(br, &mousePos))
+	if(Rect_ContainsPoint(br, &mousePos) && s_ui.mouseUp)
 	{
-		sprintf(buffer, "I'M OVER IT");
+		r = true;
 	}
 
 	DrawButtonBackground(br->lowerLeft.x, br->lowerLeft.y, br->upperRight.x - br->lowerLeft.x, br->upperRight.y - br->lowerLeft.y);
@@ -103,4 +112,6 @@ void UI_Button(float posX, float posY, const char* format, ...)
 	FNT_Printf(posX, posY, "%s", buffer);
 
 	BigStack_End(&stack);
+
+	return r;
 }
