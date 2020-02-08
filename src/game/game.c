@@ -1,6 +1,7 @@
 #include "game.h"
 #include "renderer.h"
 
+#include "alloc.h"
 #include "assets.h"
 #include "common.h"
 #include "entity.h"
@@ -11,6 +12,7 @@
 #include "tga_image.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -253,7 +255,7 @@ void G_Tick(float elapsedSeconds)
 }
 
 // Origin in lower left corner.
-static void DrawButton(float x, float y, float w, float h)
+static void DrawButtonBackground(float x, float y, float w, float h)
 {
 	struct Vec2 pos[] =
 	{
@@ -291,14 +293,33 @@ static void DrawButton(float x, float y, float w, float h)
 	IMM_End();
 }
 
+static void DrawButton(float posX, float posY, const char* format, ...)
+{
+	struct SScope stack;
+	BigStack_Begin(&stack);
+
+	uint32_t bufferSize = 1024;
+	char* buffer = BigStack_Alloc(bufferSize);
+	memset(buffer, 0, bufferSize);
+
+	va_list args;
+	va_start(args, format);
+	vsprintf(buffer, format, args);
+	va_end(args);
+
+	FNT_Printf(posX, posY, "%s", buffer);
+	const struct Rect* br = FNT_GetBoundingRect();
+	DrawButtonBackground(br->lowerLeft.x, br->lowerLeft.y, br->upperRight.x - br->lowerLeft.x, br->upperRight.y - br->lowerLeft.y);
+	FNT_Printf(posX, posY, "%s", buffer);
+
+	BigStack_End(&stack);
+}
+
 void G_Draw(void)
 {
 	Sh_Draw();
 
-	FNT_Printf(50.0f, 100.0f, "!\"hello, %s%d", "you", 54);
-	const struct Rect* br = FNT_GetBoundingRect();
-	DrawButton(br->lowerLeft.x, br->lowerLeft.y, br->upperRight.x - br->lowerLeft.x, br->upperRight.y - br->lowerLeft.y);
-	FNT_Printf(50.0f, 100.0f, "!\"hello, %s%d", "you", 54);
+	DrawButton(50.0f, 100.0f, "This is it!");
 #if 0
 	// TODO(cj): Dummy triangle.
 	IMM_Begin(Materials_Get(MAT_FONT));
