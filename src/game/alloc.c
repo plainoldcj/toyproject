@@ -159,3 +159,46 @@ void P_Free(struct PAlloc* alloc, void* mem)
 	alloc->freeList = newNode;
 }
 
+/*
+==================================================
+Stack Allocator
+==================================================
+*/
+
+// TODO(cj): More error handling. Out of memory?
+// TODO(cj): Tests!
+
+void SA_Init(struct SAlloc* alloc, void* mem, uint32_t size, const char* debugName)
+{
+	alloc->mem = mem;
+	alloc->size = size;
+	alloc->head = 0;
+	alloc->debugName = debugName;
+}
+
+void SA_Deinit(struct SAlloc* alloc)
+{
+	assert(!alloc->head);
+}
+
+void SA_BeginScope(struct SAlloc* alloc, struct SScope* scope)
+{
+	scope->memRestore = alloc->mem;
+	scope->next = alloc->head;
+	alloc->head = scope;
+}
+
+void SA_EndScope(struct SAlloc* alloc, struct SScope* scope)
+{
+	assert(scope == alloc->head);
+	alloc->mem = alloc->head->memRestore;
+	alloc->head = alloc->head->next;
+}
+
+void* SA_Alloc(struct SAlloc* alloc, uint32_t size)
+{
+	assert(alloc->head);
+	void* ret = alloc->mem;
+	alloc->mem += size;
+	return ret;
+}

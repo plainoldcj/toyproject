@@ -181,5 +181,7 @@ int main(int argc, char* argv[])
 
 	DeinitAssets();
 
+	COM_Deinit();
+
 	return 0;
 }

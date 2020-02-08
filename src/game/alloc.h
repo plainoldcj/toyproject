@@ -52,3 +52,30 @@ void* P_Alloc(struct PAlloc* alloc);
 
 void P_Free(struct PAlloc* alloc, void* mem);
 
+/*
+==================================================
+Stack Allocator
+==================================================
+*/
+
+struct SScope
+{
+	struct SScope*	next;
+	char*			memRestore;
+};
+
+struct SAlloc
+{
+	char*			mem;
+	uint32_t		size;
+	struct SScope*	head;
+	const char*		debugName; // TODO(cj): Might not be a literal
+};
+
+void	SA_Init(struct SAlloc* alloc, void* mem, uint32_t size, const char* debugName);
+void	SA_Deinit(struct SAlloc* alloc);
+
+void	SA_BeginScope(struct SAlloc* alloc, struct SScope* scope);
+void	SA_EndScope(struct SAlloc* alloc, struct SScope* scope);
+
+void*	SA_Alloc(struct SAlloc* alloc, uint32_t size);
