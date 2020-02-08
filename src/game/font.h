@@ -39,5 +39,3 @@ bool InitFont(
 	const char*		desc,
 	int				descLen,
 	const char*		debugName);
-
-void DestroyFont(struct Font* font);
