@@ -143,13 +143,6 @@ static void Player_GetProbesUp(const struct Vec2* const playerPos, struct Vec2* 
 	Player_GetProbes(playerPos, outProbes, Probes_Up);
 }
 
-static bool Rect_ContainsPoint(struct Rect* const rect, struct Vec2* const point)
-{
-	return
-		rect->lowerLeft.x <= point->x && point->x <= rect->upperRight.x &&
-		rect->lowerLeft.y <= point->y && point->y <= rect->upperRight.y;
-}
-
 static bool Player_IsTouchingProbes(struct Vec2* probes)
 {
 	const float halfSize = TILE_SIZE * 0.5f;

@@ -73,3 +73,4 @@ struct Rect
 };
 
 bool Rect_Intersect(const struct Rect* lhp, const struct Rect* rhp, struct Vec2* outPen);
+bool Rect_ContainsPoint(const struct Rect* rect, struct Vec2* const point);

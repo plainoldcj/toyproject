@@ -8,6 +8,7 @@
 #include "math_tests.h"
 #include "renderer.h"
 #include "shared_game.h"
+#include "ui.h"
 
 #include "common/reflect.h"
 #include "common/unit_tests.h"
@@ -134,6 +135,8 @@ int main(int argc, char* argv[])
 
 	FNT_Init();
 
+	UI_Init(screenWidth, screenHeight);
+
 	// Ed_Init();
 	G_Init();
 
@@ -149,6 +152,16 @@ int main(int argc, char* argv[])
 				|| (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE))
 			{
 				isDone = true;
+			}
+
+			// if(event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONDOWN)
+			{
+				int mouseX;
+				int mouseY;
+
+				SDL_GetMouseState(&mouseX, &mouseY);
+
+				UI_SetMousePos(mouseX, mouseY);
 			}
 
 			FillInput(&event);
@@ -171,6 +184,8 @@ int main(int argc, char* argv[])
 
 	// Ed_Shutdown();
 	G_Shutdown();
+
+	UI_Deinit();
 
 	FNT_Deinit();
 

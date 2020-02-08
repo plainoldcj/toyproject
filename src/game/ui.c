@@ -11,6 +11,31 @@
 #include <stdio.h>
 #include <string.h>
 
+static struct
+{
+	int screenWidth;
+	int screenHeight;
+
+	int mouseX;
+	int mouseY;
+} s_ui;
+
+void UI_Init(int screenWidth, int screenHeight)
+{
+	s_ui.screenWidth = screenWidth;
+	s_ui.screenHeight = screenHeight;
+}
+
+void UI_Deinit(void)
+{
+}
+
+void UI_SetMousePos(int screenX, int screenY)
+{
+	s_ui.mouseX = screenX;
+	s_ui.mouseY = screenY;
+}
+
 // Origin in lower left corner.
 static void DrawButtonBackground(float x, float y, float w, float h)
 {
@@ -66,7 +91,15 @@ void UI_Button(float posX, float posY, const char* format, ...)
 
 	FNT_Printf(posX, posY, "%s", buffer);
 	const struct Rect* br = FNT_GetBoundingRect();
+
+	struct Vec2 mousePos = { s_ui.mouseX, s_ui.screenHeight - s_ui.mouseY };
+	if(Rect_ContainsPoint(br, &mousePos))
+	{
+		sprintf(buffer, "I'M OVER IT");
+	}
+
 	DrawButtonBackground(br->lowerLeft.x, br->lowerLeft.y, br->upperRight.x - br->lowerLeft.x, br->upperRight.y - br->lowerLeft.y);
+
 	FNT_Printf(posX, posY, "%s", buffer);
 
 	BigStack_End(&stack);

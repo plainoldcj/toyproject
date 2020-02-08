@@ -162,3 +162,11 @@ bool Rect_Intersect(const struct Rect* lhp, const struct Rect* rhp, struct Vec2*
 
 	return outPen->x != 0.0f && outPen->y != 0.0f;
 }
+
+bool Rect_ContainsPoint(const struct Rect* rect, struct Vec2* const point)
+{
+	return
+		rect->lowerLeft.x <= point->x && point->x <= rect->upperRight.x &&
+		rect->lowerLeft.y <= point->y && point->y <= rect->upperRight.y;
+}
+
