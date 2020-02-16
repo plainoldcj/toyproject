@@ -18,20 +18,20 @@ struct JsonReader;
 
 struct ReaderContext
 {
-	struct ReaderContext*	next;
-	struct JsonReader*		reader;
+	struct ReaderContext*		next;
+	struct JsonReader*			reader;
 
-	uint32_t				cur;
+	const struct ReflectedType*	type;
+	void*						object;
 
-	const char*				name;
-	uint32_t				len;
+	uint32_t					cur;
+
+	const char*					name;
+	uint32_t					len;
 };
 
 struct JsonReader
 {
-	const struct ReflectedType*	type;
-	void*						object;
-
 	const char*					json;
 	uint32_t					len;
 	uint32_t					cur;
@@ -42,9 +42,14 @@ struct JsonReader
 	jmp_buf						except;
 };
 
+static void ParseJsonObject(struct JsonReader* reader);
+
 static void PushContext(struct JsonReader* reader, struct ReaderContext* context, const char* name, int len)
 {
 	context->reader = reader;
+
+	context->type = reader->context->type;
+	context->object = reader->context->object;
 
 	context->next = reader->context;
 	reader->context = context;
@@ -269,12 +274,33 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 	{
 		float fValue = ParseJsonFloat(reader);
 
-		float* ptr = (float*)((char*)reader->object + var->offset);
+		float* ptr = (float*)((char*)reader->context->object + var->offset);
 		*ptr = fValue;
+	}
+	else if(!var->isPrim)
+	{
+		const struct ReflectedType* varType = FindReflectedType(var->typeName);
+		if(!varType)
+		{
+			ReadingError(reader, "Cannot find reflection for variable type '%s'",
+				var->typeName);
+		}
+
+		EatToken(reader, '{');
+
+		struct ReaderContext context;
+		PushContext(reader, &context, var->typeName, -1);
+		context.object = (char*)reader->context->object + var->offset;
+		context.type = varType;
+
+		ParseJsonObject(reader);
+
+		PopContext(&context);
 	}
 	else
 	{
-		ReadingError(reader, "Unsupported variable type.");
+		ReadingError(reader, "Unsupported variable type '%s' for variable '%s'",
+			var->typeName, var->name);
 	}
 }
 
@@ -291,7 +317,7 @@ static void ParseJsonKeyValue(struct JsonReader* reader)
 
 	EatToken(reader, ':');
 
-	const struct ReflectedType* type = reader->type;
+	const struct ReflectedType* type = reader->context->type;
 	for(int varIdx = 0; varIdx < type->variableCount; ++varIdx)
 	{
 		struct ReflectedVariable* var = type->variables + varIdx;
@@ -358,6 +384,7 @@ static void ParseJsonObject(struct JsonReader* reader)
 			if(reader->cur < reader->len && reader->json[reader->cur] == '}')
 			{
 				++reader->cur;
+				return;
 			}
 			else
 			{
@@ -385,16 +412,18 @@ bool ReadJson(
 {
 	struct JsonReader reader;
 
-	reader.type = type;
-	reader.object = object;
-
 	reader.json = json;
 	reader.len = len;
 	reader.cur = 0;
 
 	reader.debugName = debugName;
 
-	reader.context = NULL;
+	struct ReaderContext rootContext = { 0 };
+	rootContext.reader = &reader;
+	rootContext.name = "<root>";
+	rootContext.len = ~0u;
+
+	reader.context = &rootContext;
 
 	if(setjmp(reader.except))
 	{
@@ -407,13 +436,18 @@ bool ReadJson(
 		char c = reader.json[reader.cur];
 		if(c == '{')
 		{
-			struct ReaderContext context;
-			PushContext(&reader, &context, "<object>", -1);
-
 			++reader.cur;
+
+			struct ReaderContext context;
+			PushContext(&reader, &context, type->name, -1);
+			context.type = type;
+			context.object = object;
+
 			ParseJsonObject(&reader);
 
 			PopContext(&context);
+
+			// TODO(cj): Expect end of input.
 		}
 		else if(IsWhitespace(c))
 		{

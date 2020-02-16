@@ -10,6 +10,10 @@ UNIT_TEST(TestReadJson)
 {
 	const char* json =
 	"{\n"
+	"	\"nested\":\n"
+	"	{\n"
+	"		\"fvalue\": 1.24\n"
+	"	},\n"
 	"	\"fvalue0\": 5.0,\n"
 	"	\"fvalue1\": 0.25\n"
 	"}";
@@ -23,4 +27,5 @@ UNIT_TEST(TestReadJson)
 
 	EXPECT_EQUAL_FLOAT(object.fvalue0, 5.0f);
 	EXPECT_EQUAL_FLOAT(object.fvalue1, 0.25f);
+	EXPECT_EQUAL_FLOAT(object.nested.fvalue, 1.24f);
 }

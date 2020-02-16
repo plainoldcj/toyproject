@@ -125,7 +125,7 @@ static void WriteVariables(FILE* file)
 		"(int)sizeof(((struct %s*)0)->%s), "	/* size */
 		"(int)offsetof(struct %s, %s), "		/* offset */
 		"%d,"									/* primType */
-		"1,"									/* isPrim */
+		"%d,"									/* isPrim */
 		"%d,"									/* isArray */
 		"%d"									/* elementCount */
 		" },\n";
@@ -145,6 +145,7 @@ static void WriteVariables(FILE* file)
 				type->ident, var->ident,
 				type->ident, var->ident,
 				var->primType,
+				var->prim,
 				var->array,
 				var->elementCount);
 
@@ -258,13 +259,8 @@ static void UnexpectedToken(void)
 	exit(-1);
 }
 
-static void ParseVariable(struct Type* type)
+static void ParseVariableCommon(struct Type* type, struct Variable* var)
 {
-	struct Variable* var = Alloc(sizeof(struct Variable));
-
-	var->prim = true;
-	var->primType = g_primType;
-
 	var->array = false;
 	var->elementCount = 0;
 	
@@ -297,6 +293,28 @@ static void ParseVariable(struct Type* type)
 	ExpectToken(TOK_SEMICOL);
 }
 
+static void ParsePrimitiveVariable(struct Type* type)
+{
+	struct Variable* var = Alloc(sizeof(struct Variable));
+
+	var->prim = true;
+	var->primType = g_primType;
+
+	ParseVariableCommon(type, var);
+}
+
+static void ParseStructVariable(struct Type* type)
+{
+	struct Variable* var = Alloc(sizeof(struct Variable));
+
+	var->prim = false;
+
+	NextToken();
+	ExpectToken(TOK_IDENT);
+	
+	ParseVariableCommon(type, var);
+}
+
 static void ParseType(void)
 {
 	bool done;
@@ -325,7 +343,11 @@ static void ParseType(void)
 		NextToken();
 		if(s_token == TOK_PRIM)
 		{
-			ParseVariable(type);
+			ParsePrimitiveVariable(type);
+		}
+		else if(s_token == TOK_STRUCT)
+		{
+			ParseStructVariable(type);
 		}
 		else if(s_token == TOK_RBRACE)
 		{
