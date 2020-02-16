@@ -52,6 +52,28 @@ void ExpectNotEqualInt(int p, int e, const char* filename, int lineNumber)
 	}
 }
 
+void ExpectEqualFloat(float p, float e, const char* filename, int lineNumber)
+{
+	if(fabs(p - e) > eps)
+	{
+		printf("%s:%d: Expected floats %f and %f to be equal.\n",
+			filename, lineNumber,
+			p, e);
+		exit(-1);
+	}
+}
+
+void ExpectNotEqualFloat(float p, float e, const char* filename, int lineNumber)
+{
+	if(fabs(p - e) < eps)
+	{
+		printf("%s:%d: Expected floats %f and %f to be not equal.\n",
+			filename, lineNumber,
+			p, e);
+		exit(-1);
+	}
+}
+
 void ExpectEqualVec4(const struct Vec4* a, float x, float y, float z, float w,
 	const char* filename, int lineNumber)
 {
