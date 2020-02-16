@@ -15,7 +15,8 @@ UNIT_TEST(TestReadJson)
 	"		\"fvalue\": 1.24\n"
 	"	},\n"
 	"	\"fvalue0\": 5.0,\n"
-	"	\"fvalue1\": 0.25\n"
+	"	\"fvalue1\": 0.25,\n"
+	"	\"str\": \"hello\"\n"
 	"}";
 
 	const struct ReflectedType* type = FindReflectedType("JsonTest");
@@ -28,4 +29,5 @@ UNIT_TEST(TestReadJson)
 	EXPECT_EQUAL_FLOAT(object.fvalue0, 5.0f);
 	EXPECT_EQUAL_FLOAT(object.fvalue1, 0.25f);
 	EXPECT_EQUAL_FLOAT(object.nested.fvalue, 1.24f);
+	EXPECT_EQUAL_INT(0, strcmp(object.str, "hello"));
 }

@@ -277,6 +277,24 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 		float* ptr = (float*)((char*)reader->context->object + var->offset);
 		*ptr = fValue;
 	}
+	else if(var->isPrim && var->primType == PT_CHAR && var->isArray)
+	{
+		EatToken(reader, '\"');
+
+		uint32_t first = reader->cur;
+		ParseJsonString(reader);
+		uint32_t len = reader->cur - first - 1;
+
+		if(len >= var->elementCount)
+		{
+			ReadingError(reader, "String is too large");
+		}
+
+		void* data = (char*)reader->context->object + var->offset;
+		memset(data, 0, var->size);
+
+		strncpy(data, reader->json + first, len);
+	}
 	else if(!var->isPrim)
 	{
 		const struct ReflectedType* varType = FindReflectedType(var->typeName);

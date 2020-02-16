@@ -12,4 +12,5 @@ struct JsonTest
 	float					fvalue0;
 	struct JsonTestNested	nested;
 	float					fvalue1;
+	char					str[64];
 };
