@@ -59,13 +59,14 @@ static struct
 
 static void* Alloc(size_t size)
 {
+	void* ret = s_mem.cur;
 	s_mem.cur += size;
 	if(s_mem.cur > s_mem.end)
 	{
 		printf( TERM_RED( "Error: ") "Out of memory.\n" );
 		exit(-1);
 	}
-	return s_mem.cur;
+	return ret;
 }
 
 static void StoreIdentifier(char* dst)

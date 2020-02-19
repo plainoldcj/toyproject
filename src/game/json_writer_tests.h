@@ -1,8 +1,7 @@
 #pragma once
 
-// TODO(cj): Rename this struct. Reflection parser seems to have a bug
 __REFLECTED__
-struct XXXX
+struct JsonWriterTestNested
 {
 	float fValue;
 };
@@ -12,5 +11,5 @@ struct JsonWriterTest
 {
 	float						fValue;
 	char						str[64];
-	struct XXXX	nested;
+	struct JsonWriterTestNested	nested;
 };
