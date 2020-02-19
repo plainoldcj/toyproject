@@ -1,6 +1,6 @@
 #include "alloc.h"
 #include "common.h"
-#include "json.h"
+#include "json_reader.h"
 
 #include "common/reflect.h"
 

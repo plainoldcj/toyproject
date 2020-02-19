@@ -1,8 +1,8 @@
 #include "common/reflect.h"
 #include "common/unit_tests.h"
 
-#include "json.h"
-#include "json_tests.h"
+#include "json_reader.h"
+#include "json_reader_tests.h"
 
 #include <string.h>
 
@@ -19,9 +19,9 @@ UNIT_TEST(TestReadJson)
 	"	\"str\": \"hello\"\n"
 	"}";
 
-	const struct ReflectedType* type = FindReflectedType("JsonTest");
+	const struct ReflectedType* type = FindReflectedType("JsonReaderTest");
 
-	struct JsonTest object;
+	struct JsonReaderTest object;
 
 	bool success = ReadJson(type, &object, json, strlen(json), "test json");
 	EXPECT_TRUE(success);
