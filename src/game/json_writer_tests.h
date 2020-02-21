@@ -10,6 +10,7 @@ __REFLECTED__
 struct JsonWriterTest
 {
 	float						fValue;
+	int							iValue;
 	char						str[64];
 	struct JsonWriterTestNested	nested;
 };

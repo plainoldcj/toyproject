@@ -13,6 +13,7 @@
 static const char* expected =
 "{\n"
 "\t\"fValue\": 54.20,\n"
+"\t\"iValue\": 11,\n"
 "\t\"str\": \"hello, json\",\n"
 "\t\"nested\": {\n"
 "\t\t\"fValue\": 32.23\n"
@@ -28,6 +29,7 @@ UNIT_TEST(TestWriteJson)
 	struct JsonWriterTest object =
 	{
 		.fValue = 54.2f,
+		.iValue = 11,
 		.str = "hello, json",
 		.nested = {
 			.fValue = 32.23f

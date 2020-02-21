@@ -29,6 +29,7 @@ REFLECTED "__REFLECTED__"
 
 "char"		{ g_primType = PT_CHAR; return TOK_PRIM; }
 "float"     { g_primType = PT_FLOAT; return TOK_PRIM; }
+"int"		{ g_primType = PT_INT; return TOK_PRIM; }
 
 {REFLECTED}	{ return TOK_REFLECTED; }
 

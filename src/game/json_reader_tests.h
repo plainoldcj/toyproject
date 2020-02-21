@@ -12,5 +12,6 @@ struct JsonReaderTest
 	float						fvalue0;
 	struct JsonReaderTestNested	nested;
 	float						fvalue1;
+	int							ivalue;
 	char						str[64];
 };

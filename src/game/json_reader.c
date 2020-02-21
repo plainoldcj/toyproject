@@ -268,6 +268,35 @@ static float ParseJsonFloat(struct JsonReader* reader)
 	return (float)atof(num);
 }
 
+static int ParseJsonInt(struct JsonReader* reader)
+{
+	EatWhitespace(reader);
+
+	if(reader->cur >= reader->len)
+	{
+		ReadingError(reader, "Expected int, but got end-of-input.");
+	}
+
+	int firstNum = reader->cur;
+	bool hasDigits = false;
+
+	while(reader->cur < reader->len && isdigit(reader->json[reader->cur]))
+	{
+		hasDigits = true;
+		++reader->cur;
+	}
+
+	const char* num = reader->json + firstNum;
+	int len = reader->cur - firstNum;
+
+	if(!hasDigits)
+	{
+		ReadingError(reader, "Expected int, but got '%.*s'", len, num);
+	}
+
+	return (int)atoi(num);
+}
+
 static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* var)
 {
 	if(var->isPrim && var->primType == PT_FLOAT)
@@ -276,6 +305,13 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 
 		float* ptr = (float*)((char*)reader->context->object + var->offset);
 		*ptr = fValue;
+	}
+	else if(var->isPrim && var->primType == PT_INT)
+	{
+		int iValue = ParseJsonInt(reader);
+
+		int* ptr = (int*)((char*)reader->context->object + var->offset);
+		*ptr = iValue;
 	}
 	else if(var->isPrim && var->primType == PT_CHAR && var->isArray)
 	{

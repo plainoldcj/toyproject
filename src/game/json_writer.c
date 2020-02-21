@@ -71,6 +71,11 @@ static void WriteVariable(
 		float* fValue = (float*)((char*)object + var->offset);
 		Write(writer, "%.2f", *fValue);
 	}
+	else if(var->isPrim && var->primType == PT_INT)
+	{
+		int* iValue = (int*)((char*)object + var->offset);
+		Write(writer, "%d", *iValue);
+	}
 	else if(var->isPrim && var->primType == PT_CHAR && var->isArray)
 	{
 		const char* str = (const char*)object + var->offset;
