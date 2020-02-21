@@ -4,8 +4,10 @@
 
 #include "common.h"
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -61,20 +63,29 @@ static void WriteIndent(struct JsonWriter* writer)
 	Write(writer, "%.*s", writer->indent, "\t\t\t\t\t\t\t\t\t\t\t");
 }
 
+#define FORALL_PRIMTYPES\
+	FOR_PRIMTYPE(PT_FLOAT,	float, "%.2f") \
+	FOR_PRIMTYPE(PT_INT,	int, "%d") \
+	FOR_PRIMTYPE(PT_UINT8,	uint8_t, "%" PRIu8) \
+	FOR_PRIMTYPE(PT_UINT16, uint16_t, "%" PRIu16)
+
 static void WriteVariable(
 	struct JsonWriter* writer,
 	const struct ReflectedVariable* var,
 	void* object)
 {
-	if(var->isPrim && var->primType == PT_FLOAT)
+	if(var->isPrim && !var->isArray)
 	{
-		float* fValue = (float*)((char*)object + var->offset);
-		Write(writer, "%.2f", *fValue);
+#define FOR_PRIMTYPE(PRIMTYPE, TYPE, FORMAT) \
+	if(var->primType == PRIMTYPE) \
+	{ \
+		TYPE* value = (TYPE*)((char*)object + var->offset); \
+		Write(writer, FORMAT, *value); \
 	}
-	else if(var->isPrim && var->primType == PT_INT)
-	{
-		int* iValue = (int*)((char*)object + var->offset);
-		Write(writer, "%d", *iValue);
+
+FORALL_PRIMTYPES
+
+#undef FOR_PRIMTYPE
 	}
 	else if(var->isPrim && var->primType == PT_CHAR && var->isArray)
 	{

@@ -38,7 +38,7 @@ UNIT_TEST(TestWriteJson)
 
 	bool success = WriteJson(type, &object, buffer, BUFFER_SIZE, "json test");
 
-#if 0
+#if 1
 	printf("json writer output:\n%s", buffer);
 	printf("json writer expected:\n%s", expected);
 #endif

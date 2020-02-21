@@ -4,7 +4,9 @@ enum PrimitiveType
 {
 	PT_CHAR,
 	PT_FLOAT,
-	PT_INT
+	PT_INT,
+	PT_UINT8,
+	PT_UINT16
 };
 
 struct ReflectedVariable
