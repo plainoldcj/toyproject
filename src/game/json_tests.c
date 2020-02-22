@@ -23,7 +23,15 @@ UNIT_TEST(TestReadJson)
 	"	\"iValue\": 11,\n"
 	"	\"u8Value\": 55,\n"
 	"	\"u16Value\": 0,\n"
-	"	\"str\": \"hello\"\n"
+	"	\"str\": \"hello\",\n"
+	"	\"arr\": [\n"
+	"		{\n"
+	"			\"iValue\": 17\n"
+	"		},\n"
+	"		{\n"
+	"			\"iValue\": 18\n"
+	"		}\n"
+	"	]\n"
 	"}";
 
 	const struct ReflectedType* type = FindReflectedType("JsonTest");
@@ -39,6 +47,8 @@ UNIT_TEST(TestReadJson)
 	EXPECT_EQUAL_FLOAT(object.u16Value, 0);
 	EXPECT_EQUAL_FLOAT(object.nested.fValue, 1.24f);
 	EXPECT_EQUAL_INT(0, strcmp(object.str, "hello"));
+	EXPECT_EQUAL_INT(17, object.arr[0].iValue);
+	EXPECT_EQUAL_INT(18, object.arr[1].iValue);
 }
 
 UNIT_TEST(TestWriteJson)
@@ -52,7 +62,15 @@ UNIT_TEST(TestWriteJson)
 		"\t\"str\": \"hello, json\",\n"
 		"\t\"nested\": {\n"
 		"\t\t\"fValue\": 32.23\n"
-		"\t}\n"
+		"\t},\n"
+		"\t\"arr\": [\n"
+		"\t\t{\n"
+		"\t\t\t\"iValue\": -17\n"
+		"\t\t},\n"
+		"\t\t{\n"
+		"\t\t\t\"iValue\": -18\n"
+		"\t\t}\n"
+		"\t]\n"
 		"}";
 
 	char* buffer = malloc(WRITE_BUFFER_SIZE);
@@ -68,6 +86,14 @@ UNIT_TEST(TestWriteJson)
 		.str = "hello, json",
 		.nested = {
 			.fValue = 32.23f
+		},
+		.arr[0] =
+		{
+			.iValue = -17
+		},
+		.arr[1] =
+		{
+			.iValue = -18
 		}
 	};
 

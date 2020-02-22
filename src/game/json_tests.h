@@ -9,6 +9,12 @@ struct JsonTestNested
 };
 
 __REFLECTED__
+struct JsonTestNestedA
+{
+	int iValue;
+};
+
+__REFLECTED__
 struct JsonTest
 {
 	float					fValue;
@@ -17,4 +23,5 @@ struct JsonTest
 	uint16_t				u16Value;
 	char					str[64];
 	struct JsonTestNested	nested;
+	struct JsonTestNestedA	arr[2];
 };

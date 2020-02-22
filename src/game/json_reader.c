@@ -345,7 +345,7 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 
 		strncpy(data, reader->json + first, len);
 	}
-	else if(!var->isPrim)
+	else if(!var->isPrim && !var->isArray)
 	{
 		const struct ReflectedType* varType = FindReflectedType(var->typeName);
 		if(!varType)
@@ -364,6 +364,61 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 		ParseJsonObject(reader);
 
 		PopContext(&context);
+	}
+	else if(!var->isPrim && var->isArray)
+	{
+		const struct ReflectedType* varType = FindReflectedType(var->typeName);
+		if(!varType)
+		{
+			ReadingError(reader, "Cannot find reflection for variable type '%s'",
+				var->typeName);
+		}
+
+		EatToken(reader, '[');
+
+		bool done = false;
+
+		int count = 0;
+
+		while(reader->cur < reader->len && !done)
+		{
+			EatWhitespace(reader);
+
+			if(reader->cur >= reader->len)
+			{
+				ReadingError(reader, "Unexpected end-of-input while reading array");
+			}
+
+			char c = reader->json[reader->cur];
+
+			if(c == '{')
+			{
+				++reader->cur;
+
+				size_t elementSize = var->size / var->elementCount;
+
+				struct ReaderContext context;
+				PushContext(reader, &context, var->typeName, -1);
+				context.object = (char*)reader->context->object + var->offset + count * elementSize;
+				context.type = varType;
+
+				ParseJsonObject(reader);
+
+				PopContext(&context);
+
+
+				++count;
+			}
+			else if(c == ',')
+			{
+				++reader->cur;
+			}
+			else if(c == ']')
+			{
+				++reader->cur;
+				done = true;
+			}
+		}
 	}
 	else
 	{

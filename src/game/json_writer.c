@@ -92,7 +92,7 @@ FORALL_PRIMTYPES
 		const char* str = (const char*)object + var->offset;
 		Write(writer, "\"%.*s\"", var->elementCount, str);
 	}
-	else if(!var->isPrim)
+	else if(!var->isPrim && !var->isArray)
 	{
 		const struct ReflectedType* nestedType = FindReflectedType(var->typeName);
 		if(!nestedType)
@@ -102,6 +102,38 @@ FORALL_PRIMTYPES
 		void* nestedObject = (char*)object + var->offset;
 
 		WriteJsonObject(writer, nestedType, nestedObject);
+	}
+	else if(!var->isPrim && var->isArray)
+	{
+		const struct ReflectedType* nestedType = FindReflectedType(var->typeName);
+		if(!nestedType)
+		{
+			WritingError(writer, "Cannot find reflected type");
+		}
+
+		Write(writer, "[\n");
+		++writer->indent;
+
+		for(int i = 0; i < var->elementCount; ++i)
+		{
+			if(i != 0)
+			{
+				Write(writer, ",\n");
+			}
+
+			size_t nestedSize = var->size / var->elementCount;
+
+			void* nestedObject = (char*)object + var->offset + nestedSize * i;
+
+			WriteIndent(writer);
+			WriteJsonObject(writer, nestedType, nestedObject);
+		}
+
+		--writer->indent;
+
+		Write(writer, "\n");
+		WriteIndent(writer);
+		Write(writer, "]");
 	}
 	else
 	{
