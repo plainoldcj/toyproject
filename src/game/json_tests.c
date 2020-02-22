@@ -21,6 +21,8 @@ UNIT_TEST(TestReadJson)
 	"	},\n"
 	"	\"fValue\": 5.0,\n"
 	"	\"iValue\": 11,\n"
+	"	\"u8Value\": 55,\n"
+	"	\"u16Value\": 0,\n"
 	"	\"str\": \"hello\"\n"
 	"}";
 
@@ -33,6 +35,8 @@ UNIT_TEST(TestReadJson)
 
 	EXPECT_EQUAL_FLOAT(object.fValue, 5.0f);
 	EXPECT_EQUAL_FLOAT(object.iValue, 11);
+	EXPECT_EQUAL_FLOAT(object.u8Value, 55);
+	EXPECT_EQUAL_FLOAT(object.u16Value, 0);
 	EXPECT_EQUAL_FLOAT(object.nested.fValue, 1.24f);
 	EXPECT_EQUAL_INT(0, strcmp(object.str, "hello"));
 }
@@ -43,6 +47,8 @@ UNIT_TEST(TestWriteJson)
 		"{\n"
 		"\t\"fValue\": 54.20,\n"
 		"\t\"iValue\": 11,\n"
+		"\t\"u8Value\": 0,\n"
+		"\t\"u16Value\": 132,\n"
 		"\t\"str\": \"hello, json\",\n"
 		"\t\"nested\": {\n"
 		"\t\t\"fValue\": 32.23\n"
@@ -57,6 +63,8 @@ UNIT_TEST(TestWriteJson)
 	{
 		.fValue = 54.2f,
 		.iValue = 11,
+		.u8Value = 0,
+		.u16Value = 132,
 		.str = "hello, json",
 		.nested = {
 			.fValue = 32.23f

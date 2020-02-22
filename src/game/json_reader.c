@@ -297,6 +297,11 @@ static int ParseJsonInt(struct JsonReader* reader)
 	return (int)atoi(num);
 }
 
+#define FORALL_INTTYPES \
+	FOR_INTTYPE(PT_INT,		int) \
+	FOR_INTTYPE(PT_UINT8,	uint8_t) \
+	FOR_INTTYPE(PT_UINT16,	uint16_t)
+
 static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* var)
 {
 	if(var->isPrim && var->primType == PT_FLOAT)
@@ -306,12 +311,21 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 		float* ptr = (float*)((char*)reader->context->object + var->offset);
 		*ptr = fValue;
 	}
-	else if(var->isPrim && var->primType == PT_INT)
+	else if(var->isPrim && !var->isArray)
 	{
 		int iValue = ParseJsonInt(reader);
 
-		int* ptr = (int*)((char*)reader->context->object + var->offset);
-		*ptr = iValue;
+#define FOR_INTTYPE(PRIMTYPE, TYPE) \
+	if(var->primType == PRIMTYPE) \
+	{ \
+		TYPE* ptr = (TYPE*)((char*)reader->context->object + var->offset); \
+		*ptr = (TYPE)iValue; \
+	}
+
+	FORALL_INTTYPES
+	
+#undef FOR_INTTYPE
+
 	}
 	else if(var->isPrim && var->primType == PT_CHAR && var->isArray)
 	{
