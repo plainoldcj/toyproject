@@ -3,7 +3,8 @@ CFLAGS=\
 -I./third_party/glew\
 -I./third_party/stb\
 -DGLEW_STATIC\
--D__REFLECTED__=
+-D'__REFLECTED__='\
+-D'__REFL_ATTRIB__(...)='
 
 LIBS=-lSDL2main -lSDL2
 
