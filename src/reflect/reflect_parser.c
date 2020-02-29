@@ -27,6 +27,12 @@ static const char* s_tokenNames[] =
 
 #define MAX_IDENT_LEN 512
 
+struct Attributes
+{
+	int		flags;
+	char	elementCountVar[MAX_IDENT_LEN];
+};
+
 struct Variable
 {
 	struct Variable*	next;
@@ -37,6 +43,10 @@ struct Variable
 	bool				prim;
 	bool				array;
 	int					elementCount;
+
+	struct Attributes	attribs;
+
+	int					attribIndex;
 };
 
 struct Type
@@ -102,7 +112,8 @@ static void WritePrelude(FILE* file)
 static void WritePostlude(FILE* file)
 {
 	const char* postlude =
-		"struct ReflectedType* g_types = s_types;";
+		"struct ReflectedType* g_types = s_types;\n"
+		"struct ReflectedAttribute* g_attributes = s_attributes;";
 
 	fprintf(file, "%s", postlude);
 }
@@ -117,6 +128,48 @@ static void WriteIncludes(FILE* file, char** filenames, int count)
 	}
 }
 
+static void WriteAttributes(FILE* file)
+{
+	const char* format =
+		"\t{ "
+		"%d, "									/* flags */
+		"\"%s\", "								/* elementCountVar */
+		" }, // %d\n";							/* index */
+
+	fprintf(file, "static struct ReflectedAttribute s_attributes[] = {\n");
+
+	int index = 0;
+
+	struct Type* type = s_types;
+	while(type)
+	{
+		struct Variable* var = type->variables;
+		while(var)
+		{
+			if(var->attribs.flags)
+			{
+				struct Attributes* attribs = &var->attribs;
+				fprintf(file, format,
+					attribs->flags,
+					attribs->elementCountVar,
+					index);
+
+				var->attribIndex = index++;
+			}
+			else
+			{
+				var->attribIndex = -1;
+			}
+
+			var = var->next;
+		}
+
+		type = type->next;
+	}
+
+	fprintf(file, "};\n");
+}
+
 static void WriteVariables(FILE* file)
 {
 	const char* format =
@@ -128,7 +181,8 @@ static void WriteVariables(FILE* file)
 		"%d,"									/* primType */
 		"%d,"									/* isPrim */
 		"%d,"									/* isArray */
-		"%d"									/* elementCount */
+		"%d,"									/* elementCount */
+		"%d"									/* attrib */
 		" },\n";
 
 	struct Type* type = s_types;
@@ -148,7 +202,8 @@ static void WriteVariables(FILE* file)
 				var->primType,
 				var->prim,
 				var->array,
-				var->elementCount);
+				var->elementCount,
+				var->attribIndex);
 
 			var = var->next;
 		}
@@ -207,6 +262,7 @@ int main(int argc, char* argv[])
 
 	s_mem.cur = malloc(MEMORY_SIZE);
 	s_mem.end = s_mem.cur + MEMORY_SIZE;
+	memset(s_mem.cur, 0, MEMORY_SIZE);
 
 	for(i = 2; i < argc; ++i)
 	{
@@ -221,6 +277,8 @@ int main(int argc, char* argv[])
 	WriteIncludes(file, argv + 2, argc - 2);
 
 	fprintf(file, "\n");
+
+	WriteAttributes(file);
 
 	WriteVariables(file);
 
@@ -260,15 +318,12 @@ static void UnexpectedToken(void)
 	exit(-1);
 }
 
-static void ParseVariableCommon(struct Type* type, struct Variable* var)
+static void ParseVariableCommon(struct Variable* var)
 {
 	var->array = false;
 	var->elementCount = 0;
 	
 	StoreIdentifier(var->typeIdent);
-
-	var->next = type->variables;
-	type->variables = var;
 
 	NextToken();
 	ExpectToken(TOK_IDENT);
@@ -294,26 +349,53 @@ static void ParseVariableCommon(struct Type* type, struct Variable* var)
 	ExpectToken(TOK_SEMICOL);
 }
 
-static void ParsePrimitiveVariable(struct Type* type)
+static void ParseAttribute(struct Variable* var)
 {
-	struct Variable* var = Alloc(sizeof(struct Variable));
+	NextToken();
 
+	ExpectToken(TOK_LPAREN);
+	NextToken();
+
+	ExpectToken(TOK_IDENT);
+	if(!strcmp(yyrfltext, "elementCountVar"))
+	{
+		NextToken();
+		ExpectToken(TOK_COLON);
+		NextToken();
+		ExpectToken(TOK_IDENT);
+
+		StoreIdentifier(var->attribs.elementCountVar);
+		var->attribs.flags |= AF_ELEMENT_COUNT_VAR;
+
+		NextToken();
+	}
+	else
+	{
+		// TODO(cj): Common error function.
+		printf( TERM_RED( "Error: " ) "%s:%d: Unknown attribute '%s'.\n",
+				s_filename, yyrfllineno, yyrfltext );
+		exit(-1);
+	}
+
+	ExpectToken(TOK_RPAREN);
+}
+
+static void ParsePrimitiveVariable(struct Variable* var)
+{
 	var->prim = true;
 	var->primType = g_primType;
 
-	ParseVariableCommon(type, var);
+	ParseVariableCommon(var);
 }
 
-static void ParseStructVariable(struct Type* type)
+static void ParseStructVariable(struct Variable* var)
 {
-	struct Variable* var = Alloc(sizeof(struct Variable));
-
 	var->prim = false;
 
 	NextToken();
 	ExpectToken(TOK_IDENT);
 	
-	ParseVariableCommon(type, var);
+	ParseVariableCommon(var);
 }
 
 static void ParseType(void)
@@ -338,17 +420,33 @@ static void ParseType(void)
 	NextToken();
 	ExpectToken(TOK_LBRACE);
 
+	struct Variable* var = Alloc(sizeof(struct Variable));
+
 	done = false;
 	while(!done)
 	{
 		NextToken();
-		if(s_token == TOK_PRIM)
+		if(s_token == TOK_REFL_ATTRIB)
 		{
-			ParsePrimitiveVariable(type);
+			ParseAttribute(var);
+		}
+		else if(s_token == TOK_PRIM)
+		{
+			ParsePrimitiveVariable(var);
+
+			var->next = type->variables;
+			type->variables = var;
+
+			var = Alloc(sizeof(struct Variable));
 		}
 		else if(s_token == TOK_STRUCT)
 		{
-			ParseStructVariable(type);
+			ParseStructVariable(var);
+
+			var->next = type->variables;
+			type->variables = var;
+
+			var = Alloc(sizeof(struct Variable));
 		}
 		else if(s_token == TOK_RBRACE)
 		{
@@ -364,7 +462,7 @@ static void ParseType(void)
 	ExpectToken(TOK_SEMICOL);
 
 	/* Reverse variable order to make it the same as in source file. */
-	struct Variable* var = type->variables;
+	var = type->variables;
 	type->variables = NULL;
 	while(var)
 	{

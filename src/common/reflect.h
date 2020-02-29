@@ -9,6 +9,19 @@ enum PrimitiveType
 	PT_UINT16
 };
 
+enum AttributeFlags
+{
+	AF_ELEMENT_COUNT_VAR = (1 << 0)
+};
+
+struct ReflectedAttribute
+{
+	int			flags;
+
+	// Element count attribute.
+	const char* elementCountVar;
+};
+
 struct ReflectedVariable
 {
 	const char*			name;
@@ -19,6 +32,7 @@ struct ReflectedVariable
 	int					isPrim;
 	int					isArray;
 	int					elementCount;
+	int					attrib;
 };
 
 struct ReflectedType
@@ -29,5 +43,7 @@ struct ReflectedType
 };
 
 const struct ReflectedType*	FindReflectedType(const char* typeName);
+
+const struct ReflectedAttribute* GetReflectedAttributes(void);
 
 void						PrintReflectedType(char* buffer, const char* typeName);

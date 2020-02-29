@@ -5,6 +5,7 @@
 
 // Defined by automatically-generated file reflected.c
 extern struct ReflectedType* g_types;
+extern struct ReflectedAttribute* g_attributes;
 
 const struct ReflectedType* FindReflectedType(const char* typeName)
 {
@@ -18,6 +19,11 @@ const struct ReflectedType* FindReflectedType(const char* typeName)
 		++type;
 	}
 	return NULL;
+}
+
+const struct ReflectedAttribute* GetReflectedAttributes(void)
+{
+	return g_attributes;
 }
 
 void PrintReflectedType(char* buffer, const char* typeName)
