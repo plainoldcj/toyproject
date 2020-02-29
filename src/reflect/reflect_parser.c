@@ -42,7 +42,7 @@ struct Variable
 	enum PrimitiveType	primType;
 	bool				prim;
 	bool				array;
-	int					elementCount;
+	char				elementCount[MAX_IDENT_LEN];
 
 	struct Attributes	attribs;
 
@@ -181,7 +181,7 @@ static void WriteVariables(FILE* file)
 		"%d,"									/* primType */
 		"%d,"									/* isPrim */
 		"%d,"									/* isArray */
-		"%d,"									/* elementCount */
+		"%s,"									/* elementCount */
 		"%d"									/* attrib */
 		" },\n";
 
@@ -321,7 +321,7 @@ static void UnexpectedToken(void)
 static void ParseVariableCommon(struct Variable* var)
 {
 	var->array = false;
-	var->elementCount = 0;
+	strcpy(var->elementCount, "0");
 	
 	StoreIdentifier(var->typeIdent);
 
@@ -333,12 +333,19 @@ static void ParseVariableCommon(struct Variable* var)
 	NextToken();
 	if(s_token == TOK_LBRACKET)
 	{
+		var->array = true;
+
 		/* Parse array variable. */
 		NextToken();
-		ExpectToken(TOK_INTEGER);
 
-		var->array = true;
-		var->elementCount = atoi(yyrfltext);
+		if(s_token == TOK_INTEGER || s_token == TOK_IDENT)
+		{
+			StoreIdentifier(var->elementCount);
+		}
+		else
+		{
+			UnexpectedToken();
+		}
 
 		NextToken();
 		ExpectToken(TOK_RBRACKET);

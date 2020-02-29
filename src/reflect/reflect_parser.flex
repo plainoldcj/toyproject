@@ -8,7 +8,7 @@
 #include "reflect/reflect_local.h"
 %}
 
-IDENT [a-zA-Z][a-zA-Z0-9]*
+IDENT [a-zA-Z][a-zA-Z0-9_]*
 INTEGER [0-9]+
 
 REFLECTED "__REFLECTED__"
