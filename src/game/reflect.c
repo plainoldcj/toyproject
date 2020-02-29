@@ -1,5 +1,8 @@
 #include "common/reflect.h"
 
+#include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -51,4 +54,57 @@ void PrintReflectedType(char* buffer, const char* typeName)
 			var->isArray,
 			var->elementCount);
 	}
+}
+
+// TODO(cj): Similar code in json_reader.c
+#define FORALL_INTTYPES \
+	FOR_INTTYPE(PT_INT,		int) \
+	FOR_INTTYPE(PT_UINT8,	uint8_t) \
+	FOR_INTTYPE(PT_UINT16,	uint16_t)
+
+static bool TryGetInteger(const struct ReflectedVariable* var, void* object, int* out)
+{
+
+#define FOR_INTTYPE(PRIMTYPE, TYPE) \
+	if(var->primType == PRIMTYPE) \
+	{ \
+		TYPE* ptr = (TYPE*)((char*)object + var->offset); \
+		*out = (int)*ptr;\
+		return true;\
+	}
+
+	FORALL_INTTYPES
+	
+#undef FOR_INTTYPE
+
+	*out = 0;
+	return false;
+}
+
+int GetElementCount(const struct ReflectedType* type, const struct ReflectedVariable* var, void* object)
+{
+	assert(var->isArray);
+
+	if(var->attrib != -1)
+	{
+		const struct ReflectedAttribute* attrib = GetReflectedAttributes() + var->attrib;
+		if(attrib->flags & AF_ELEMENT_COUNT_VAR)
+		{
+			for(int varIdx = 0; varIdx < type->variableCount; ++varIdx)
+			{
+				const struct ReflectedVariable* it = type->variables + varIdx;
+				if(!strcmp(it->name, attrib->elementCountVar))
+				{
+					// TODO(cj): Do elementCountVar validation on startup (in non-final build).
+					int elementCount;
+					bool success = TryGetInteger(it, object, &elementCount);
+					assert(success);
+
+					return elementCount;
+				}
+			}
+		}
+	}
+
+	return var->elementCount;
 }

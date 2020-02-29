@@ -71,6 +71,7 @@ static void WriteIndent(struct JsonWriter* writer)
 
 static void WriteVariable(
 	struct JsonWriter* writer,
+	const struct ReflectedType* type,
 	const struct ReflectedVariable* var,
 	void* object)
 {
@@ -114,7 +115,9 @@ FORALL_PRIMTYPES
 		Write(writer, "[\n");
 		++writer->indent;
 
-		for(int i = 0; i < var->elementCount; ++i)
+		const int elementCount = GetElementCount(type, var, object);
+
+		for(int i = 0; i < elementCount; ++i)
 		{
 			if(i != 0)
 			{
@@ -160,7 +163,7 @@ static void WriteJsonObject(
 		Write(writer, "\n");
 		WriteIndent(writer);
 		Write(writer, "\"%s\": ", var->name);
-		WriteVariable(writer, var, object);
+		WriteVariable(writer, type, var, object);
 	}
 
 	--writer->indent;

@@ -47,3 +47,5 @@ const struct ReflectedType*	FindReflectedType(const char* typeName);
 const struct ReflectedAttribute* GetReflectedAttributes(void);
 
 void						PrintReflectedType(char* buffer, const char* typeName);
+
+int GetElementCount(const struct ReflectedType* type, const struct ReflectedVariable* var, void* object);
