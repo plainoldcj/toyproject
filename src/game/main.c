@@ -4,6 +4,7 @@
 #include "alloc_tests.h"
 #include "editor.h"
 #include "entity.h"
+#include "font_baker.h"
 #include "font_renderer.h"
 #include "game.h"
 #include "math_tests.h"
@@ -93,6 +94,9 @@ int main(int argc, char* argv[])
 	RunAllUnitTests();
 
 	InitAssets();
+
+	int ret = BakeFont("Fonts/tf2build.ttf");
+	assert(!ret);
 
 	// TODO(cj): Remove this.
 	{

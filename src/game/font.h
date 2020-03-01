@@ -8,6 +8,7 @@
 
 #define FONT_CHAR_COUNT			256
 
+__REFLECTED__
 struct FontChar
 {
 	uint16_t	id;
@@ -22,15 +23,18 @@ struct FontChar
 	uint8_t		chnl;
 };
 
+// TODO(cj): Debug name not needed in final build.
+__REFLECTED__
 struct Font
 {
-	// TODO(cj): Debug name not needed in final build.
 	char				debugName[FONT_DEBUG_NAME_SIZE];
 	char				faceName[FONT_FACE_NAME_SIZE];
 	float				lineHeight;
 	uint16_t			scaleW;
 	uint16_t			scaleH;
 	uint16_t			count;
+
+	__REFL_ATTRIB__(elementCountVar, count)
 	struct FontChar		chars[FONT_CHAR_COUNT];
 };
 

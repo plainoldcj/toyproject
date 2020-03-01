@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <setjmp.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -260,6 +261,8 @@ static float ParseJsonFloat(struct JsonReader* reader)
 	const char* num = reader->json + firstNum;
 	int len = reader->cur - firstNum;
 
+	printf("XXXX num '%.*s'", len, num);
+
 	if(!hasDigits)
 	{
 		ReadingError(reader, "Expected float, but got '%.*s'", len, num);
@@ -461,7 +464,7 @@ static void ParseJsonKeyValue(struct JsonReader* reader)
 	for(int varIdx = 0; varIdx < type->variableCount; ++varIdx)
 	{
 		struct ReflectedVariable* var = type->variables + varIdx;
-		if(!strncmp(var->name, key, keyLen))
+		if(!strncmp(var->name, key, keyLen) && var->name[keyLen] == '\0')
 		{
 			ParseJsonValue(reader, var);
 		}

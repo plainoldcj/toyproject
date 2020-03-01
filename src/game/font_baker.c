@@ -1,12 +1,19 @@
+#include "alloc.h"
 #include "assets.h"
 #include "common.h"
+#include "font.h"
 #include "font_baker.h"
+#include "json_writer.h"
 #include "tga_image.h"
+
+#include "common/reflect.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // TODO(cj): We need some kind of big stack allocator.
 
@@ -28,6 +35,62 @@ static stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
 
 struct ColorBgr tgaPixelData[512*512];
 
+static void FillFont(struct Font* font)
+{
+	snprintf(font->faceName, FONT_FACE_NAME_SIZE, "whatever"); // Unused.
+	font->lineHeight =  0.0f; // Unused.
+	font->scaleW = 512;
+	font->scaleH = 512;
+	font->count = 96;
+
+	for(int i = 0; i < 96; ++i)
+	{
+		struct FontChar* fontChar = font->chars + i;
+		stbtt_bakedchar c = cdata[i];
+		fontChar->id = 32 + i;
+		fontChar->x = c.x0;
+		fontChar->y = c.y0;
+		fontChar->width = c.x1 - c.x0;
+		fontChar->height = c.y1 - c.y0;
+		fontChar->xoffset = c.xoff;
+		fontChar->yoffset = c.yoff;
+		fontChar->xadvance = c.xadvance;
+		fontChar->page = 0; // Unused.
+		fontChar->chnl = 0; // Unused.
+	}
+}
+
+static void WriteFontDesc(FILE* file)
+{
+	const int BUFFER_SIZE = 1024 * 100;
+
+	struct SScope scope;
+	BigStack_Begin(&scope);
+	char* buffer = BigStack_Alloc(BUFFER_SIZE);
+	memset(buffer, 0, BUFFER_SIZE);
+
+	struct Font font;
+	FillFont(&font);
+
+	const struct ReflectedType* type = FindReflectedType("Font");
+	assert(type);
+
+	bool success = WriteJson(type, &font, buffer, BUFFER_SIZE, "font");
+	if(!success)
+	{
+		COM_LogPrintf("Unable to write font to json.");
+		exit(-1);
+	}
+
+	printf("xxxxxxxxxxxxx");
+	printf("%s", buffer);
+
+	fprintf(file, "%s", buffer);
+
+	BigStack_End(&scope);
+}
+
+#if 0
 static void WriteFontDesc(FILE* file)
 {
 	fprintf(file, "info face=\"whatever\"\n");
@@ -46,6 +109,7 @@ static void WriteFontDesc(FILE* file)
 			c.xadvance);
 	}
 }
+#endif
 
 int BakeFont(const char* assetPath)
 {

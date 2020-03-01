@@ -10,7 +10,7 @@ const char* fontDesc =
 "chars count=1\n"
 "char id=0     x=505   y=458   width=4     height=4     xoffset=-1.500    yoffset=43.875    xadvance=31.313      page=0  chnl=0\n";
 
-UNIT_TEST(TestCreateFont)
+void TestCreateFont(void)
 {
 	struct Font font;
 	bool success = InitFont(&font, fontDesc, strlen(fontDesc), "test_font");
