@@ -17,17 +17,20 @@ build_dir:
 .PHONY: build_dir
 
 build/%.o: src/%.c
-	gcc -o $@ $(CFLAGS) -Wall -g -c $^ $(DEFINES)
+	@gcc -o $@ $(CFLAGS) -Wall -g -c $^ $(DEFINES)
+	@echo Compiling $^
 
 build/third_party/glew.o: third_party/glew/glew.c
-	gcc $(CFLAGS) -o $@ -c $^
+	@gcc $(CFLAGS) -o $@ -c $^
+	@echo Compiling third party $^
 
 build/%.lex.c: src/%.flex
 	mkdir -p $(dir $@)
 	flex --outfile $@ $^
 
 build/%.o: build/%.c
-	gcc $(CFLAGS) -c -o $@ $^
+	@gcc $(CFLAGS) -c -o $@ $^
+	@echo Compiling generated $^
 
 build/reflected.c: build/reflect_app
 	./reflect.sh
