@@ -16,10 +16,10 @@ enum AttributeFlags
 
 struct ReflectedAttribute
 {
-	int			flags;
+	int	flags;
 
 	// Element count attribute.
-	const char* elementCountVar;
+	int	elementCountVar;
 };
 
 struct ReflectedVariable
@@ -44,7 +44,10 @@ struct ReflectedType
 
 const struct ReflectedType*	FindReflectedType(const char* typeName);
 
+const struct ReflectedVariable* GetReflectedVariables(void);
+
 const struct ReflectedAttribute* GetReflectedAttributes(void);
+int GetReflectedAttributeCount(void);
 
 void						PrintReflectedType(char* buffer, const char* typeName);
 

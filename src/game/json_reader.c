@@ -419,6 +419,23 @@ static void ParseJsonValue(struct JsonReader* reader, struct ReflectedVariable* 
 				done = true;
 			}
 		}
+
+		// Write element count.
+		const struct ReflectedAttribute* attrib = GetReflectedAttributes() + var->attrib;
+		if(attrib->flags & AF_ELEMENT_COUNT_VAR)
+		{
+			const struct ReflectedVariable* countVar = GetReflectedVariables() + attrib->elementCountVar;
+#define FOR_INTTYPE(PRIMTYPE, TYPE) \
+	if(countVar->primType == PRIMTYPE) \
+	{ \
+		TYPE* ptr = (TYPE*)((char*)reader->context->object + countVar->offset); \
+		*ptr = (TYPE)count; \
+	}
+
+	FORALL_INTTYPES
+	
+#undef FOR_INTTYPE
+		}
 	}
 	else
 	{

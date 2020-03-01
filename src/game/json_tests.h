@@ -23,5 +23,9 @@ struct JsonTest
 	uint16_t				u16Value;
 	char					str[64];
 	struct JsonTestNested	nested;
+
+	int						count;
+
+	__REFL_ATTRIB__(elementCountVar, count)
 	struct JsonTestNestedA	arr[2];
 };

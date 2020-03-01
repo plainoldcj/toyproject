@@ -7,8 +7,11 @@
 #include <string.h>
 
 // Defined by automatically-generated file reflected.c
-extern struct ReflectedType* g_types;
-extern struct ReflectedAttribute* g_attributes;
+extern struct ReflectedType*		g_types;
+extern struct ReflectedAttribute*	g_attributes;
+extern struct ReflectedVariable*	g_variables;
+
+extern int							g_attributeCount;
 
 const struct ReflectedType* FindReflectedType(const char* typeName)
 {
@@ -24,9 +27,19 @@ const struct ReflectedType* FindReflectedType(const char* typeName)
 	return NULL;
 }
 
+const struct ReflectedVariable* GetReflectedVariables(void)
+{
+	return g_variables;
+}
+
 const struct ReflectedAttribute* GetReflectedAttributes(void)
 {
 	return g_attributes;
+}
+
+int GetReflectedAttributeCount(void)
+{
+	return g_attributeCount;
 }
 
 void PrintReflectedType(char* buffer, const char* typeName)
@@ -90,19 +103,13 @@ int GetElementCount(const struct ReflectedType* type, const struct ReflectedVari
 		const struct ReflectedAttribute* attrib = GetReflectedAttributes() + var->attrib;
 		if(attrib->flags & AF_ELEMENT_COUNT_VAR)
 		{
-			for(int varIdx = 0; varIdx < type->variableCount; ++varIdx)
-			{
-				const struct ReflectedVariable* it = type->variables + varIdx;
-				if(!strcmp(it->name, attrib->elementCountVar))
-				{
-					// TODO(cj): Do elementCountVar validation on startup (in non-final build).
-					int elementCount;
-					bool success = TryGetInteger(it, object, &elementCount);
-					assert(success);
+			struct ReflectedVariable* countVar = g_variables + attrib->elementCountVar;
 
-					return elementCount;
-				}
-			}
+			int elementCount;
+			bool success = TryGetInteger(countVar, object, &elementCount);
+			assert(success);
+
+			return elementCount;
 		}
 	}
 

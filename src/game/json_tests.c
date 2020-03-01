@@ -49,6 +49,7 @@ UNIT_TEST(TestReadJson)
 	EXPECT_EQUAL_INT(0, strcmp(object.str, "hello"));
 	EXPECT_EQUAL_INT(17, object.arr[0].iValue);
 	EXPECT_EQUAL_INT(18, object.arr[1].iValue);
+	EXPECT_EQUAL_INT(2, object.count);
 }
 
 UNIT_TEST(TestWriteJson)
@@ -87,6 +88,7 @@ UNIT_TEST(TestWriteJson)
 		.nested = {
 			.fValue = 32.23f
 		},
+		.count = 2,
 		.arr[0] =
 		{
 			.iValue = -17

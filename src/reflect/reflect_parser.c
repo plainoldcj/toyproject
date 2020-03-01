@@ -31,12 +31,12 @@ struct Attributes
 {
 	int		flags;
 	char	elementCountVar[MAX_IDENT_LEN];
+
+	int		resolvedVar;
 };
 
 struct Variable
 {
-	struct Variable*	next;
-
 	char				ident[MAX_IDENT_LEN];
 	char				typeIdent[MAX_IDENT_LEN];
 	enum PrimitiveType	primType;
@@ -51,15 +51,24 @@ struct Variable
 
 struct Type
 {
-	struct Type*		next;
-
 	char				ident[MAX_IDENT_LEN];
-	struct Variable*	variables;
+	int					firstVariable;
+	int					variableCount;
 };
 
-struct Type* s_types;
-
 #define MEMORY_SIZE 100 * 4096
+
+#define MAX_VARIABLES	4096
+#define MAX_TYPES		512
+
+static struct Variable		s_variables[MAX_VARIABLES];
+static int					s_variableCount;
+
+static struct Type			s_types[MAX_TYPES];
+static int					s_typeCount;
+
+static struct Attributes*	s_attributes[MAX_VARIABLES];
+static int					s_attributeCount;
 
 static struct
 {
@@ -67,6 +76,7 @@ static struct
 	char* end;
 } s_mem;
 
+#if 0
 static void* Alloc(size_t size)
 {
 	void* ret = s_mem.cur;
@@ -78,6 +88,7 @@ static void* Alloc(size_t size)
 	}
 	return ret;
 }
+#endif
 
 static void StoreIdentifier(char* dst)
 {
@@ -113,9 +124,13 @@ static void WritePostlude(FILE* file)
 {
 	const char* postlude =
 		"struct ReflectedType* g_types = s_types;\n"
-		"struct ReflectedAttribute* g_attributes = s_attributes;";
+		"struct ReflectedAttribute* g_attributes = s_attributes;\n"
+		"struct ReflectedVariable* g_variables = s_variables;\n"
+		"\n"
+		"int g_attributeCount = %d;\n";
 
-	fprintf(file, "%s", postlude);
+	fprintf(file, postlude,
+		s_attributeCount);
 }
 
 static void WriteIncludes(FILE* file, char** filenames, int count)
@@ -132,26 +147,30 @@ static void WriteAttributes(FILE* file)
 {
 	const char* format =
 		"\t{ "
-		"%d, "									/* flags */
-		"\"%s\", "								/* elementCountVar */
-		" }, // %d\n";							/* index */
+		"%d, "			/* flags */
+		"%d "			/* elementCountVar */
+		" }, // %d\n";	/* index */
 
 	fprintf(file, "static struct ReflectedAttribute s_attributes[] = {\n");
 
 	int index = 0;
 
 	struct Type* type = s_types;
-	while(type)
+	struct Type* const typeEnd = s_types + s_typeCount;
+
+	while(type != typeEnd)
 	{
-		struct Variable* var = type->variables;
-		while(var)
+		struct Variable* var = s_variables + type->firstVariable;
+		struct Variable* const varEnd = var + type->variableCount;
+
+		while(var != varEnd)
 		{
 			if(var->attribs.flags)
 			{
 				struct Attributes* attribs = &var->attribs;
 				fprintf(file, format,
 					attribs->flags,
-					attribs->elementCountVar,
+					attribs->resolvedVar,
 					index);
 
 				var->attribIndex = index++;
@@ -161,10 +180,10 @@ static void WriteAttributes(FILE* file)
 				var->attribIndex = -1;
 			}
 
-			var = var->next;
+			++var;
 		}
 
-		type = type->next;
+		++type;
 	}
 
 	fprintf(file, "};\n");
@@ -185,14 +204,17 @@ static void WriteVariables(FILE* file)
 		"%d"									/* attrib */
 		" },\n";
 
-	struct Type* type = s_types;
-	while(type)
-	{
-		fprintf(file, "static struct ReflectedVariable s_variables_%s[] = {\n",
-			type->ident);
+	fprintf(file, "static struct ReflectedVariable s_variables[] = {\n");
 
-		struct Variable* var = type->variables;
-		while(var)
+	struct Type* type = s_types;
+	struct Type* const typeEnd = s_types + s_typeCount;
+
+	while(type != typeEnd)
+	{
+		struct Variable* var = s_variables + type->firstVariable;
+		struct Variable* varEnd = var + type->variableCount;
+
+		while(var != varEnd)
 		{
 			fprintf(file, format,
 				var->ident,
@@ -205,13 +227,13 @@ static void WriteVariables(FILE* file)
 				var->elementCount,
 				var->attribIndex);
 
-			var = var->next;
+			++var;
 		}
 
-		type = type->next;
-
-		fprintf(file, "};\n");
+		++type;
 	}
+
+	fprintf(file, "};\n");
 }
 
 static void WriteTypes(FILE* file)
@@ -220,34 +242,99 @@ static void WriteTypes(FILE* file)
 		"\t{ "
 		"\"%s\", "			/* name */
 		"%d, "				/* variableCount */
-		"s_variables_%s"	/* variables */
+		"s_variables + %d"	/* variables */
 		" },\n";
 
 	fprintf(file, "static struct ReflectedType s_types[] = {\n");
 
 	struct Type* type = s_types;
-	while(type)
-	{
-		int varCount = 0;
-		struct Variable* var = type->variables;
-		while(var)
-		{
-			varCount++;
-			var = var->next;
-		}
+	struct Type* const typeEnd = s_types + s_typeCount;
 
+	while(type != typeEnd)
+	{
 		fprintf(file, format,
 			type->ident,
-			varCount,
-			type->ident);
+			type->variableCount,
+			type->firstVariable);
 
-		type = type->next;
+		++type;
 	}
 
 	/* Write sentinel */
 	fprintf(file, "\t{0, 0, 0}\n");
 
 	fprintf(file, "};\n");
+}
+
+static struct Variable* FindVariableByName(struct Type* type, const char* name)
+{
+	struct Variable* var = s_variables + type->firstVariable;
+	struct Variable* varEnd = var + type->variableCount;
+
+	while(var != varEnd)
+	{
+		if(!strcmp(var->ident, name))
+		{
+			return var;
+		}
+		++var;
+	}
+
+	return NULL;
+}
+
+static void ResolveAttributes(void)
+{
+	struct Type* type = s_types;
+	struct Type* const typeEnd = s_types + s_typeCount;
+
+	while(type != typeEnd)
+	{
+		struct Variable* var = s_variables + type->firstVariable;
+		struct Variable* varEnd = var + type->variableCount;
+
+		while(var != varEnd)
+		{
+			struct Attributes* attrib = &var->attribs;
+			if(attrib->flags)
+			{
+				var->attribIndex = s_attributeCount;
+				s_attributes[s_attributeCount++] = attrib;
+
+				if(attrib->flags & AF_ELEMENT_COUNT_VAR)
+				{
+					struct Variable* countVar = FindVariableByName(type, attrib->elementCountVar);
+					if(!countVar)
+					{
+						// TODO(cj): Common error function.
+						printf( TERM_RED( "Error: " ) "%s:%d: Cannot resolve element count variable %s->%s.\n",
+								s_filename, yyrfllineno, type->ident, attrib->elementCountVar );
+						exit(-1);
+					}
+
+					bool validCountVar =
+						countVar->prim &&
+						!countVar->array &&
+						(countVar->primType == PT_INT || countVar->primType == PT_UINT16 || countVar->primType == PT_INT);
+
+					if(!validCountVar)
+					{
+						// TODO(cj): Common error function.
+						printf( TERM_RED( "Error: " ) "%s:%d: Element count variable %s->%s has invalid type.\n",
+								s_filename, yyrfllineno, type->ident, attrib->elementCountVar );
+						exit(-1);
+					}
+
+					int variableIndex = (int)(countVar - s_variables);
+					attrib->resolvedVar = variableIndex;
+				}
+			}
+
+			++var;
+		}
+
+		++type;
+	}
 }
 
 int main(int argc, char* argv[])
@@ -269,6 +356,8 @@ int main(int argc, char* argv[])
 		printf( TERM_RED( "got file %s\n" ), argv[i]);
 		Parse(argv[i]);
 	}
+
+	ResolveAttributes();
 
 	FILE* file = fopen(argv[1], "w");
 
@@ -405,6 +494,26 @@ static void ParseStructVariable(struct Variable* var)
 	ParseVariableCommon(var);
 }
 
+static struct Type* CreateType(void)
+{
+	if(s_typeCount + 1 >= MAX_TYPES)
+	{
+		printf( TERM_RED( "Error: ") "Cannot create type.\n" );
+		exit(-1);
+	}
+	return s_types + s_typeCount++;
+}
+
+static struct Variable* CreateVariable(void)
+{
+	if(s_variableCount + 1 >= MAX_VARIABLES)
+	{
+		printf( TERM_RED( "Error: ") "Cannot create variable.\n" );
+		exit(-1);
+	}
+	return s_variables + s_variableCount++;
+}
+
 static void ParseType(void)
 {
 	bool done;
@@ -415,19 +524,17 @@ static void ParseType(void)
 	NextToken();
 	ExpectToken(TOK_IDENT);
 
-	struct Type* type = Alloc(sizeof(struct Type));
-
-	type->next = s_types;
-	s_types = type;
+	struct Type* type = CreateType();
 
 	StoreIdentifier(type->ident);
 
-	type->variables = NULL;
+	type->firstVariable = s_variableCount;
+	type->variableCount = 0;
 
 	NextToken();
 	ExpectToken(TOK_LBRACE);
 
-	struct Variable* var = Alloc(sizeof(struct Variable));
+	struct Variable* var = NULL;
 
 	done = false;
 	while(!done)
@@ -435,25 +542,36 @@ static void ParseType(void)
 		NextToken();
 		if(s_token == TOK_REFL_ATTRIB)
 		{
+			if(!var)
+			{
+				var = CreateVariable();
+			}
+
 			ParseAttribute(var);
 		}
 		else if(s_token == TOK_PRIM)
 		{
+			if(!var)
+			{
+				var = CreateVariable();
+			}
+
 			ParsePrimitiveVariable(var);
 
-			var->next = type->variables;
-			type->variables = var;
-
-			var = Alloc(sizeof(struct Variable));
+			++type->variableCount;
+			var = NULL;
 		}
 		else if(s_token == TOK_STRUCT)
 		{
+			if(!var)
+			{
+				var = CreateVariable();
+			}
+
 			ParseStructVariable(var);
 
-			var->next = type->variables;
-			type->variables = var;
-
-			var = Alloc(sizeof(struct Variable));
+			++type->variableCount;
+			var = NULL;
 		}
 		else if(s_token == TOK_RBRACE)
 		{
@@ -467,17 +585,6 @@ static void ParseType(void)
 
 	NextToken();
 	ExpectToken(TOK_SEMICOL);
-
-	/* Reverse variable order to make it the same as in source file. */
-	var = type->variables;
-	type->variables = NULL;
-	while(var)
-	{
-		struct Variable* next = var->next;
-		var->next = type->variables;
-		type->variables = var;
-		var = next;
-	}
 }
 
 void StartParsing(const char* filename)

@@ -3,6 +3,7 @@
 #include "common/reflect.h"
 
 #include "common.h"
+#include "json_common.h"
 
 #include <inttypes.h>
 #include <stdarg.h>
@@ -154,12 +155,18 @@ static void WriteJsonObject(
 
 	for(int varIdx = 0; varIdx < type->variableCount; ++varIdx)
 	{
+		const struct ReflectedVariable* var = type->variables + varIdx;
+
+		if(!ShouldReadWrite(var))
+		{
+			continue;
+		}
+
 		if(varIdx != 0)
 		{
 			Write(writer, ",");
 		}
 
-		const struct ReflectedVariable* var = type->variables + varIdx;
 		Write(writer, "\n");
 		WriteIndent(writer);
 		Write(writer, "\"%s\": ", var->name);
