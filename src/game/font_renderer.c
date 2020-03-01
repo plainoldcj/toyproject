@@ -2,9 +2,12 @@
 #include "common.h"
 #include "font.h"
 #include "font_renderer.h"
+#include "json_reader.h"
 #include "math.h"
 #include "renderer.h"
 #include "material_manager.h"
+
+#include "common/reflect.h"
 
 #include <float.h>
 #include <stdarg.h>
@@ -19,6 +22,7 @@
 static struct
 {
 	struct Font	font;
+	uint16_t	charMap[FONT_CHAR_COUNT];
 	char		formatted[FNT_FORMATTED_BUFFER_SIZE];
 
 	struct Rect	brect; // Bounding rect in world-space (y goes up)
@@ -32,10 +36,25 @@ void FNT_Init(void)
 	const char* desc = (const char*)Asset_GetData(asset);
 	int descLen = Asset_GetSize(asset);
 
-	if(!InitFont(&s_fnt.font, desc, descLen, "sdf font"))
+	const struct ReflectedType* type = FindReflectedType("Font");
+	if(!type)
 	{
-		COM_LogPrintf("Unable to create font.");
+		COM_LogPrintf("Cannot find reflection data for Font");
 		exit(-1);
+	}
+
+	bool success = ReadJson(type, &s_fnt.font, desc, descLen, "sdf font");
+	if(!success)
+	{
+		COM_LogPrintf("Unable to read font description.");
+		exit(-1);
+	}
+
+	memset(&s_fnt.charMap, 0, sizeof(uint16_t) * FONT_CHAR_COUNT);
+	for(int charIdx = 0; charIdx < s_fnt.font.count; ++charIdx)
+	{
+		const struct FontChar* fontChar = s_fnt.font.chars + charIdx;
+		s_fnt.charMap[fontChar->id] = charIdx;
 	}
 
 	ReleaseAsset(asset);
@@ -131,7 +150,8 @@ void FNT_Printf(float posX, float posY, const char* format, ...)
 	const char* c = s_fnt.formatted;
 	while(*c != '\0')
 	{
-		struct FontChar* fontChar = &s_fnt.font.chars[(int)*c];
+		uint16_t charIdx = s_fnt.charMap[(int)*c];
+		struct FontChar* fontChar = &s_fnt.font.chars[charIdx];
 		if(fontChar->id != (int)*c)
 		{
 			// char not in charset, skip.
