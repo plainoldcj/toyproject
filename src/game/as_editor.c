@@ -1,5 +1,5 @@
 #include "app_states.h"
-#include "ui.h"
+#include "editor.h"
 
 #include <string.h>
 
@@ -7,35 +7,25 @@ static struct AppState s_appState;
 
 static void Enter(void)
 {
+	Ed_Init();
 }
 
 static void Leave(void)
 {
+	Ed_Shutdown();
 }
 
 static void Tick(float elapsedSeconds)
 {
-	if(UI_Button(100.0f, 200.0f, "Game"))
-	{
-		s_appState.transition(AS_GAME);
-	}
-
-	if(UI_Button(100.0f, 150.0f, "Editor"))
-	{
-		s_appState.transition(AS_EDITOR);
-	}
-
-	if(UI_Button(100.0f, 100.0f, "Quit"))
-	{
-		s_appState.transition(AS_EXIT);
-	}
+	Ed_Tick(elapsedSeconds);
 }
 
 static void Draw(void)
 {
+	Ed_Draw();
 }
 
-struct AppState* AcquireMenuAppState(void)
+struct AppState* AcquireEditorAppState(void)
 {
 	memset(&s_appState, 0, sizeof(struct AppState));
 

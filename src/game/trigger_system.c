@@ -7,6 +7,10 @@ static struct GameSystem s_gameSystem;
 static void PhysicsTick()
 {
 	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
+	if(!playerTransform)
+	{
+		return;
+	}
 
 	struct Rect playerAabr;
 	GetCollisionRect(playerTransform->posX, playerTransform->posY, &playerAabr, PLAYER_SHRINK);

@@ -8,14 +8,15 @@ enum AppStates
 
 	AS_MENU,
 	AS_GAME,
+	AS_EDITOR,
 
 	AS_COUNT
 };
 
 struct AppState
 {
-	// void	(*enter)(void);
-	// void	(*leave)(void);
+	void	(*enter)(void);
+	void	(*leave)(void);
 
 	void	(*tick)(float elapsedSeconds);
 	void	(*draw)(void);
@@ -26,6 +27,7 @@ struct AppState
 
 struct AppState* AcquireMenuAppState(void);
 struct AppState* AcquireGameAppState(void);
+struct AppState* AcquireEditorAppState(void);
 
 void	AS_Init(void);
 

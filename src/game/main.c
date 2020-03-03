@@ -34,7 +34,10 @@ static float MillisecsToSecs(float ms)
 static void FillInput(SDL_Event* event)
 {
 	struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
-	assert(input);
+	if(!input)
+	{
+		return;
+	}
 
 	if(event->type == SDL_KEYDOWN)
 	{
@@ -144,9 +147,6 @@ int main(int argc, char* argv[])
 
 	AS_Init();
 
-	// Ed_Init();
-	G_Init();
-
 	Uint32 lastTicks = SDL_GetTicks();
 
 	SDL_Event event;
@@ -184,13 +184,9 @@ int main(int argc, char* argv[])
 		float elapsedMillisecs = (float)(ticks - lastTicks);
 		lastTicks = ticks;
 
-		// Ed_Tick(MillisecsToSecs(elapsedMillisecs));
-		// G_Tick(MillisecsToSecs(elapsedMillisecs));
 		AS_Tick(MillisecsToSecs(elapsedMillisecs));
 
 		R_BeginFrame();
-		// Ed_Draw();
-		// G_Draw();
 		AS_Draw();
 		R_EndFrame();
 
@@ -201,9 +197,6 @@ int main(int argc, char* argv[])
 			isDone = true;
 		}
 	}
-
-	// Ed_Shutdown();
-	G_Shutdown();
 
 	UI_Deinit();
 

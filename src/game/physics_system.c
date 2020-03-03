@@ -75,6 +75,11 @@ static void UpdatePlayerGravity()
 	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
 	struct Player* player = FindComponent(&s_players, g_playerEntity);
 
+	if(!playerTransform || !player)
+	{
+		return;
+	}
+
 	struct Vec2 gravity;
 	Vec2_SetF(&gravity, 0.0f, -20.000000f /* g_gameConfig.gravity */);
 
@@ -204,6 +209,10 @@ static bool Player_IsTouchingUp()
 static void UpdatePlayerPhysicsTick()
 {
 	struct Player* player = FindComponent(&s_players, g_playerEntity);
+	if(!player)
+	{
+		return;
+	}
 
 	bool isTouchingDown = Player_IsTouchingDown();
 	bool isTouchingUp = Player_IsTouchingUp();

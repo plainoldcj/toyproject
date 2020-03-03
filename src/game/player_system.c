@@ -104,6 +104,10 @@ static float Player_GetInputVel()
 static void Player_Tick(float elapsedSeconds)
 {
 	struct Player* player = FindComponent(&s_players, g_playerEntity);
+	if(!player)
+	{
+		return;
+	}
 
 	player->bombTimeout -= elapsedSeconds;
 	if (player->bombTimeout < 0.0f)

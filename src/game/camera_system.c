@@ -10,10 +10,12 @@ static struct GameSystem s_gameSystem;
 static void Tick(float elapsedSeconds)
 {
 	struct Transform* playerTransform = FindComponent(&s_transforms, g_playerEntity);
-	assert(playerTransform);
-
 	struct Transform* cameraTransform = FindComponent(&s_transforms, g_cameraEntity);
-	assert(cameraTransform);
+
+	if(!playerTransform || !cameraTransform)
+	{
+		return;
+	}
 
 	cameraTransform->posX = playerTransform->posX;
 	cameraTransform->posY = playerTransform->posY;
