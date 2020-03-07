@@ -916,7 +916,7 @@ void IMM_End(void)
 	struct ImmBuffer* immBuf = &s_rend.immBuf;
 
 	struct ImmDrawCall* drawCall = &immBuf->drawCalls[ immBuf->drawCallCount - 1 ];
-	drawCall->count = s_rend.immBatch.count;
+	drawCall->count += s_rend.immBatch.count;
 
 	InitImmBatch();
 }
