@@ -27,7 +27,6 @@ struct FontChar
 __REFLECTED__
 struct Font
 {
-	char				debugName[FONT_DEBUG_NAME_SIZE];
 	char				faceName[FONT_FACE_NAME_SIZE];
 	float				lineHeight;
 	uint16_t			scaleW;

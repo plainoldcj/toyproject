@@ -1,5 +1,4 @@
 {
-	"debugName": "@ãv*ü",
 	"faceName": "whatever",
 	"lineHeight": 0.00,
 	"scaleW": 512,
