@@ -80,7 +80,7 @@ target_link_libraries(project m GL GLU)
 
 add_custom_command(
 	OUTPUT ${CMAKE_BINARY_DIR}/reflected.c
-	COMMAND ./reflect.sh
+	COMMAND ./src/build/reflect.sh
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	DEPENDS reflect_app)
 
