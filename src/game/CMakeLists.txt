@@ -69,6 +69,12 @@ ${CMAKE_CURRENT_BINARY_DIR}/game_unit_tests.c
 
 find_package(SDL2 REQUIRED)
 
+include_directories(${SDL2_INCLUDE_DIRS} ${SDL2main_INCLUDE_DIRS})
+
+find_package(OpenGL REQUIRED)
+
+include_directories(${OPENGL_INCLUDE_DIR})
+
 add_definitions(-D'__REFLECTED__=')
 add_definitions(-D'__REFL_ATTRIB__\(...\)=')
 
@@ -76,7 +82,8 @@ add_executable(project ${SOURCES} ${GENERATED_SOURCES})
 
 target_link_libraries(project glew)
 target_link_libraries(project ${SDL2_LIBRARIES})
-target_link_libraries(project m GL GLU)
+target_link_libraries(project ${OPENGL_LIBRARIES})
+target_link_libraries(project m)
 
 add_custom_command(
 	OUTPUT ${CMAKE_BINARY_DIR}/reflected.c

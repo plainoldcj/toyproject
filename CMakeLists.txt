@@ -10,6 +10,19 @@ include_directories(src)
 include_directories(third_party/glew)
 include_directories(third_party/stb)
 
+if(APPLE)
+	add_definitions(-DKQ_PLATFORM_APPLE)
+	add_definitions(-DGL_SILENCE_DEPRECATION)
+endif(APPLE)
+
+if(WIN32)
+	add_definitions(-DKQ_PLATFORM_WIN)
+endif(WIN32)
+
+if(UNIX)
+	add_definitions(-DKQ_PLATFORM_UNIX)
+endif(UNIX)
+
 add_definitions(-DGLEW_STATIC)
 
 add_definitions(-DPLATFORM_LINUX)

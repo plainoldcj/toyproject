@@ -1,6 +1,7 @@
 #include "assets.h"
 
 #include "common.h"
+#include "platform.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -14,7 +15,7 @@
 
 static struct
 {
-	char projectRoot[PATH_MAX];
+	char projectRoot[KQ_MAX_PATH];
 } s_assets;
 
 struct Asset
