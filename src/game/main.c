@@ -15,8 +15,8 @@
 #include "common/reflect.h"
 #include "common/unit_tests.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 
 #ifdef PLATFORM_WINDOWS
 #include <Windows.h>
