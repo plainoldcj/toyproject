@@ -78,12 +78,12 @@ include_directories(${OPENGL_INCLUDE_DIR})
 add_definitions(-D'__REFLECTED__=')
 add_definitions(-D'__REFL_ATTRIB__\(...\)=')
 
-add_executable(project ${SOURCES} ${GENERATED_SOURCES})
+add_library(game SHARED ${SOURCES} ${GENERATED_SOURCES})
 
-target_link_libraries(project glew)
-target_link_libraries(project ${SDL2_LIBRARIES})
-target_link_libraries(project ${OPENGL_LIBRARIES})
-target_link_libraries(project m)
+target_link_libraries(game glew)
+target_link_libraries(game ${SDL2_LIBRARIES})
+target_link_libraries(game ${OPENGL_LIBRARIES})
+target_link_libraries(game m)
 
 add_custom_command(
 	OUTPUT ${CMAKE_BINARY_DIR}/reflected.c
