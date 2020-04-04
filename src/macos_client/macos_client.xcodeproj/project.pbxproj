@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		231183912438D7F3007C6A55 /* libplatform.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 231183902438D7F3007C6A55 /* libplatform.a */; };
 		232CBD7D24325EB70050B6B0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD7C24325EB70050B6B0 /* AppDelegate.m */; };
 		232CBD8024325EB70050B6B0 /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD7F24325EB70050B6B0 /* Renderer.m */; };
 		232CBD8324325EB70050B6B0 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD8224325EB70050B6B0 /* GameViewController.m */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		231183902438D7F3007C6A55 /* libplatform.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplatform.a; path = ../../build/bin/libplatform.a; sourceTree = "<group>"; };
 		232CBD7824325EB70050B6B0 /* macos_client.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = macos_client.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		232CBD7B24325EB70050B6B0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		232CBD7C24325EB70050B6B0 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -38,17 +40,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				231183912438D7F3007C6A55 /* libplatform.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2311838F2438D7F3007C6A55 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				231183902438D7F3007C6A55 /* libplatform.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		232CBD6F24325EB70050B6B0 = {
 			isa = PBXGroup;
 			children = (
 				232CBD7A24325EB70050B6B0 /* macos_client */,
 				232CBD7924325EB70050B6B0 /* Products */,
+				2311838F2438D7F3007C6A55 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -221,6 +233,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../;
+				LIBRARY_SEARCH_PATHS = ../../build/bin;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -273,6 +287,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../;
+				LIBRARY_SEARCH_PATHS = ../../build/bin;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

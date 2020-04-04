@@ -8,7 +8,17 @@
 
 #import <Cocoa/Cocoa.h>
 
+#include <platform/platform.h>
+
 int main(int argc, const char * argv[]) {
+    int v = f();
+    
+    NSString* msg = [NSString stringWithFormat:@"val is %d", v];
+    
+    NSAlert* alert = [[NSAlert alloc] init];
+    [alert setMessageText:msg];
+    [alert runModal];
+    
     @autoreleasepool {
         // Setup code that might create autoreleased objects goes here.
     }
