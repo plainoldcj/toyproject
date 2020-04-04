@@ -5,6 +5,9 @@
 *.swp
 tags
 
+### macOS ###
+.DS_Store
+
 ###### Everything below this point is generated with gitignore.io
 
 ### Xcode ###
