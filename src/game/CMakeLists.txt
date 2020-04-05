@@ -54,9 +54,6 @@ renderer.c
 renderer.h
 shared_game.c
 shared_game.h
-strsplit.c
-strsplit.h
-strsplit_tests.c
 tga_image.c
 tga_image.h
 trigger_system.c
