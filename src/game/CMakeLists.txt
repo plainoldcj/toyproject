@@ -61,8 +61,7 @@ tga_image.c
 tga_image.h
 trigger_system.c
 ui.c
-ui.h
-unit_tests.c)
+ui.h)
 
 set(GENERATED_SOURCES
 ${CMAKE_BINARY_DIR}/reflected.c
@@ -81,6 +80,8 @@ add_definitions(-D'__REFLECTED__=')
 add_definitions(-D'__REFL_ATTRIB__\(...\)=')
 
 add_library(game SHARED ${SOURCES} ${GENERATED_SOURCES})
+
+target_link_libraries(game universal)
 
 target_link_libraries(game glew)
 target_link_libraries(game ${SDL2_LIBRARIES})
