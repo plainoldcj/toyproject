@@ -3,6 +3,8 @@
 #include "common.h"
 #include "platform.h"
 
+#include "universal/universal.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>

@@ -4,6 +4,8 @@
 #include "material_manager.h"
 #include "shared_game.h"
 
+#include "universal/universal.h"
+
 #include <assert.h>
 #include <stdio.h>
 

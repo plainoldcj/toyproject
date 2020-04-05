@@ -1,6 +1,8 @@
 #include "common.h"
 #include "strsplit.h"
 
+#include "universal/universal.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>

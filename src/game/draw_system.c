@@ -5,6 +5,8 @@
 #include "common.h"
 #include "entity.h"
 
+#include "universal/universal.h"
+
 static struct GameSystem s_gameSystem;
 
 static void Tick(float elapsedSeconds)

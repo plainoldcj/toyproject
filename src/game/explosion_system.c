@@ -1,6 +1,8 @@
 #include "common.h"
 #include "shared_game.h"
 
+#include "universal/universal.h"
+
 static struct GameSystem s_gameSystem;
 
 #define EXPLOSION_LIFETIME 0.2f

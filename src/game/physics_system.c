@@ -2,6 +2,8 @@
 #include "math.h"
 #include "shared_game.h"
 
+#include "universal/universal.h"
+
 #include <assert.h>
 
 #define TILE_SIZE 1.0f
