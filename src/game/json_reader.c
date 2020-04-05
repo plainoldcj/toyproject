@@ -2,7 +2,7 @@
 #include "common.h"
 #include "json_reader.h"
 
-#include "common/reflect.h"
+#include "universal/reflect.h"
 
 #include <assert.h>
 #include <ctype.h>

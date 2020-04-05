@@ -1,5 +1,5 @@
-#include "common/reflect.h"
-#include "common/unit_tests.h"
+#include "universal/reflect.h"
+#include "universal/unit_tests.h"
 
 #include "json_reader.h"
 #include "json_tests.h"

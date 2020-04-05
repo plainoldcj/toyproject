@@ -7,7 +7,7 @@
 #include "renderer.h"
 #include "material_manager.h"
 
-#include "common/reflect.h"
+#include "universal/reflect.h"
 
 #include <float.h>
 #include <stdarg.h>

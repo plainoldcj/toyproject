@@ -6,7 +6,7 @@
 #include "json_writer.h"
 #include "tga_image.h"
 
-#include "common/reflect.h"
+#include "universal/reflect.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"

@@ -12,8 +12,8 @@
 #include "shared_game.h"
 #include "ui.h"
 
-#include "common/reflect.h"
-#include "common/unit_tests.h"
+#include "universal/reflect.h"
+#include "universal/unit_tests.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
