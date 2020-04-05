@@ -74,22 +74,6 @@ void ExpectNotEqualFloat(float p, float e, const char* filename, int lineNumber)
 	}
 }
 
-void ExpectEqualVec4(const struct Vec4* a, float x, float y, float z, float w,
-	const char* filename, int lineNumber)
-{
-	if(fabs(a->x - x) > eps ||
-		fabs(a->y - y) > eps ||
-		fabs(a->z - z) > eps ||
-		fabs(a->w - w) > eps)
-	{
-		printf("%s:%d: Expected vectors (%f, %f, %f, %f) and (%f, %f, %f, %f) to be equal.\n",
-			filename, lineNumber,
-			a->x, a->y, a->z, a->w,
-			x, y, z, w);
-		exit(-1);
-	}
-}
-
 void ExpectTrue(bool value, const char* filename, int lineNumber)
 {
 	if(value == false)

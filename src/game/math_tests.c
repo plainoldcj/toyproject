@@ -1,4 +1,5 @@
 #include "math.h"
+#include "math_unit_tests.h"
 
 #include "universal/unit_tests.h"
 

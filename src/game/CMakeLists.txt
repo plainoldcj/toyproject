@@ -45,6 +45,8 @@ math.c
 math.h
 math_tests.c
 math_tests.h
+math_unit_tests.c
+math_unit_tests.h
 physics_system.c
 player_system.c
 reflect.c
