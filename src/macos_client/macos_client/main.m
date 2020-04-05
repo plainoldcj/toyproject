@@ -9,11 +9,12 @@
 #import <Cocoa/Cocoa.h>
 
 #include <platform/platform.h>
+#include <universal/cmdline.h>
 
 int main(int argc, const char * argv[]) {
-    int v = f();
+    const char* option = GetCommandLineOption(argc, argv, "--projectroot");
     
-    NSString* msg = [NSString stringWithFormat:@"val is %d", v];
+    NSString* msg = [NSString stringWithFormat:@"val is %s", option];
     
     NSAlert* alert = [[NSAlert alloc] init];
     [alert setMessageText:msg];

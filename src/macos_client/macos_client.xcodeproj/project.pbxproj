@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		231183912438D7F3007C6A55 /* libplatform.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 231183902438D7F3007C6A55 /* libplatform.a */; };
+		232A436E243A1BA50092E7B6 /* libuniversal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 232A436D243A1BA50092E7B6 /* libuniversal.a */; };
 		232CBD7D24325EB70050B6B0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD7C24325EB70050B6B0 /* AppDelegate.m */; };
 		232CBD8024325EB70050B6B0 /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD7F24325EB70050B6B0 /* Renderer.m */; };
 		232CBD8324325EB70050B6B0 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD8224325EB70050B6B0 /* GameViewController.m */; };
@@ -19,6 +20,7 @@
 
 /* Begin PBXFileReference section */
 		231183902438D7F3007C6A55 /* libplatform.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplatform.a; path = ../../build/bin/libplatform.a; sourceTree = "<group>"; };
+		232A436D243A1BA50092E7B6 /* libuniversal.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuniversal.a; path = ../../build/bin/libuniversal.a; sourceTree = "<group>"; };
 		232CBD7824325EB70050B6B0 /* macos_client.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = macos_client.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		232CBD7B24325EB70050B6B0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		232CBD7C24325EB70050B6B0 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -40,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				232A436E243A1BA50092E7B6 /* libuniversal.a in Frameworks */,
 				231183912438D7F3007C6A55 /* libplatform.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,6 +53,7 @@
 		2311838F2438D7F3007C6A55 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				232A436D243A1BA50092E7B6 /* libuniversal.a */,
 				231183902438D7F3007C6A55 /* libplatform.a */,
 			);
 			name = Frameworks;

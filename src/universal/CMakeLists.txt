@@ -1,4 +1,6 @@
 set(SOURCES
+cmdline.c
+cmdline.h
 reflect.h
 strsplit.c
 strsplit.h
