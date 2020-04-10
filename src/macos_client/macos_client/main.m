@@ -10,15 +10,19 @@
 
 #include <platform/platform.h>
 #include <universal/cmdline.h>
+#include <universal/game_api.h>
+#include <universal/host.h>
 
 int main(int argc, const char * argv[]) {
-    const char* option = GetCommandLineOption(argc, argv, "--projectroot");
+    const char* projectRoot = GetCommandLineOption(argc, argv, "--projectroot");
     
-    NSString* msg = [NSString stringWithFormat:@"val is %s", option];
+    struct GameApi* gameApi = NULL;
+    if(!Host_LoadGame(projectRoot, &gameApi))
+    {
+        printf("Unable to load game.\n");
+    }
     
-    NSAlert* alert = [[NSAlert alloc] init];
-    [alert setMessageText:msg];
-    [alert runModal];
+    printf("Game says: %s\n", gameApi->msg());
     
     @autoreleasepool {
         // Setup code that might create autoreleased objects goes here.

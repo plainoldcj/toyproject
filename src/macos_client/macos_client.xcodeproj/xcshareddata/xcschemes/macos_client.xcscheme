@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--projectroot=$(PROJECT_DIR)"
+            argument = "--projectroot=$(PROJECT_DIR)/../.."
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

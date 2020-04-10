@@ -1,6 +1,9 @@
 set(SOURCES
 cmdline.c
 cmdline.h
+game_api.h
+host.c
+host.h
 reflect.h
 strsplit.c
 strsplit.h
