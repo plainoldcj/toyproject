@@ -24,6 +24,13 @@ int main(int argc, const char * argv[]) {
     
     printf("Game says: %s\n", gameApi->msg());
     
+    // TODO(cj): Where does shutdown code go?
+    if(!gameApi->init())
+    {
+        printf("Unable to initialize the game.\n");
+        return 1;
+    }
+    
     @autoreleasepool {
         // Setup code that might create autoreleased objects goes here.
     }
