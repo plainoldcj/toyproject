@@ -4,12 +4,13 @@
 
 struct GameServices
 {
+	const char* (*getProjectRoot)(void);
 };
 
 struct GameApi
 {
 	const char* (*msg)(void); // TODO(cj): Remove this.
 
-	bool (*init)(void);
+	bool (*init)(struct GameServices* services);
 	void (*deinit)(void);
 };

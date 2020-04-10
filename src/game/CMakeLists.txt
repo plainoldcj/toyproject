@@ -48,6 +48,7 @@ math_tests.h
 math_unit_tests.c
 math_unit_tests.h
 module.c
+module.h
 physics_system.c
 player_system.c
 reflect.c

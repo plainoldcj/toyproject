@@ -13,19 +13,29 @@
 #include <universal/game_api.h>
 #include <universal/host.h>
 
+static const char* s_projectRoot;
+
+static const char* GetProjectRoot(void)
+{
+    return s_projectRoot;
+}
+
 int main(int argc, const char * argv[]) {
-    const char* projectRoot = GetCommandLineOption(argc, argv, "--projectroot");
+    s_projectRoot = GetCommandLineOption(argc, argv, "--projectroot");
     
     struct GameApi* gameApi = NULL;
-    if(!Host_LoadGame(projectRoot, &gameApi))
+    if(!Host_LoadGame(s_projectRoot, &gameApi))
     {
         printf("Unable to load game.\n");
     }
     
     printf("Game says: %s\n", gameApi->msg());
     
+    struct GameServices gameServices;
+    gameServices.getProjectRoot = &GetProjectRoot;
+    
     // TODO(cj): Where does shutdown code go?
-    if(!gameApi->init())
+    if(!gameApi->init(&gameServices))
     {
         printf("Unable to initialize the game.\n");
         return 1;

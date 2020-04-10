@@ -1,8 +1,10 @@
 #include "assets.h"
 
 #include "common.h"
+#include "module.h"
 #include "platform.h"
 
+#include "universal/game_api.h"
 #include "universal/universal.h"
 
 #include <assert.h>
@@ -27,6 +29,7 @@ struct Asset
 	uint32_t	size;
 };
 
+#ifndef KQ_PLATFORM_APPLE
 static bool FindRootDirectory(void)
 {
 	const char* const rootFiles[] =
@@ -92,10 +95,15 @@ static bool FindRootDirectory(void)
 
 	return true;
 }
+#endif
 
 void InitAssets(void)
 {
+#ifdef KQ_PLATFORM_APPLE
+	if(realpath(GetGameServices()->getProjectRoot(), s_assets.projectRoot))
+#else
 	if(FindRootDirectory())
+#endif
 	{
 		COM_LogPrintf("Found project root: '%s'", s_assets.projectRoot);
 	}
