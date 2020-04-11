@@ -192,4 +192,6 @@ void WriteTGA_BGRA(
 
     unsigned sz = width * height * 4;
     fwrite(pixelData, sz, 1, file);
+
+	fclose(file);
 }
