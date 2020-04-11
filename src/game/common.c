@@ -1,5 +1,8 @@
 #include "alloc.h"
 #include "common.h"
+#include "module.h"
+
+#include "universal/game_api.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -13,8 +16,12 @@ static struct
 
 void COM_Init(void)
 {
+	const int BUFFER_SIZE = 512;
+	char buffer[BUFFER_SIZE];
+	snprintf(buffer, BUFFER_SIZE, "%s/logfile.txt", GetGameServices()->getProjectRoot());
+
 	// There is no corresponding fclose. We let the OS clean up the file handle on exit.
-	s_com.logfile = fopen("logfile.txt", "wt");
+	s_com.logfile = fopen(buffer, "wt");
 	if(!s_com.logfile)
 	{
 		printf("Unable to open logfile.\n");
