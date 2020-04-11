@@ -1,8 +1,11 @@
 #include "assets.h"
 #include "common.h"
+#include "font_baker.h"
 
 #include "universal/game_api.h"
 #include "universal/unit_tests.h"
+
+#include <assert.h>
 
 static struct GameApi s_gameApi;
 static struct GameServices* s_gameServices;
@@ -28,6 +31,9 @@ static bool Init(struct GameServices* services)
 	RunAllUnitTests();
 
 	InitAssets();
+
+	int ret = BakeFont("Fonts/tf2build.ttf");
+	assert(!ret);
 
 	return true;
 }
