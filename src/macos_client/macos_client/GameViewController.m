@@ -13,6 +13,7 @@
 #include <universal/graphics.h>
 
 extern struct GameServices g_gameServices;
+extern struct GameApi* g_gameApi;
 
 static struct Graphics s_graphics;
 
@@ -48,10 +49,16 @@ static struct Graphics* GameServices_GetGraphics(void)
     [_renderer mtkView:_view drawableSizeWillChange:_view.bounds.size];
     
     [_renderer getGraphics:&s_graphics];
-    
-    g_gameServices.getGraphics = &GameServices_GetGraphics;
 
     _view.delegate = _renderer;
+    
+    g_gameServices.getGraphics = &GameServices_GetGraphics;
+    
+    // TODO(cj): Where does shutdown code go?
+    if(!g_gameApi->init(&g_gameServices))
+    {
+        printf("Unable to initialize the game.\n");
+    }
 }
 
 @end

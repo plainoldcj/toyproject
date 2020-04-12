@@ -26,24 +26,14 @@ struct GameApi* g_gameApi;
 int main(int argc, const char * argv[]) {
     s_projectRoot = GetCommandLineOption(argc, argv, "--projectroot");
     
-    struct GameApi* gameApi = NULL;
-    if(!Host_LoadGame(s_projectRoot, &gameApi))
+    if(!Host_LoadGame(s_projectRoot, &g_gameApi))
     {
         printf("Unable to load game.\n");
     }
     
-    g_gameApi = gameApi;
-    
-    printf("Game says: %s\n", gameApi->msg());
+    printf("Game says: %s\n", g_gameApi->msg());
     
     g_gameServices.getProjectRoot = &GetProjectRoot;
-    
-    // TODO(cj): Where does shutdown code go?
-    if(!gameApi->init(&g_gameServices))
-    {
-        printf("Unable to initialize the game.\n");
-        return 1;
-    }
     
     @autoreleasepool {
         // Setup code that might create autoreleased objects goes here.

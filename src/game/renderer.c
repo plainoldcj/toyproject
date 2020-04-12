@@ -451,6 +451,10 @@ void R_Init(int screenWidth, int screenHeight)
 	s_rend.immBuf.drawCallCount = 0;
 
 	InitImmBatch();
+
+	// TODO(cj): Remove this.
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+	graphics->createBuffer(graphics->ins);
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -1098,10 +1102,6 @@ void R_BeginFrame(void)
 #ifdef RENDGL
 	glClear(GL_COLOR_BUFFER_BIT);
 #endif
-
-	// TODO(cj): Remove this.
-	struct Graphics* graphics = GetGameServices()->getGraphics();
-	graphics->createBuffer(graphics->ins);
 }
 
 void R_EndFrame(void)
