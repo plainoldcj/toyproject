@@ -1,7 +1,10 @@
+#include "app_states.h"
 #include "assets.h"
 #include "common.h"
 #include "font_baker.h"
+#include "font_renderer.h"
 #include "renderer.h"
+#include "ui.h"
 
 #include "universal/game_api.h"
 #include "universal/unit_tests.h"
@@ -40,11 +43,21 @@ static bool Init(struct GameServices* services)
 	const int screenHeight = 600;
 	R_Init(screenWidth, screenHeight);
 
+	FNT_Init();
+
+	UI_Init(screenWidth, screenHeight);
+
+	AS_Init();
+
 	return true;
 }
 
 static void Deinit(void)
 {
+	UI_Deinit();
+
+	FNT_Deinit();
+
 	R_Shutdown();
 
 	DeinitAssets();
