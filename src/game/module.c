@@ -1,6 +1,7 @@
 #include "assets.h"
 #include "common.h"
 #include "font_baker.h"
+#include "renderer.h"
 
 #include "universal/game_api.h"
 #include "universal/unit_tests.h"
@@ -35,11 +36,17 @@ static bool Init(struct GameServices* services)
 	int ret = BakeFont("Fonts/tf2build.ttf");
 	assert(!ret);
 
+	const int screenWidth = 800;
+	const int screenHeight = 600;
+	R_Init(screenWidth, screenHeight);
+
 	return true;
 }
 
 static void Deinit(void)
 {
+	R_Shutdown();
+
 	DeinitAssets();
 
 	COM_Deinit();

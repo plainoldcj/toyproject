@@ -6,7 +6,9 @@
 #include "math.h"
 #include "tga_image.h"
 
+#ifdef RENDGL
 #include "GL/glew.h"
+#endif
 
 #include <assert.h>
 #include <stdbool.h>
@@ -27,6 +29,7 @@
 // Just feed shader sources directly.
 // Some other system can read materials + shaders from disk.
 
+#ifdef RENDGL
 #define GL_CALL(x) \
     do { \
         x; \
@@ -47,6 +50,7 @@
             exit(1); \
         } \
     } while(false)
+#endif
 
 struct RendMesh
 {
@@ -59,7 +63,9 @@ struct RendMesh
 
 	uint16_t refCount;
 
+#ifdef RENDGL
 	GLuint vbo;
+#endif
 	bool ready;
 };
 
@@ -79,9 +85,11 @@ struct RendMaterial
 
 	bool 		ready;
 
+#ifdef RENDGL
 	GLuint		fragShader;
 	GLuint		vertShader;
 	GLuint		prog;
+#endif
 
 	uint16_t	diffuseTex;
 };
@@ -99,9 +107,11 @@ struct RendTexture
 
 	bool 			ready;
 
+#ifdef RENDGL
 	GLuint			id;
 	GLenum			internalFormat;
 	GLenum			format;
+#endif
 };
 
 // TODO(cj): Add debug name.
@@ -155,7 +165,9 @@ static struct
 
 	struct Vec2 cameraPos;
 
+#ifdef RENDGL
 	GLuint gridVbo;
+#endif
 	int gridVertexCount;
 
 	struct FLAlloc meshAttrAlloc;
@@ -192,6 +204,7 @@ static void InitImmBatch(void)
 
 static void InitGlew(void)
 {
+#ifdef RENDGL
 	GLenum error = glewInit();
 	if(error != GLEW_OK)
 	{
@@ -204,8 +217,10 @@ static void InitGlew(void)
 		COM_LogPrintf("OpenGL version 3.2 is not supported.");
 		exit(1);
 	}
+#endif
 }
 
+#ifdef RENDGL
 static void Texture_CreateInternal(struct RendTexture* tex, void* pixelData) {
 	GL_CALL(glGenTextures(1, &tex->id));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, tex->id));
@@ -248,18 +263,24 @@ void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 	
 	Texture_Create(tex, image->width, image->height, format, format, image->pixelData);
 }
+#endif
 
 void Texture_Bind(struct RendTexture* tex, uint32_t level)
 {
+#ifdef RENDGL
 	GL_CALL(glActiveTexture(GL_TEXTURE0 + level));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, tex->id));
+#endif
 }
 
 static void InitTexture(struct RendTexture* rtex)
 {
+#ifdef RENDGL
 	Texture_CreateFromImage(rtex, &rtex->image);
+#endif
 }
 
+#ifdef RENDGL
 static GLuint CreateShader(GLenum shaderType, const char* shaderSource, int length)
 {
 	GLuint shader = glCreateShader(shaderType);
@@ -311,6 +332,7 @@ static void SetUniformMat4(GLuint prog, const char* name, struct Mat4* m)
 	}
 	GL_CALL(glUniformMatrix4fv(loc, 1, GL_TRUE /* Matrix is stored row-major */, &m->m00));
 }
+#endif
 
 static void DestroyMesh(struct RendMesh* rmesh)
 {
@@ -339,7 +361,9 @@ static void DestroyMesh(struct RendMesh* rmesh)
 	// TODO(cj): Destroy vertex buffers.
 	if(rmesh->ready)
 	{
+#ifdef RENDGL
 		GL_CALL(glDeleteBuffers(1, &rmesh->vbo));
+#endif
 		rmesh->ready = false;
 	}
 
@@ -366,12 +390,16 @@ void R_Init(int screenWidth, int screenHeight)
 {
 	InitGlew();
 
+#ifdef RENDGL
 	COM_LogPrintf("OpenGL version: %s", glGetString(GL_VERSION));
+#endif
 
+#ifdef RENDGL
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
+#endif
 
 	float aspect = (float)screenWidth / (float)screenHeight;
 	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
@@ -503,6 +531,7 @@ void R_ReleaseMesh(hrmesh_t hrmesh)
 	--rmesh->refCount;
 }
 
+#ifdef RENDGL
 static GLenum GetPrimitiveType(enum Prim prim)
 {
 	switch(prim)
@@ -516,11 +545,13 @@ static GLenum GetPrimitiveType(enum Prim prim)
 		return GL_TRIANGLES;
 	};
 }
+#endif
 
 void R_DrawMesh(struct RendMesh* rmesh)
 {
 	if(!rmesh->ready)
 	{
+#ifdef RENDGL
 		// TODO(cj): Restore previous binding.
 		GL_CALL(glGenBuffers(1, &rmesh->vbo));
 		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, rmesh->vbo));
@@ -528,10 +559,12 @@ void R_DrawMesh(struct RendMesh* rmesh)
 			rmesh->mesh.vertexCount * sizeof(struct Vertex),
 			rmesh->mesh.vertices,
 			GL_STATIC_DRAW));
+#endif
 
 		rmesh->ready = true;
 	}
 
+#ifdef RENDGL
 	// TODO(cj): Draw should just mark the mesh for rendering.
 	// Draw calls should be issued in a single place.
 	// TODO(cj): Restore previous binding.
@@ -549,6 +582,7 @@ void R_DrawMesh(struct RendMesh* rmesh)
 
 	glDisableVertexAttribArray(IN_TEXCOORD);
 	glDisableVertexAttribArray(IN_POSITION);
+#endif
 }
 
 hrtex_t R_CreateTexture(const struct Image* image)
@@ -795,6 +829,7 @@ static void InitMaterial(struct RendMaterial* rmat)
 		rtex->ready = true;
 	}
 
+#ifdef RENDGL
 	struct Asset* fragShader = AcquireAsset(rmat->fragShaderAsset);
 
 	rmat->fragShader = CreateShader(
@@ -834,6 +869,7 @@ static void InitMaterial(struct RendMaterial* rmat)
 		COM_LogPrintf("Failed to link program: %s", logBuffer);
 		exit(1);
 	}
+#endif
 }
 
 void R_DrawObject(hrobj_t hrobj)
@@ -863,20 +899,24 @@ void R_DrawObject(hrobj_t hrobj)
 		Texture_Bind(rtex, 0);
 	}
 
+#ifdef RENDGL
 	GL_CALL(glUseProgram(rmat->prog));
 
 	GL_CALL(glBindAttribLocation(rmat->prog, IN_POSITION, "aPos"));
 	GL_CALL(glBindAttribLocation(rmat->prog, IN_TEXCOORD, "aTexCoord"));
 
 	SetUniformMat4(rmat->prog, "uProjection", &s_rend.perspective);
+#endif
 	
 	struct Mat4 modelView = M_CreateTranslation(
 		robj->posX - s_rend.cameraPos.x,
 		robj->posY - s_rend.cameraPos.y,
 		-10.0f);
 
+#ifdef RENDGL
 	SetUniformMat4(rmat->prog, "uModelView", &modelView);
 	SetUniformInt(rmat->prog, "uDiffuseTex", 0);
+#endif
 
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 
@@ -947,6 +987,7 @@ void R_SetConfig(const struct R_Config* conf)
 	s_config.immMatDefault = AcquireMaterial(conf->immMatDefault);
 }
 
+#ifdef RENDGL
 static GLenum GetAlphaTestFunc(int alphaTestFunc)
 {
 	switch(alphaTestFunc)
@@ -959,6 +1000,7 @@ static GLenum GetAlphaTestFunc(int alphaTestFunc)
 			return 0;
 	};
 }
+#endif
 
 static void ImmDraw(void)
 {
@@ -966,6 +1008,7 @@ static void ImmDraw(void)
 
 	if(!immBuf->vertexCount) return;
 
+#ifdef RENDGL
 	GLuint vbo;
 
 	GL_CALL(glGenBuffers(1, &vbo));
@@ -1040,13 +1083,17 @@ static void ImmDraw(void)
 
 	immBuf->vertexCount = 0;
 	immBuf->drawCallCount = 0;
+
+#endif
 }
 
 void R_BeginFrame(void)
 {
 	DestroyMeshes();
 
+#ifdef RENDGL
 	glClear(GL_COLOR_BUFFER_BIT);
+#endif
 }
 
 void R_EndFrame(void)
