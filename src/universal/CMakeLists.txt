@@ -2,6 +2,7 @@ set(SOURCES
 cmdline.c
 cmdline.h
 game_api.h
+graphics.h
 host.c
 host.h
 reflect.h

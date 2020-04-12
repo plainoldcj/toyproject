@@ -4,7 +4,11 @@
 #include "assets.h"
 #include "common.h"
 #include "math.h"
+#include "module.h"
 #include "tga_image.h"
+
+#include "universal/game_api.h"
+#include "universal/graphics.h"
 
 #ifdef RENDGL
 #include "GL/glew.h"
@@ -1094,6 +1098,10 @@ void R_BeginFrame(void)
 #ifdef RENDGL
 	glClear(GL_COLOR_BUFFER_BIT);
 #endif
+
+	// TODO(cj): Remove this.
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+	graphics->createBuffer(graphics->ins);
 }
 
 void R_EndFrame(void)

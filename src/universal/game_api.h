@@ -2,9 +2,12 @@
 
 #include <stdbool.h>
 
+struct Graphics;
+
 struct GameServices
 {
-	const char* (*getProjectRoot)(void);
+	const char*			(*getProjectRoot)(void);
+	struct Graphics*	(*getGraphics)(void);
 };
 
 struct GameApi
@@ -13,4 +16,6 @@ struct GameApi
 
 	bool (*init)(struct GameServices* services);
 	void (*deinit)(void);
+
+	void (*draw)(void);
 };

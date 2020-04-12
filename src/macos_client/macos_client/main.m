@@ -20,6 +20,9 @@ static const char* GetProjectRoot(void)
     return s_projectRoot;
 }
 
+struct GameServices g_gameServices;
+struct GameApi* g_gameApi;
+
 int main(int argc, const char * argv[]) {
     s_projectRoot = GetCommandLineOption(argc, argv, "--projectroot");
     
@@ -29,13 +32,14 @@ int main(int argc, const char * argv[]) {
         printf("Unable to load game.\n");
     }
     
+    g_gameApi = gameApi;
+    
     printf("Game says: %s\n", gameApi->msg());
     
-    struct GameServices gameServices;
-    gameServices.getProjectRoot = &GetProjectRoot;
+    g_gameServices.getProjectRoot = &GetProjectRoot;
     
     // TODO(cj): Where does shutdown code go?
-    if(!gameApi->init(&gameServices))
+    if(!gameApi->init(&g_gameServices))
     {
         printf("Unable to initialize the game.\n");
         return 1;

@@ -14,9 +14,30 @@
 // Include header shared between C code here, which executes Metal API commands, and .metal files
 #import "ShaderTypes.h"
 
+#include <universal/game_api.h>
+#include <universal/graphics.h>
+
+extern struct GameApi* g_gameApi;
+
 static const NSUInteger kMaxBuffersInFlight = 3;
 
 static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
+
+static hgbuffer_t Graphics_CreateBuffer(void* ins)
+{
+    printf("Graphics_CreateBuffer\n");
+    
+    hgbuffer_t invalid = { 0, 0 };
+    return invalid;
+}
+
+static void Graphics_DestroyBuffer(void* ins, hgbuffer_t hgbuffer)
+{
+}
+
+static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
+{
+}
 
 @implementation Renderer
 {
@@ -55,6 +76,15 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     }
 
     return self;
+}
+
+-(void)getGraphics:(nonnull struct Graphics*)graphics;
+{
+    graphics->createBuffer = &Graphics_CreateBuffer;
+    graphics->destroyBuffer = &Graphics_DestroyBuffer;
+    graphics->setBufferData = &Graphics_SetBufferData;
+    
+    graphics->ins = (__bridge void *)(self);
 }
 
 - (void)_loadMetalWithView:(nonnull MTKView *)view;
@@ -271,6 +301,8 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
         }
 
         [renderEncoder popDebugGroup];
+        
+        g_gameApi->draw();
 
         [renderEncoder endEncoding];
 

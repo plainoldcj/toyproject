@@ -65,13 +65,21 @@ static void Deinit(void)
 	COM_Deinit();
 }
 
+static void Draw(void)
+{
+	R_BeginFrame();
+	AS_Draw();
+	R_EndFrame();
+}
+
 struct GameApi* GetGameApi(void)
 {
 	static struct GameApi gameApi =
 	{
 		.msg = &msg,
 		.init = &Init,
-		.deinit = &Deinit
+		.deinit = &Deinit,
+		.draw = &Draw
 	};
 	return &gameApi;
 }

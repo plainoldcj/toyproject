@@ -1,0 +1,18 @@
+#pragma once
+
+#include <stdint.h>
+
+typedef struct
+{
+	uint16_t index;
+	uint16_t generation;
+} hgbuffer_t;
+
+struct Graphics
+{
+	hgbuffer_t	(*createBuffer)(void* ins);
+	void		(*destroyBuffer)(void* ins, hgbuffer_t hgbuffer);
+	void		(*setBufferData)(void* ins, hgbuffer_t hgbuffer);
+
+	void*		ins;
+};
