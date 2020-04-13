@@ -139,7 +139,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     struct GfxBuffer* const buffer = [self resolveBufferHandle:hgbuffer];
     
     [_renderEncoder setCullMode:MTLCullModeNone];
-    [_renderEncoder setVertexBuffer:buffer->buffer offset:0 atIndex:BufferIndexMeshPositions];
+    [_renderEncoder setVertexBuffer:buffer->buffer offset:0 atIndex:BufferIndexVertexAttributes];
     [_renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:first vertexCount:count];
 }
 
@@ -189,19 +189,15 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
 
     _mtlVertexDescriptor.attributes[VertexAttributePosition].format = MTLVertexFormatFloat3;
     _mtlVertexDescriptor.attributes[VertexAttributePosition].offset = 0;
-    _mtlVertexDescriptor.attributes[VertexAttributePosition].bufferIndex = BufferIndexMeshPositions;
+    _mtlVertexDescriptor.attributes[VertexAttributePosition].bufferIndex = BufferIndexVertexAttributes;
 
     _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].format = MTLVertexFormatFloat2;
-    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].offset = 0;
-    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].bufferIndex = BufferIndexMeshGenerics;
+    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].offset = sizeof(float) * 3; // TODO(cj): Move Vertex definition to universal.
+    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].bufferIndex = BufferIndexVertexAttributes;
 
-    _mtlVertexDescriptor.layouts[BufferIndexMeshPositions].stride = 12;
-    _mtlVertexDescriptor.layouts[BufferIndexMeshPositions].stepRate = 1;
-    _mtlVertexDescriptor.layouts[BufferIndexMeshPositions].stepFunction = MTLVertexStepFunctionPerVertex;
-
-    _mtlVertexDescriptor.layouts[BufferIndexMeshGenerics].stride = 8;
-    _mtlVertexDescriptor.layouts[BufferIndexMeshGenerics].stepRate = 1;
-    _mtlVertexDescriptor.layouts[BufferIndexMeshGenerics].stepFunction = MTLVertexStepFunctionPerVertex;
+    _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stride = sizeof(float) * 5;
+    _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stepRate = 1;
+    _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stepFunction = MTLVertexStepFunctionPerVertex;
 
     id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
 

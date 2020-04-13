@@ -468,8 +468,21 @@ void R_Init(int screenWidth, int screenHeight)
 				.texCoord = { 1.0f, 0.0f }
 			},
 			{
-				.pos = { 0.0f, 1.0f, 0.0f },
-				.texCoord = { 0.5f, 1.0f }
+				.pos = { 1.0f, 1.0f, 0.0f },
+				.texCoord = { 1.0f, 1.0f }
+			},
+
+			{
+				.pos = { -1.0f, -1.0f, 0.0f },
+				.texCoord = { 0.0f, 0.0f }
+			},
+			{
+				.pos = { 1.0f, 1.0f, 0.0f },
+				.texCoord = { 1.0f, 1.0f }
+			},
+			{
+				.pos = { -1.0f, 1.0f, 0.0f },
+				.texCoord = { 0.0f, 1.0f }
 			}
 		};
 
@@ -1130,7 +1143,7 @@ void R_EndFrame(void)
 	// TODO(cj) Remove this.
 	{
 		struct Graphics* graphics = GetGameServices()->getGraphics();
-		graphics->drawPrimitives(graphics->ins, s_rend.triangleVbo, 0, 3);
+		graphics->drawPrimitives(graphics->ins, s_rend.triangleVbo, 0, 6);
 	}
 
 	ImmDraw();
