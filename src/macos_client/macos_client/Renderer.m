@@ -17,27 +17,20 @@
 #include <universal/game_api.h>
 #include <universal/graphics.h>
 
+#define GFX_MAX_BUFFER_COUNT 128
+
+struct GfxBuffer
+{
+    id<MTLBuffer>   buffer;
+    uint16_t        generation;
+    uint16_t        nextFree;
+};
+
 extern struct GameApi* g_gameApi;
 
 static const NSUInteger kMaxBuffersInFlight = 3;
 
 static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
-
-static hgbuffer_t Graphics_CreateBuffer(void* ins)
-{
-    printf("Graphics_CreateBuffer\n");
-    
-    hgbuffer_t invalid = { 0, 0 };
-    return invalid;
-}
-
-static void Graphics_DestroyBuffer(void* ins, hgbuffer_t hgbuffer)
-{
-}
-
-static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
-{
-}
 
 @implementation Renderer
 {
@@ -62,6 +55,92 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
     float _rotation;
 
     MTKMesh *_mesh;
+    
+    // cj
+    struct GfxBuffer    _buffers[GFX_MAX_BUFFER_COUNT];
+    uint16_t            _bufferCount;
+    uint16_t            _firstFreeBuffer;
+    
+    id<MTLRenderCommandEncoder> _renderEncoder;
+}
+
+static hgbuffer_t Graphics_CreateBuffer(void* ins, void* data, uint32_t size)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer createBufferWithData:data andSize:size];
+}
+
+static void Graphics_DestroyBuffer(void* ins, hgbuffer_t hgbuffer)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer destroyBuffer:hgbuffer];
+}
+
+static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
+{
+}
+
+static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t first, uint16_t count)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer drawPrimitives:hgbuffer first:first count:count];
+}
+
+-(hgbuffer_t)createBufferWithData:(void*)data andSize:(uint32_t)size;
+{
+    if(_firstFreeBuffer == (uint16_t)~0)
+    {
+        // TODO(cj): Error reporting.
+        hgbuffer_t invalid = { 0, 0 };
+        return invalid;
+    }
+    
+    hgbuffer_t handle;
+    
+    handle.index = _firstFreeBuffer;
+    
+    struct GfxBuffer* buffer = &_buffers[_firstFreeBuffer];
+    _firstFreeBuffer = buffer->nextFree;
+    
+    handle.generation = ++buffer->generation;
+    
+    buffer->buffer = [_device newBufferWithBytes:data length:size options:MTLResourceCPUCacheModeDefaultCache];
+    
+    return handle;
+}
+
+// TODO(cj): Move this method.
+-(struct GfxBuffer*)resolveBufferHandle:(hgbuffer_t)hgbuffer;
+{
+    assert(hgbuffer.index < GFX_MAX_BUFFER_COUNT);
+    
+    struct GfxBuffer* const buffer = &_buffers[hgbuffer.index];
+    
+    assert(hgbuffer.generation == buffer->generation);
+    
+    return buffer;
+}
+
+-(void)destroyBuffer:(hgbuffer_t)hgbuffer;
+{
+    struct GfxBuffer* buffer = [self resolveBufferHandle:hgbuffer];
+    
+    // TODO(cj): How to destroy the buffer and what is ARC?
+    // [buffer->buffer release];
+    
+    ++buffer->generation;
+    
+    buffer->nextFree = _firstFreeBuffer;
+    _firstFreeBuffer = hgbuffer.index;
+}
+
+-(void)drawPrimitives:(hgbuffer_t)hgbuffer first:(uint16_t)first count:(uint16_t)count;
+{
+    struct GfxBuffer* const buffer = [self resolveBufferHandle:hgbuffer];
+    
+    [_renderEncoder setCullMode:MTLCullModeNone];
+    [_renderEncoder setVertexBuffer:buffer->buffer offset:0 atIndex:BufferIndexMeshPositions];
+    [_renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:first vertexCount:count];
 }
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
@@ -73,6 +152,16 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
         _inFlightSemaphore = dispatch_semaphore_create(kMaxBuffersInFlight);
         [self _loadMetalWithView:view];
         [self _loadAssets];
+        
+        // Init buffers.
+        uint16_t bufferIndex = 0;
+        while(bufferIndex < GFX_MAX_BUFFER_COUNT - 1)
+        {
+            struct GfxBuffer* buffer = &_buffers[bufferIndex];
+            buffer->nextFree = ++bufferIndex;
+        }
+        _buffers[bufferIndex].nextFree = (uint16_t)~0u;
+        _firstFreeBuffer = 0;
     }
 
     return self;
@@ -83,6 +172,7 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
     graphics->createBuffer = &Graphics_CreateBuffer;
     graphics->destroyBuffer = &Graphics_DestroyBuffer;
     graphics->setBufferData = &Graphics_SetBufferData;
+    graphics->drawPrimitives = &Graphics_DrawPrimitives;
     
     graphics->ins = (__bridge void *)(self);
 }
@@ -291,6 +381,7 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
         [renderEncoder setFragmentTexture:_colorMap
                                   atIndex:TextureIndexColor];
 
+        /*
         for(MTKSubmesh *submesh in _mesh.submeshes)
         {
             [renderEncoder drawIndexedPrimitives:submesh.primitiveType
@@ -299,10 +390,15 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
                                      indexBuffer:submesh.indexBuffer.buffer
                                indexBufferOffset:submesh.indexBuffer.offset];
         }
+         */
 
         [renderEncoder popDebugGroup];
         
+        _renderEncoder = renderEncoder;
+        
         g_gameApi->draw();
+        
+        _renderEncoder = nil;
 
         [renderEncoder endEncoding];
 

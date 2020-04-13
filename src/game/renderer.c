@@ -193,6 +193,9 @@ static struct
 
 	struct ImmBuffer	immBuf;
 	struct ImmBatch		immBatch;
+
+	// TODO(cj): Remove these
+	hgbuffer_t triangleVbo;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -453,8 +456,26 @@ void R_Init(int screenWidth, int screenHeight)
 	InitImmBatch();
 
 	// TODO(cj): Remove this.
-	struct Graphics* graphics = GetGameServices()->getGraphics();
-	graphics->createBuffer(graphics->ins);
+	{
+		struct Vertex verts[] =
+		{
+			{
+				.pos = { -1.0f, -1.0f, 0.0f },
+				.texCoord = { 0.0f, 0.0f }
+			},
+			{
+				.pos = { 1.0f, -1.0f, 0.0f },
+				.texCoord = { 1.0f, 0.0f }
+			},
+			{
+				.pos = { 0.0f, 1.0f, 0.0f },
+				.texCoord = { 0.5f, 1.0f }
+			}
+		};
+
+		struct Graphics* graphics = GetGameServices()->getGraphics();
+		s_rend.triangleVbo = graphics->createBuffer(graphics->ins, verts, sizeof(verts));
+	}
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -1106,5 +1127,11 @@ void R_BeginFrame(void)
 
 void R_EndFrame(void)
 {
+	// TODO(cj) Remove this.
+	{
+		struct Graphics* graphics = GetGameServices()->getGraphics();
+		graphics->drawPrimitives(graphics->ins, s_rend.triangleVbo, 0, 3);
+	}
+
 	ImmDraw();
 }
