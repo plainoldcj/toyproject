@@ -409,10 +409,7 @@ void R_Init(int screenWidth, int screenHeight)
 	glEnable(GL_BLEND);
 #endif
 
-	float aspect = (float)screenWidth / (float)screenHeight;
-	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
-
-	s_rend.orthographic = M_CreateOrthographic(0.0f, screenWidth, 0.0f, screenHeight, -1.0f, 1.0f);
+	R_Resize(screenWidth, screenHeight);
 
 	// Init render meshes.
 	// TODO(cj): Get memory from arean/zone instead of mallocing it.
@@ -496,6 +493,14 @@ void R_Init(int screenWidth, int screenHeight)
 void R_Shutdown(void)
 {
 	DestroyMeshes();
+}
+
+void R_Resize(int screenWidth, int screenHeight)
+{
+	float aspect = (float)screenWidth / (float)screenHeight;
+	s_rend.perspective = M_CreatePerspective(DegToRad(45.0f), aspect, 0.1f, 100.0f);
+
+	s_rend.orthographic = M_CreateOrthographic(0.0f, screenWidth, 0.0f, screenHeight, -1.0f, 1.0f);
 }
 
 void R_SetCameraPosition(float posX, float posY)
@@ -1144,6 +1149,13 @@ void R_EndFrame(void)
 	// TODO(cj) Remove this.
 	{
 		struct Graphics* graphics = GetGameServices()->getGraphics();
+
+		struct GfxUniforms uniforms;
+		memcpy(&uniforms.projection, &s_rend.perspective, sizeof(struct Mat4));
+		// memcpy(&uniforms.projection, &s_rend.orthographic, sizeof(struct Mat4));
+
+		graphics->setUniforms(graphics->ins, &uniforms);
+
 		graphics->drawPrimitives(graphics->ins, s_rend.triangleVbo, 0, 6);
 	}
 

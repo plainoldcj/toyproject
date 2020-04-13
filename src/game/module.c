@@ -65,6 +65,11 @@ static void Deinit(void)
 	COM_Deinit();
 }
 
+static void Resize(uint16_t width, uint16_t height)
+{
+	R_Resize(width, height);
+}
+
 static void Draw(void)
 {
 	R_BeginFrame();
@@ -79,6 +84,7 @@ struct GameApi* GetGameApi(void)
 		.msg = &msg,
 		.init = &Init,
 		.deinit = &Deinit,
+		.resize = &Resize,
 		.draw = &Draw
 	};
 	return &gameApi;

@@ -5,6 +5,8 @@
 void R_Init(int screenWidth, int screenHeight);
 void R_Shutdown(void);
 
+void R_Resize(int screenWidth, int screenHeight);
+
 void R_SetCameraPosition(float posX, float posY);
 
 void R_BeginFrame(void);

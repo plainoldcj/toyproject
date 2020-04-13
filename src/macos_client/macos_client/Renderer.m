@@ -81,6 +81,12 @@ static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
 {
 }
 
+static void Graphics_SetUniforms(void* ins, struct GfxUniforms* uniforms)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer setUniforms:uniforms];
+}
+
 static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t first, uint16_t count)
 {
     Renderer* renderer = (__bridge Renderer*)ins;
@@ -135,6 +141,18 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     _firstFreeBuffer = hgbuffer.index;
 }
 
+-(void)setUniforms:(struct GfxUniforms*)uniforms;
+{
+    float* proj = uniforms->projection;
+    
+    simd_float4 row0 = simd_make_float4(proj[0], proj[1], proj[2], proj[3]);
+    simd_float4 row1 = simd_make_float4(proj[4], proj[5], proj[6], proj[7]);
+    simd_float4 row2 = simd_make_float4(proj[8], proj[9], proj[10], proj[11]);
+    simd_float4 row3 = simd_make_float4(proj[12], proj[13], proj[14], proj[15]);
+    
+    _projectionMatrix = simd_transpose(simd_matrix(row0, row1, row2, row3));
+}
+
 -(void)drawPrimitives:(hgbuffer_t)hgbuffer first:(uint16_t)first count:(uint16_t)count;
 {
     struct GfxBuffer* const buffer = [self resolveBufferHandle:hgbuffer];
@@ -153,6 +171,9 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
         _inFlightSemaphore = dispatch_semaphore_create(kMaxBuffersInFlight);
         [self _loadMetalWithView:view];
         [self _loadAssets];
+        
+        // Init matrices.
+        _projectionMatrix = matrix_identity_float4x4;
         
         // Init buffers.
         uint16_t bufferIndex = 0;
@@ -173,6 +194,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     graphics->createBuffer = &Graphics_CreateBuffer;
     graphics->destroyBuffer = &Graphics_DestroyBuffer;
     graphics->setBufferData = &Graphics_SetBufferData;
+    graphics->setUniforms = &Graphics_SetUniforms;
     graphics->drawPrimitives = &Graphics_DrawPrimitives;
     
     graphics->ins = (__bridge void *)(self);
@@ -408,9 +430,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
     /// Respond to drawable size or orientation changes here
-
-    float aspect = size.width / (float)size.height;
-    _projectionMatrix = matrix_perspective_right_hand(65.0f * (M_PI / 180.0f), aspect, 0.1f, 100.0f);
+    g_gameApi->resize((uint16_t)size.width, (uint16_t)size.height);
 }
 
 #pragma mark Matrix Math Utilities
@@ -438,20 +458,6 @@ static matrix_float4x4 matrix4x4_rotation(float radians, vector_float3 axis)
         { x * y * ci - z * st,     ct + y * y * ci, z * y * ci + x * st, 0},
         { x * z * ci + y * st, y * z * ci - x * st,     ct + z * z * ci, 0},
         {                   0,                   0,                   0, 1}
-    }};
-}
-
-matrix_float4x4 matrix_perspective_right_hand(float fovyRadians, float aspect, float nearZ, float farZ)
-{
-    float ys = 1 / tanf(fovyRadians * 0.5);
-    float xs = ys / aspect;
-    float zs = farZ / (nearZ - farZ);
-
-    return (matrix_float4x4) {{
-        { xs,   0,          0,  0 },
-        {  0,  ys,          0,  0 },
-        {  0,   0,         zs, -1 },
-        {  0,   0, nearZ * zs,  0 }
     }};
 }
 
