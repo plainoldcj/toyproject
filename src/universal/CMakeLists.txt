@@ -11,6 +11,7 @@ strsplit.h
 strsplit_tests.c
 unit_tests.c
 unit_tests.h
-universal.h)
+universal.h
+vertex.h)
 
 add_library(universal STATIC ${SOURCES})

@@ -16,6 +16,8 @@ Render Mesh
 ================================================================
 */
 
+struct Vertex;
+
 typedef struct
 {
 	uint16_t index;
@@ -26,13 +28,6 @@ enum Prim
 {
 	ePrim_Lines,
 	ePrim_Triangles
-};
-
-struct Vertex
-{
-	// float pos[2];
-	float pos[3]; // TODO(cj): What places still assume 2d points?
-	float texCoord[2];
 };
 
 #define VATT_POS		(1 << 0)

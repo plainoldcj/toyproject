@@ -16,6 +16,7 @@
 
 #include <universal/game_api.h>
 #include <universal/graphics.h>
+#include <universal/vertex.h>
 
 #define GFX_MAX_BUFFER_COUNT 128
 
@@ -192,10 +193,10 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     _mtlVertexDescriptor.attributes[VertexAttributePosition].bufferIndex = BufferIndexVertexAttributes;
 
     _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].format = MTLVertexFormatFloat2;
-    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].offset = sizeof(float) * 3; // TODO(cj): Move Vertex definition to universal.
+    _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].offset = offsetof(struct Vertex, texCoord); // TODO(cj): Move Vertex definition to universal.
     _mtlVertexDescriptor.attributes[VertexAttributeTexcoord].bufferIndex = BufferIndexVertexAttributes;
 
-    _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stride = sizeof(float) * 5;
+    _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stride = sizeof(struct Vertex);
     _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stepRate = 1;
     _mtlVertexDescriptor.layouts[BufferIndexVertexAttributes].stepFunction = MTLVertexStepFunctionPerVertex;
 

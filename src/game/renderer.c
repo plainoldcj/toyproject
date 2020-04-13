@@ -9,6 +9,7 @@
 
 #include "universal/game_api.h"
 #include "universal/graphics.h"
+#include "universal/vertex.h"
 
 #ifdef RENDGL
 #include "GL/glew.h"

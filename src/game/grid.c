@@ -2,6 +2,8 @@
 
 #include "renderer.h"
 
+#include "universal/vertex.h"
+
 #include <stdlib.h>
 
 static void SetVertex(struct Vertex* v, float x, float y)

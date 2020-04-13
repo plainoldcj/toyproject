@@ -8,6 +8,8 @@
 #include "shared_game.h"
 #include "tga_image.h"
 
+#include "universal/vertex.h"
+
 #include <stdlib.h>
 #include <string.h>
 

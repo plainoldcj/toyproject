@@ -3,6 +3,8 @@
 #include "renderer.h"
 #include "shared_game.h"
 
+#include "universal/vertex.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
