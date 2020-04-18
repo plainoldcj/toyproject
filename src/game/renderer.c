@@ -1153,6 +1153,9 @@ void R_EndFrame(void)
 		struct GfxUniforms uniforms;
 		memcpy(&uniforms.projection, &s_rend.perspective, sizeof(struct Mat4));
 		// memcpy(&uniforms.projection, &s_rend.orthographic, sizeof(struct Mat4));
+		//
+		struct Mat4 modelView = M_CreateTranslation(0.0f, 0.0f, -10.0f);
+		memcpy(&uniforms.modelView, &modelView, sizeof(struct Mat4));
 
 		graphics->setUniforms(graphics->ins, &uniforms);
 

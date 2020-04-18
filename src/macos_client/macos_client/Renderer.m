@@ -52,6 +52,7 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     void* _uniformBufferAddress;
 
     matrix_float4x4 _projectionMatrix;
+    matrix_float4x4 _modelViewMatrix;
 
     float _rotation;
 
@@ -141,16 +142,20 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     _firstFreeBuffer = hgbuffer.index;
 }
 
+static matrix_float4x4 loadMatrix4v(float* src)
+{
+    simd_float4 row0 = simd_make_float4(src[0], src[1], src[2], src[3]);
+    simd_float4 row1 = simd_make_float4(src[4], src[5], src[6], src[7]);
+    simd_float4 row2 = simd_make_float4(src[8], src[9], src[10], src[11]);
+    simd_float4 row3 = simd_make_float4(src[12], src[13], src[14], src[15]);
+    
+    return simd_transpose(simd_matrix(row0, row1, row2, row3));
+}
+
 -(void)setUniforms:(struct GfxUniforms*)uniforms;
 {
-    float* proj = uniforms->projection;
-    
-    simd_float4 row0 = simd_make_float4(proj[0], proj[1], proj[2], proj[3]);
-    simd_float4 row1 = simd_make_float4(proj[4], proj[5], proj[6], proj[7]);
-    simd_float4 row2 = simd_make_float4(proj[8], proj[9], proj[10], proj[11]);
-    simd_float4 row3 = simd_make_float4(proj[12], proj[13], proj[14], proj[15]);
-    
-    _projectionMatrix = simd_transpose(simd_matrix(row0, row1, row2, row3));
+    _projectionMatrix = loadMatrix4v(uniforms->projection);
+    _modelViewMatrix = loadMatrix4v(uniforms->modelView);
 }
 
 -(void)drawPrimitives:(hgbuffer_t)hgbuffer first:(uint16_t)first count:(uint16_t)count;
@@ -174,6 +179,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
         
         // Init matrices.
         _projectionMatrix = matrix_identity_float4x4;
+        _modelViewMatrix = matrix_identity_float4x4;
         
         // Init buffers.
         uint16_t bufferIndex = 0;
@@ -330,12 +336,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     Uniforms * uniforms = (Uniforms*)_uniformBufferAddress;
 
     uniforms->projectionMatrix = _projectionMatrix;
-
-    vector_float3 rotationAxis = {1, 1, 0};
-    matrix_float4x4 modelMatrix = matrix4x4_rotation(_rotation, rotationAxis);
-    matrix_float4x4 viewMatrix = matrix4x4_translation(0.0, 0.0, -8.0);
-
-    uniforms->modelViewMatrix = matrix_multiply(viewMatrix, modelMatrix);
+    uniforms->modelViewMatrix = _modelViewMatrix;
 
     _rotation += .01;
 }
