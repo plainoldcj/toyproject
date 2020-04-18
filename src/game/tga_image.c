@@ -82,10 +82,10 @@ const char* LoadImageFromMemoryTGA(struct Image* image, void* memory, size_t sou
 	int format;
 	switch(header->imageSpec.bitsPerPixel) {
 	case 24:
-		format = PixelFormat_RGB8;
+		format = TgaPixelFormat_RGB8;
 		break;
 	case 32:
-		format = PixelFormat_RGBA8;
+		format = TgaPixelFormat_RGBA8;
 		break;
 	default:
         return "Must have either 24 or 32bit color depth";

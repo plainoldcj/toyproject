@@ -3,17 +3,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
-enum PixelFormat
+enum TgaPixelFormat
 {
-	PixelFormat_RGB8,
-	PixelFormat_RGBA8,
+	TgaPixelFormat_RGB8,
+	TgaPixelFormat_RGBA8,
 };
 
 struct Image
 {
 	uint32_t width;
 	uint32_t height;
-	uint32_t format; // in PixelFormat.
+	uint32_t format; // in TgaPixelFormat.
 	void* pixelData; // Row-major storage, bottom-to-top.
 };
 

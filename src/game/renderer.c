@@ -257,10 +257,10 @@ void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 
 	switch (image->format)
 	{
-		case PixelFormat_RGB8:
+		case TgaPixelFormat_RGB8:
 			format = GL_RGB;
 			break;
-		case PixelFormat_RGBA8:
+		case TgaPixelFormat_RGBA8:
 			format = GL_RGBA;
 			break;
 		default:
@@ -658,10 +658,10 @@ hrtex_t R_CreateTexture(const struct Image* image)
 	int bytesPerPixel = -1;
 	switch(image->format)
 	{
-	case PixelFormat_RGB8:
+	case TgaPixelFormat_RGB8:
 		bytesPerPixel = 3;
 		break;
-	case PixelFormat_RGBA8:
+	case TgaPixelFormat_RGBA8:
 		bytesPerPixel = 4;
 		break;
 	default:
