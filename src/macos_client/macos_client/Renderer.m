@@ -388,7 +388,8 @@ static matrix_float4x4 loadMatrix4v(float* src)
 
     MTLDepthStencilDescriptor *depthStateDesc = [[MTLDepthStencilDescriptor alloc] init];
     depthStateDesc.depthCompareFunction = MTLCompareFunctionLess;
-    depthStateDesc.depthWriteEnabled = YES;
+    // TODO(cj): enable depth test again?
+    depthStateDesc.depthWriteEnabled = NO;
     _depthState = [_device newDepthStencilStateWithDescriptor:depthStateDesc];
 
     NSUInteger uniformBufferSize = kAlignedUniformsSize * kMaxBuffersInFlight;
