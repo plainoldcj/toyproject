@@ -21,4 +21,5 @@ struct GameApi
 	void (*resize)(uint16_t width, uint16_t height);
 
 	void (*draw)(void);
+	void (*tick)(void);
 };

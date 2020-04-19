@@ -58,6 +58,8 @@ shared_game.c
 shared_game.h
 tga_image.c
 tga_image.h
+timer.c
+timer.h
 trigger_system.c
 ui.c
 ui.h)

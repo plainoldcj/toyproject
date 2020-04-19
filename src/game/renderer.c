@@ -1091,6 +1091,12 @@ static void ImmDraw(void)
 
 	if(!immBuf->vertexCount) return;
 
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+
+	hgbuffer_t hgvbo = graphics->createBuffer(
+			graphics->ins,
+			immBuf->vertices,
+			immBuf->vertexCount * sizeof(struct Vertex));
 #ifdef RENDGL
 	GLuint vbo;
 
@@ -1100,6 +1106,7 @@ static void ImmDraw(void)
 				immBuf->vertexCount * sizeof(struct Vertex),
 				immBuf->vertices,
 				GL_STATIC_DRAW));
+#endif
 
 	for(uint16_t drawCallIndex = 0; drawCallIndex < immBuf->drawCallCount; ++drawCallIndex)
 	{
@@ -1118,6 +1125,7 @@ static void ImmDraw(void)
 			Texture_Bind(rtex, 0);
 		}
 
+#ifdef RENDGL
 		GL_CALL(glUseProgram(rmat->prog));
 
 		GL_CALL(glBindAttribLocation(rmat->prog, IN_POSITION, "aPos"));
@@ -1129,11 +1137,21 @@ static void ImmDraw(void)
 		struct Mat4 ident = Mat4_CreateIdentity();
 		SetUniformMat4(rmat->prog, "uModelView", &ident);
 		SetUniformInt(rmat->prog, "uDiffuseTex", 0);
+#endif
+		struct Mat4 ident = Mat4_CreateIdentity();
+
+		struct GfxUniforms uniforms;
+		memcpy(&uniforms.projection, &s_rend.orthographic, sizeof(struct Mat4));
+		memcpy(&uniforms.modelView, &ident, sizeof(struct Mat4));
+
+		graphics->setUniforms(graphics->ins, &uniforms);
 
 		if(rmat->alphaTestEnabled)
 		{
+#ifdef RENDGL
 			GL_CALL(glEnable(GL_ALPHA_TEST));
 			GL_CALL(glAlphaFunc(GetAlphaTestFunc(rmat->alphaTestFunc), rmat->alphaTestRef));
+#endif
 		}
 
 		// TODO(cj): Duplicated code.
@@ -1141,6 +1159,7 @@ static void ImmDraw(void)
 		// TODO(cj): Draw should just mark the mesh for rendering.
 		// Draw calls should be issued in a single place.
 		// TODO(cj): Restore previous binding.
+#ifdef RENDGL
 		glEnableVertexAttribArray(IN_POSITION);
 		glEnableVertexAttribArray(IN_TEXCOORD);
 
@@ -1155,19 +1174,28 @@ static void ImmDraw(void)
 
 		glDisableVertexAttribArray(IN_TEXCOORD);
 		glDisableVertexAttribArray(IN_POSITION);
+#endif
+		graphics->drawPrimitives(
+				graphics->ins,
+				hgvbo,
+				drawCall->first,
+				drawCall->count);
 
 		if(rmat->alphaTestEnabled)
 		{
+#ifdef RENDGL
 			GL_CALL(glDisable(GL_ALPHA_TEST));
+#endif
 		}
 	}
 
+#ifdef RENDGL
 	GL_CALL(glDeleteBuffers(1, &vbo));
+#endif
+	graphics->destroyBuffer(graphics->ins, hgvbo);
 
 	immBuf->vertexCount = 0;
 	immBuf->drawCallCount = 0;
-
-#endif
 }
 
 void R_BeginFrame(void)

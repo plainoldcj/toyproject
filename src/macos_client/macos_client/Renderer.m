@@ -333,7 +333,7 @@ static matrix_float4x4 loadMatrix4v(float* src)
     graphics->createTexture = &Graphics_CreateTexture;
     graphics->setTextureData = &Graphics_SetTextureData;
     graphics->bindTexture = &Graphics_BindTexture;
-    graphics->destroyBuffer = NULL; // TODO(cj)
+    graphics->destroyBuffer = &Graphics_DestroyBuffer;
     
     graphics->setUniforms = &Graphics_SetUniforms;
     graphics->drawPrimitives = &Graphics_DrawPrimitives;
@@ -479,6 +479,8 @@ static matrix_float4x4 loadMatrix4v(float* src)
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
     /// Per frame updates here
+    
+    g_gameApi->tick();
 
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
 

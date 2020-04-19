@@ -27,7 +27,8 @@ static struct ManagedMaterial s_materials[] =
 	{ MAT_CHEST, "chest.tga", "frag.glsl" },
 	{ MAT_EXPLOSION, "explosion.tga", "frag.glsl" },
 	{ MAT_FONT, "Fonts/tf2.tga", "font_frag.glsl" },
-	{ MAT_BUTTON, "button.tga", "frag.glsl" }
+	// { MAT_BUTTON, "button.tga", "frag.glsl" } TODO(cj): We cannot load button at the moment
+	{ MAT_BUTTON, "wall.tga", "frag.glsl" }
 };
 
 static hrmat_t CreateMaterial(int name, const char* tex, const char* frag)

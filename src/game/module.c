@@ -4,6 +4,7 @@
 #include "font_baker.h"
 #include "font_renderer.h"
 #include "renderer.h"
+#include "timer.h"
 #include "ui.h"
 
 #include "universal/game_api.h"
@@ -13,6 +14,8 @@
 
 static struct GameApi s_gameApi;
 static struct GameServices* s_gameServices;
+
+static struct Timer s_tickTimer;
 
 struct GameServices* GetGameServices(void)
 {
@@ -49,6 +52,9 @@ static bool Init(struct GameServices* services)
 
 	AS_Init();
 
+	Timer_Init(&s_tickTimer);
+	Timer_Start(&s_tickTimer);
+
 	return true;
 }
 
@@ -77,6 +83,15 @@ static void Draw(void)
 	R_EndFrame();
 }
 
+static void Tick(void)
+{
+	Timer_Stop(&s_tickTimer);
+	const float elapsedSecs = (float)Timer_GetElapsedSeconds(&s_tickTimer);
+	Timer_Start(&s_tickTimer);
+
+	AS_Tick(elapsedSecs);
+}
+
 struct GameApi* GetGameApi(void)
 {
 	static struct GameApi gameApi =
@@ -85,7 +100,8 @@ struct GameApi* GetGameApi(void)
 		.init = &Init,
 		.deinit = &Deinit,
 		.resize = &Resize,
-		.draw = &Draw
+		.draw = &Draw,
+		.tick = &Tick
 	};
 	return &gameApi;
 }
