@@ -18,13 +18,25 @@
 #include <universal/graphics.h>
 #include <universal/vertex.h>
 
-#define GFX_MAX_BUFFER_COUNT 128
+#define GFX_MAX_BUFFER_COUNT    128
+#define GFX_MAX_TEXTURE_COUNT   256
 
 struct GfxBuffer
 {
     id<MTLBuffer>   buffer;
     uint16_t        generation;
     uint16_t        nextFree;
+};
+
+struct GfxTexture
+{
+    id<MTLTexture>  texture;
+    uint16_t        generation;
+    uint16_t        nextFree;
+    
+    uint16_t        width;
+    uint16_t        height;
+    uint8_t         bytesPerPixel;
 };
 
 extern struct GameApi* g_gameApi;
@@ -60,8 +72,10 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     
     // cj
     struct GfxBuffer    _buffers[GFX_MAX_BUFFER_COUNT];
-    uint16_t            _bufferCount;
     uint16_t            _firstFreeBuffer;
+    
+    struct GfxTexture   _textures[GFX_MAX_TEXTURE_COUNT];
+    uint16_t            _firstFreeTexture;
     
     id<MTLRenderCommandEncoder> _renderEncoder;
 }
@@ -80,6 +94,24 @@ static void Graphics_DestroyBuffer(void* ins, hgbuffer_t hgbuffer)
 
 static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
 {
+}
+
+static hgtex_t Graphics_CreateTexture(void* ins, uint16_t width, uint16_t height, uint16_t format)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer createTextureWithWidth: width height: height format: format];
+}
+
+static void Graphics_SetTextureData(void* ins, hgtex_t hgtex, void* pixelData)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    [renderer setTextureData:hgtex pixelData:pixelData];
+}
+
+static void Graphics_BindTexture(void* ins, hgtex_t tex)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer bindTexture:tex];
 }
 
 static void Graphics_SetUniforms(void* ins, struct GfxUniforms* uniforms)
@@ -142,6 +174,91 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     _firstFreeBuffer = hgbuffer.index;
 }
 
+-(hgtex_t)createTextureWithWidth:(uint16_t) width height:(uint16_t)height format:(uint16_t)format;
+{
+    if(_firstFreeTexture == (uint16_t)~0)
+    {
+        // TODO(cj): Error reporting.
+        hgtex_t invalid = { 0, 0 };
+        return invalid;
+    }
+    
+    MTLPixelFormat internalFormat = MTLPixelFormatInvalid;
+    uint8_t bytesPerPixel;
+    switch(format)
+    {
+        case GfxPixelFormat_RGBA8:
+            internalFormat = MTLPixelFormatRGBA8Unorm;
+            bytesPerPixel = 4;
+            break;
+    }
+    
+    if(internalFormat == MTLPixelFormatInvalid)
+    {
+        // TODO(cj): Error reporting.
+        hgtex_t invalid = { 0, 0 };
+        return invalid;
+    }
+    
+    hgtex_t handle;
+    
+    handle.index = _firstFreeTexture;
+    
+    struct GfxTexture* tex = &_textures[_firstFreeTexture];
+    _firstFreeTexture = tex->nextFree;
+    
+    handle.generation = ++tex->generation;
+    
+    MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
+
+    desc.width = width;
+    desc.height = height;
+    desc.pixelFormat = internalFormat;
+    
+    tex->texture = [_device newTextureWithDescriptor:desc];
+    
+    tex->width = width;
+    tex->height = height;
+    tex->bytesPerPixel = 4;
+    
+    return handle;
+}
+
+// TODO(cj): Move this method.
+-(struct GfxTexture*)resolveTextureHandle:(hgtex_t)hgtex;
+{
+    assert(hgtex.index < GFX_MAX_TEXTURE_COUNT);
+    
+    struct GfxTexture* const tex = &_textures[hgtex.index];
+    
+    assert(hgtex.generation == tex->generation);
+    
+    return tex;
+}
+
+-(void)setTextureData:(hgtex_t) hgtex pixelData:(void*) pixelData;
+{
+    struct GfxTexture* tex = [self resolveTextureHandle:hgtex];
+    
+    MTLRegion region =
+    {
+        { 0, 0, 0 },
+        { tex->width, tex->height, 1 }
+    };
+    
+    NSUInteger bytesPerRow = tex->width * tex->bytesPerPixel;
+    
+    [tex->texture replaceRegion:region mipmapLevel:0 withBytes:pixelData bytesPerRow:bytesPerRow];
+}
+
+-(void)bindTexture:(hgtex_t) hgtex;
+{
+    struct GfxTexture* tex = [self resolveTextureHandle:hgtex];
+    
+    [_renderEncoder setFragmentTexture:tex->texture
+                              atIndex:TextureIndexColor];
+}
+
 static matrix_float4x4 loadMatrix4v(float* src)
 {
     simd_float4 row0 = simd_make_float4(src[0], src[1], src[2], src[3]);
@@ -190,6 +307,16 @@ static matrix_float4x4 loadMatrix4v(float* src)
         }
         _buffers[bufferIndex].nextFree = (uint16_t)~0u;
         _firstFreeBuffer = 0;
+        
+        // Init textures.
+        uint16_t textureIndex = 0;
+        while(textureIndex < GFX_MAX_TEXTURE_COUNT - 1)
+        {
+            struct GfxTexture* tex = &_textures[textureIndex];
+            tex->nextFree = ++textureIndex;
+        }
+        _textures[textureIndex].nextFree = (uint16_t)~0u;
+        _firstFreeTexture = 0;
     }
 
     return self;
@@ -197,9 +324,17 @@ static matrix_float4x4 loadMatrix4v(float* src)
 
 -(void)getGraphics:(nonnull struct Graphics*)graphics;
 {
+    memset(graphics, 0, sizeof(struct Graphics));
+    
     graphics->createBuffer = &Graphics_CreateBuffer;
     graphics->destroyBuffer = &Graphics_DestroyBuffer;
     graphics->setBufferData = &Graphics_SetBufferData;
+    
+    graphics->createTexture = &Graphics_CreateTexture;
+    graphics->setTextureData = &Graphics_SetTextureData;
+    graphics->bindTexture = &Graphics_BindTexture;
+    graphics->destroyBuffer = NULL; // TODO(cj)
+    
     graphics->setUniforms = &Graphics_SetUniforms;
     graphics->drawPrimitives = &Graphics_DrawPrimitives;
     

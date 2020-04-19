@@ -112,6 +112,7 @@ struct RendTexture
 
 	bool 			ready;
 
+	hgtex_t			hgtex;
 #ifdef RENDGL
 	GLuint			id;
 	GLenum			internalFormat;
@@ -196,7 +197,8 @@ static struct
 	struct ImmBatch		immBatch;
 
 	// TODO(cj): Remove these
-	hgbuffer_t triangleVbo;
+	hgbuffer_t	triangleVbo;
+	hrtex_t		triangleTex;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -242,26 +244,41 @@ static void Texture_CreateInternal(struct RendTexture* tex, void* pixelData) {
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 	GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 }
+#endif
 
-void Texture_Create(struct RendTexture* tex, uint32_t width, uint32_t height, GLenum internalFormat, GLenum format, void* pixelData)
+void Texture_Create(struct RendTexture* tex, uint32_t width, uint32_t height, enum GfxPixelFormat format, void* pixelData)
 {
+#ifdef RENDGL
 	tex->internalFormat = format;
 	tex->format = format;
 
 	Texture_CreateInternal(tex, pixelData);
+#endif
+
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+	hgtex_t hgtex = graphics->createTexture(
+			graphics->ins,
+			(uint16_t)width, // TODO(cj): Get rid of casts.
+			(uint16_t)height,
+			format);
+
+	graphics->setTextureData(graphics->ins, hgtex, pixelData);
+
+	tex->hgtex = hgtex;
 }
 
 void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 {
-	GLenum format;
-
+	enum GfxPixelFormat format;
 	switch (image->format)
 	{
+		/*
+		TODO(cj): TgaPixelFormat_RGB8 must be converted to rgba on creation.
 		case TgaPixelFormat_RGB8:
-			format = GL_RGB;
 			break;
+		*/
 		case TgaPixelFormat_RGBA8:
-			format = GL_RGBA;
+			format = GfxPixelFormat_RGBA8;
 			break;
 		default:
 			COM_LogPrintf("Unknown image format");
@@ -269,12 +286,18 @@ void Texture_CreateFromImage(struct RendTexture* tex, const struct Image* image)
 	}
 	// TODO: error handling.
 	
-	Texture_Create(tex, image->width, image->height, format, format, image->pixelData);
+	Texture_Create(tex, image->width, image->height, format, image->pixelData);
 }
-#endif
 
 void Texture_Bind(struct RendTexture* tex, uint32_t level)
 {
+	assert(tex->ready);
+
+	// TODO(cj): Cache graphics pointer in s_rend.
+	// TODO(cj): Ignoring level right now.
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+	graphics->bindTexture(graphics->ins, tex->hgtex);
+
 #ifdef RENDGL
 	GL_CALL(glActiveTexture(GL_TEXTURE0 + level));
 	GL_CALL(glBindTexture(GL_TEXTURE_2D, tex->id));
@@ -283,9 +306,7 @@ void Texture_Bind(struct RendTexture* tex, uint32_t level)
 
 static void InitTexture(struct RendTexture* rtex)
 {
-#ifdef RENDGL
 	Texture_CreateFromImage(rtex, &rtex->image);
-#endif
 }
 
 #ifdef RENDGL
@@ -484,8 +505,22 @@ void R_Init(int screenWidth, int screenHeight)
 			}
 		};
 
+		// TODO(cj): Remove this.
 		struct Graphics* graphics = GetGameServices()->getGraphics();
 		s_rend.triangleVbo = graphics->createBuffer(graphics->ins, verts, sizeof(verts));
+
+		struct Asset* asset = AcquireAsset("player2.tga");
+		assert(asset != NULL);
+
+		struct Image image;
+		(void)LoadImageFromMemoryTGA(
+				&image,
+				Asset_GetData(asset),
+				Asset_GetSize(asset));
+
+		s_rend.triangleTex = R_CreateTexture(&image);
+
+		ReleaseAsset(asset);
 	}
 }
 
@@ -1148,7 +1183,16 @@ void R_EndFrame(void)
 {
 	// TODO(cj) Remove this.
 	{
+		struct RendTexture* rtex = &s_rend.rendTextures[s_rend.triangleTex.index];
+		if(!rtex->ready)
+		{
+			InitTexture(rtex);
+			rtex->ready = true;
+		}
+
 		struct Graphics* graphics = GetGameServices()->getGraphics();
+
+		graphics->bindTexture(graphics->ins, rtex->hgtex);
 
 		struct GfxUniforms uniforms;
 		memcpy(&uniforms.projection, &s_rend.perspective, sizeof(struct Mat4));
