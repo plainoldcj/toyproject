@@ -690,30 +690,40 @@ hrtex_t R_CreateTexture(const struct Image* image)
 
 	// Copy image.
 
-	int bytesPerPixel = -1;
-	switch(image->format)
-	{
-	case TgaPixelFormat_RGB8:
-		bytesPerPixel = 3;
-		break;
-	case TgaPixelFormat_RGBA8:
-		bytesPerPixel = 4;
-		break;
-	default:
-		COM_LogPrintf("Unknown image format %d", image->format);
-		exit(1);
-		break;
-	}
-
-	size_t imageSize = image->width * image->height * bytesPerPixel;
+	const size_t imageSize = image->width * image->height * 4;
 	rtex->imageChunk = FL_Alloc(&s_rend.imageAlloc, imageSize);
-
-	memcpy(rtex->imageChunk.mem, image->pixelData, imageSize);
 
 	rtex->image.width = image->width;
 	rtex->image.height = image->height;
-	rtex->image.format = image->format;
+	rtex->image.format = TgaPixelFormat_RGBA8;
 	rtex->image.pixelData = rtex->imageChunk.mem;
+
+	if(image->format == TgaPixelFormat_RGBA8)
+	{
+		memcpy(rtex->imageChunk.mem, image->pixelData, imageSize);
+	}
+	else if(image->format == TgaPixelFormat_RGB8)
+	{
+		uint8_t* src = image->pixelData;
+		uint8_t* dst = rtex->image.pixelData;
+		uint8_t* const dstEnd = dst + imageSize;
+
+		while(dst != dstEnd)
+		{
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = src[2];
+			dst[3] = 255;
+
+			dst += 4;
+			src += 3;
+		}
+	}
+	else
+	{
+		COM_LogPrintf("Unknown image format %d", image->format);
+		exit(1);
+	}
 
 	hrtex_t hrtex;
 	hrtex.index = (uint16_t)(rtex - s_rend.rendTextures);
