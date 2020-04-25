@@ -206,10 +206,6 @@ static struct
 
 	struct ImmBuffer	immBuf;
 	struct ImmBatch		immBatch;
-
-	// TODO(cj): Remove these
-	hgbuffer_t	triangleVbo;
-	hrtex_t		triangleTex;
 } s_rend;
 
 static const int IN_POSITION = 0;
@@ -494,54 +490,6 @@ void R_Init(int screenWidth, int screenHeight)
 			graphics->ins,
 			s_rend.drawCallUniforms,
 			kAlignedUniformsSize * REND_MAX_DRAW_CALLS);
-
-	// TODO(cj): Remove this.
-	{
-		struct Vertex verts[] =
-		{
-			{
-				.pos = { -1.0f, -1.0f, 0.0f },
-				.texCoord = { 0.0f, 0.0f }
-			},
-			{
-				.pos = { 1.0f, -1.0f, 0.0f },
-				.texCoord = { 1.0f, 0.0f }
-			},
-			{
-				.pos = { 1.0f, 1.0f, 0.0f },
-				.texCoord = { 1.0f, 1.0f }
-			},
-
-			{
-				.pos = { -1.0f, -1.0f, 0.0f },
-				.texCoord = { 0.0f, 0.0f }
-			},
-			{
-				.pos = { 1.0f, 1.0f, 0.0f },
-				.texCoord = { 1.0f, 1.0f }
-			},
-			{
-				.pos = { -1.0f, 1.0f, 0.0f },
-				.texCoord = { 0.0f, 1.0f }
-			}
-		};
-
-		// TODO(cj): Remove this.
-		s_rend.triangleVbo = graphics->createBuffer(graphics->ins, verts, sizeof(verts));
-
-		struct Asset* asset = AcquireAsset("player2.tga");
-		assert(asset != NULL);
-
-		struct Image image;
-		(void)LoadImageFromMemoryTGA(
-				&image,
-				Asset_GetData(asset),
-				Asset_GetSize(asset));
-
-		s_rend.triangleTex = R_CreateTexture(&image);
-
-		ReleaseAsset(asset);
-	}
 }
 
 // TODO(cj): Rename to Deinit for consistency reasons.
@@ -1279,29 +1227,6 @@ void R_BeginFrame(void)
 void R_EndFrame(void)
 {
 	struct Graphics* graphics = GetGameServices()->getGraphics();
-
-	// TODO(cj) Remove this.
-	{
-		struct RendTexture* rtex = &s_rend.rendTextures[s_rend.triangleTex.index];
-		if(!rtex->ready)
-		{
-			InitTexture(rtex);
-			rtex->ready = true;
-		}
-
-		graphics->bindTexture(graphics->ins, rtex->hgtex);
-
-		struct GfxUniforms uniforms;
-		memcpy(&uniforms.projection, &s_rend.perspective, sizeof(struct Mat4));
-		// memcpy(&uniforms.projection, &s_rend.orthographic, sizeof(struct Mat4));
-		//
-		struct Mat4 modelView = M_CreateTranslation(0.0f, 0.0f, -10.0f);
-		memcpy(&uniforms.modelView, &modelView, sizeof(struct Mat4));
-
-		graphics->setUniforms(graphics->ins, &uniforms);
-
-		graphics->drawPrimitives(graphics->ins, s_rend.triangleVbo, 0, 6);
-	}
 
 	ImmDraw();
 
