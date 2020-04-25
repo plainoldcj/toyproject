@@ -3,12 +3,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+struct AppEvent;
 struct Graphics;
 
 struct GameServices
 {
 	const char*			(*getProjectRoot)(void);
 	struct Graphics*	(*getGraphics)(void);
+
+	bool				(*pollEvent)(struct AppEvent* event);
 };
 
 struct GameApi

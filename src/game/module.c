@@ -7,6 +7,7 @@
 #include "timer.h"
 #include "ui.h"
 
+#include "universal/app_event.h"
 #include "universal/game_api.h"
 #include "universal/unit_tests.h"
 
@@ -88,6 +89,23 @@ static void Tick(void)
 	Timer_Stop(&s_tickTimer);
 	const float elapsedSecs = (float)Timer_GetElapsedSeconds(&s_tickTimer);
 	Timer_Start(&s_tickTimer);
+
+	struct GameServices* gameServices = GetGameServices();
+
+	bool mouseUp = false;
+
+	struct AppEvent appEvent;
+	while(gameServices->pollEvent(&appEvent))
+	{
+		if(appEvent.type == APP_EVENT_MOUSE_BUTTON_UP)
+		{
+			UI_SetMousePos(appEvent.mouse.x, appEvent.mouse.y);
+			mouseUp = true;
+		}
+	}
+
+	UI_SetMouseButtonUp(mouseUp);
+
 
 	AS_Tick(elapsedSecs);
 }

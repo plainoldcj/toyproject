@@ -1,4 +1,5 @@
 set(SOURCES
+app_event.h
 cmdline.c
 cmdline.h
 game_api.h

@@ -16,6 +16,7 @@
 		232CBD8824325EB80050B6B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 232CBD8724325EB80050B6B0 /* Assets.xcassets */; };
 		232CBD8B24325EB80050B6B0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 232CBD8924325EB80050B6B0 /* Main.storyboard */; };
 		232CBD8E24325EB80050B6B0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 232CBD8D24325EB80050B6B0 /* main.m */; };
+		236FC6B6244E11DC000E70CC /* GameView.m in Sources */ = {isa = PBXBuildFile; fileRef = 236FC6B5244E11DC000E70CC /* GameView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,8 @@
 		232CBD8C24325EB80050B6B0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		232CBD8D24325EB80050B6B0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		232CBD8F24325EB80050B6B0 /* macos_client.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macos_client.entitlements; sourceTree = "<group>"; };
+		236FC6B3244E1192000E70CC /* GameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameView.h; sourceTree = "<group>"; };
+		236FC6B5244E11DC000E70CC /* GameView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +95,8 @@
 				232CBD8C24325EB80050B6B0 /* Info.plist */,
 				232CBD8D24325EB80050B6B0 /* main.m */,
 				232CBD8F24325EB80050B6B0 /* macos_client.entitlements */,
+				236FC6B3244E1192000E70CC /* GameView.h */,
+				236FC6B5244E11DC000E70CC /* GameView.m */,
 			);
 			path = macos_client;
 			sourceTree = "<group>";
@@ -165,6 +170,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				236FC6B6244E11DC000E70CC /* GameView.m in Sources */,
 				232CBD8E24325EB80050B6B0 /* main.m in Sources */,
 				232CBD8524325EB70050B6B0 /* Shaders.metal in Sources */,
 				232CBD8024325EB70050B6B0 /* Renderer.m in Sources */,
