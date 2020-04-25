@@ -630,7 +630,7 @@ static GLenum GetPrimitiveType(enum Prim prim)
 }
 #endif
 
-void R_DrawMesh(struct RendMesh* rmesh)
+static void DrawMesh(struct RendMesh* rmesh)
 {
 	if(!rmesh->ready)
 	{
@@ -1013,7 +1013,7 @@ void R_DrawObject(hrobj_t hrobj)
 
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 
-	R_DrawMesh(rmesh);
+	DrawMesh(rmesh);
 }
 
 void IMM_Begin(hrmat_t hrmat)
