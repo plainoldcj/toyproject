@@ -68,6 +68,7 @@ static void CreateTile()
 	{
 		vertices[i].pos[0] = pos[i].x;
 		vertices[i].pos[1] = pos[i].y;
+		vertices[i].pos[2] = 0.0f;
 
 		vertices[i].texCoord[0] = texCoord[i].x;
 		vertices[i].texCoord[1] = texCoord[i].y;

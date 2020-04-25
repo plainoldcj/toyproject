@@ -92,8 +92,10 @@ static void Graphics_DestroyBuffer(void* ins, hgbuffer_t hgbuffer)
     return [renderer destroyBuffer:hgbuffer];
 }
 
-static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer)
+static void Graphics_SetBufferData(void* ins, hgbuffer_t hgbuffer, void* data, uint32_t size)
 {
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer setBufferData:hgbuffer data:data size:size];
 }
 
 static hgtex_t Graphics_CreateTexture(void* ins, uint16_t width, uint16_t height, uint16_t format)
@@ -120,6 +122,12 @@ static void Graphics_SetUniforms(void* ins, struct GfxUniforms* uniforms)
     return [renderer setUniforms:uniforms];
 }
 
+static void Graphics_SetUniformBuffer(void* ins, hgbuffer_t buffer, uint32_t offset)
+{
+    Renderer* renderer = (__bridge Renderer*)ins;
+    return [renderer setUniformBuffer:buffer offset:offset];
+}
+
 static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t first, uint16_t count)
 {
     Renderer* renderer = (__bridge Renderer*)ins;
@@ -144,7 +152,7 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     
     handle.generation = ++buffer->generation;
     
-    buffer->buffer = [_device newBufferWithBytes:data length:size options:MTLResourceCPUCacheModeDefaultCache];
+    buffer->buffer = [_device newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
     
     return handle;
 }
@@ -172,6 +180,12 @@ static void Graphics_DrawPrimitives(void* ins, hgbuffer_t hgbuffer, uint16_t fir
     
     buffer->nextFree = _firstFreeBuffer;
     _firstFreeBuffer = hgbuffer.index;
+}
+
+-(void)setBufferData:(hgbuffer_t)hgbuffer data:(void*)data size:(uint32_t) size;
+{
+    struct GfxBuffer* buffer = [self resolveBufferHandle:hgbuffer];
+    memcpy(buffer->buffer.contents, data, size);
 }
 
 -(hgtex_t)createTextureWithWidth:(uint16_t) width height:(uint16_t)height format:(uint16_t)format;
@@ -266,13 +280,26 @@ static matrix_float4x4 loadMatrix4v(float* src)
     simd_float4 row2 = simd_make_float4(src[8], src[9], src[10], src[11]);
     simd_float4 row3 = simd_make_float4(src[12], src[13], src[14], src[15]);
     
-    return simd_transpose(simd_matrix(row0, row1, row2, row3));
+    return simd_matrix(row0, row1, row2, row3);
 }
 
 -(void)setUniforms:(struct GfxUniforms*)uniforms;
 {
     _projectionMatrix = loadMatrix4v(uniforms->projection);
     _modelViewMatrix = loadMatrix4v(uniforms->modelView);
+}
+
+-(void)setUniformBuffer:(hgbuffer_t)hgbuffer offset:(uint32_t)offset;
+{
+    struct GfxBuffer* buffer = [self resolveBufferHandle:hgbuffer];
+    
+    [_renderEncoder setVertexBuffer:buffer->buffer
+                            offset:offset
+                           atIndex:BufferIndexUniforms];
+
+    [_renderEncoder setFragmentBuffer:buffer->buffer
+                              offset:offset
+                             atIndex:BufferIndexUniforms];
 }
 
 -(void)drawPrimitives:(hgbuffer_t)hgbuffer first:(uint16_t)first count:(uint16_t)count;
@@ -336,6 +363,7 @@ static matrix_float4x4 loadMatrix4v(float* src)
     graphics->destroyBuffer = &Graphics_DestroyBuffer;
     
     graphics->setUniforms = &Graphics_SetUniforms;
+    graphics->setUniformBuffer = &Graphics_SetUniformBuffer;
     graphics->drawPrimitives = &Graphics_DrawPrimitives;
     
     graphics->ins = (__bridge void *)(self);
@@ -564,6 +592,8 @@ static matrix_float4x4 loadMatrix4v(float* src)
     }
 
     [commandBuffer commit];
+    
+    [commandBuffer waitUntilCompleted]; // TODO(cj) Stalls!
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size

@@ -27,6 +27,8 @@
 #define REND_MATERIAL_CAPACITY	2048
 #define REND_OBJECT_CAPACITY	2048
 
+#define REND_MAX_DRAW_CALLS		2048
+
 #define REND_IMMEDIATE_BUFFER_CAPACITY 2048
 #define REND_IMMEDIATE_BUFFER_DRAW_CALL_CAPACITY 128
 
@@ -71,6 +73,8 @@ struct RendMesh
 #ifdef RENDGL
 	GLuint vbo;
 #endif
+	hgbuffer_t vbo;
+
 	bool ready;
 };
 
@@ -164,6 +168,9 @@ static struct
 	uint16_t immMatDefault;
 } s_config;
 
+// TODO(cj): Aligned by what?
+static const size_t kAlignedUniformsSize = (sizeof(struct GfxUniforms) & ~0xFF) + 0x100;
+
 static struct
 {
 	struct Mat4 perspective;
@@ -192,6 +199,10 @@ static struct
 
 	struct RendObject rendObjects[REND_OBJECT_CAPACITY];
 	int16_t freeObjects;
+
+	void*				drawCallUniforms;
+	hgbuffer_t			drawCallUbo;
+	uint16_t			drawCallCount;
 
 	struct ImmBuffer	immBuf;
 	struct ImmBatch		immBatch;
@@ -474,6 +485,16 @@ void R_Init(int screenWidth, int screenHeight)
 
 	InitImmBatch();
 
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+
+	// TODO(cj): Shitty malloc.
+	s_rend.drawCallUniforms = malloc(kAlignedUniformsSize * REND_MAX_DRAW_CALLS);
+
+	s_rend.drawCallUbo = graphics->createBuffer(
+			graphics->ins,
+			s_rend.drawCallUniforms,
+			kAlignedUniformsSize * REND_MAX_DRAW_CALLS);
+
 	// TODO(cj): Remove this.
 	{
 		struct Vertex verts[] =
@@ -506,7 +527,6 @@ void R_Init(int screenWidth, int screenHeight)
 		};
 
 		// TODO(cj): Remove this.
-		struct Graphics* graphics = GetGameServices()->getGraphics();
 		s_rend.triangleVbo = graphics->createBuffer(graphics->ins, verts, sizeof(verts));
 
 		struct Asset* asset = AcquireAsset("player2.tga");
@@ -632,6 +652,8 @@ static GLenum GetPrimitiveType(enum Prim prim)
 
 static void DrawMesh(struct RendMesh* rmesh)
 {
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+
 	if(!rmesh->ready)
 	{
 #ifdef RENDGL
@@ -643,6 +665,11 @@ static void DrawMesh(struct RendMesh* rmesh)
 			rmesh->mesh.vertices,
 			GL_STATIC_DRAW));
 #endif
+
+		rmesh->vbo = graphics->createBuffer(
+				graphics->ins,
+				rmesh->mesh.vertices,
+				rmesh->mesh.vertexCount * sizeof(struct Vertex));
 
 		rmesh->ready = true;
 	}
@@ -666,6 +693,12 @@ static void DrawMesh(struct RendMesh* rmesh)
 	glDisableVertexAttribArray(IN_TEXCOORD);
 	glDisableVertexAttribArray(IN_POSITION);
 #endif
+
+	graphics->drawPrimitives(
+			graphics->ins,
+			rmesh->vbo,
+			0,
+			rmesh->mesh.vertexCount);
 }
 
 hrtex_t R_CreateTexture(const struct Image* image)
@@ -1006,14 +1039,37 @@ void R_DrawObject(hrobj_t hrobj)
 		robj->posY - s_rend.cameraPos.y,
 		-10.0f);
 
+	// TODO(cj)
+	modelView = M_CreateTranslation(
+		robj->posX - s_rend.cameraPos.x,
+		robj->posY - s_rend.cameraPos.y,
+		-10.0f);
+
 #ifdef RENDGL
 	SetUniformMat4(rmat->prog, "uModelView", &modelView);
 	SetUniformInt(rmat->prog, "uDiffuseTex", 0);
 #endif
 
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+
+	const size_t offset = kAlignedUniformsSize * s_rend.drawCallCount;
+
+	struct GfxUniforms* uniforms =
+		(struct GfxUniforms*)((char*)s_rend.drawCallUniforms + offset);
+
+	memcpy(uniforms->projection, &s_rend.perspective, sizeof(struct Mat4));
+	memcpy(uniforms->modelView, &modelView, sizeof(struct Mat4));
+
+	graphics->setUniformBuffer(
+			graphics->ins,
+			s_rend.drawCallUbo,
+			offset);
+
 	struct RendMesh* rmesh = &s_rend.rendMeshes[robj->rmesh];
 
 	DrawMesh(rmesh);
+
+	++s_rend.drawCallCount;
 }
 
 void IMM_Begin(hrmat_t hrmat)
@@ -1062,6 +1118,7 @@ void IMM_Vertex(float x, float y)
 
 	vert->pos[0] = x;
 	vert->pos[1] = y;
+	vert->pos[2] = 0.0f;
 	vert->texCoord[0] = s_rend.immBatch.texCoordS;
 	vert->texCoord[1] = s_rend.immBatch.texCoordT;
 
@@ -1215,10 +1272,14 @@ void R_BeginFrame(void)
 #ifdef RENDGL
 	glClear(GL_COLOR_BUFFER_BIT);
 #endif
+
+	s_rend.drawCallCount = 0;
 }
 
 void R_EndFrame(void)
 {
+	struct Graphics* graphics = GetGameServices()->getGraphics();
+
 	// TODO(cj) Remove this.
 	{
 		struct RendTexture* rtex = &s_rend.rendTextures[s_rend.triangleTex.index];
@@ -1227,8 +1288,6 @@ void R_EndFrame(void)
 			InitTexture(rtex);
 			rtex->ready = true;
 		}
-
-		struct Graphics* graphics = GetGameServices()->getGraphics();
 
 		graphics->bindTexture(graphics->ins, rtex->hgtex);
 
@@ -1245,4 +1304,10 @@ void R_EndFrame(void)
 	}
 
 	ImmDraw();
+
+	graphics->setBufferData(
+			graphics->ins,
+			s_rend.drawCallUbo,
+			s_rend.drawCallUniforms,
+			kAlignedUniformsSize * REND_MAX_DRAW_CALLS);
 }
