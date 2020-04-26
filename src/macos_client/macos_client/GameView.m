@@ -58,6 +58,63 @@ static bool PollEvent(struct AppEvent* event)
     return TRUE;
 }
 
+// Note: These are the keycodes that my keyboard produced.
+// Good luck finding the constants with the shitty Apple documentation.
+enum KeyCodes
+{
+    VK_LEFT_ARROW = 0x7b,
+    VK_RIGHT_ARROW = 0x7c,
+    VK_UP_ARROW = 0x7e,
+    VK_DOWN_ARROW = 0x7d,
+    VK_SPACE = 0x31
+};
+
+static bool MapVirtualKeyCodeToGameKey(unsigned short vk, uint16_t* outGameKey)
+{
+    switch(vk)
+    {
+        case VK_LEFT_ARROW:
+            *outGameKey = APP_KEY_LEFT;
+            return true;
+        case VK_RIGHT_ARROW:
+            *outGameKey = APP_KEY_RIGHT;
+            return true;
+        case VK_UP_ARROW:
+            *outGameKey = APP_KEY_UP;
+            return true;
+        case VK_DOWN_ARROW:
+            *outGameKey = APP_KEY_DOWN;
+            return true;
+        case VK_SPACE:
+            *outGameKey = APP_KEY_SPACE;
+            return true;
+        default:
+            return false;
+    }
+}
+
+-(void)keyDown:(NSEvent*)event;
+{
+    uint16_t gameKey;
+    if(MapVirtualKeyCodeToGameKey(event.keyCode, &gameKey))
+    {
+        struct AppEvent* appEvent = &s_appEvents[s_appEventCount++];
+        appEvent->type = APP_EVENT_KEY_DOWN;
+        appEvent->key.key = gameKey;
+    }
+}
+
+-(void)keyUp:(NSEvent*)event;
+{
+    uint16_t gameKey;
+    if(MapVirtualKeyCodeToGameKey(event.keyCode, &gameKey))
+    {
+        struct AppEvent* appEvent = &s_appEvents[s_appEventCount++];
+        appEvent->type = APP_EVENT_KEY_UP;
+        appEvent->key.key = gameKey;
+    }
+}
+
 -(void)mouseUp:(NSEvent *)event;
 {
     NSPoint windowPos = [event locationInWindow];

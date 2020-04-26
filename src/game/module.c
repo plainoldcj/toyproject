@@ -4,6 +4,7 @@
 #include "font_baker.h"
 #include "font_renderer.h"
 #include "renderer.h"
+#include "shared_game.h"
 #include "timer.h"
 #include "ui.h"
 
@@ -84,6 +85,59 @@ static void Draw(void)
 	R_EndFrame();
 }
 
+static void FillInput(struct AppEvent* event)
+{
+	struct Input* input = FindComponent(&s_inputs, g_activeInputEntity);
+	if(!input)
+	{
+		return;
+	}
+
+	if(event->type == APP_EVENT_KEY_DOWN)
+	{
+		switch(event->key.key)
+		{
+			case APP_KEY_LEFT:
+				input->buttons[BUTTON_LEFT] = 1;
+				break;
+			case APP_KEY_UP:
+				input->buttons[BUTTON_UP] = 1;
+				break;
+			case APP_KEY_RIGHT:
+				input->buttons[BUTTON_RIGHT] = 1;
+				break;
+			case APP_KEY_DOWN:
+				input->buttons[BUTTON_DOWN] = 1;
+				break;
+			case APP_KEY_SPACE:
+				input->buttons[BUTTON_DROP_BOMB] = 1;
+				break;
+			default:
+				break;
+		}
+	}
+	else if(event->type == APP_EVENT_KEY_UP)
+	{
+		switch(event->key.key)
+		{
+			case APP_KEY_LEFT:
+				input->buttons[BUTTON_LEFT] = 0;
+				break;
+			case APP_KEY_UP:
+				input->buttons[BUTTON_UP] = 0;
+				break;
+			case APP_KEY_RIGHT:
+				input->buttons[BUTTON_RIGHT] = 0;
+				break;
+			case APP_KEY_SPACE:
+				input->buttons[BUTTON_DROP_BOMB] = 0;
+				break;
+			default:
+				break;
+		}
+	}
+}
+
 static void Tick(void)
 {
 	Timer_Stop(&s_tickTimer);
@@ -102,6 +156,8 @@ static void Tick(void)
 			UI_SetMousePos(appEvent.mouse.x, appEvent.mouse.y);
 			mouseUp = true;
 		}
+
+		FillInput(&appEvent);
 	}
 
 	UI_SetMouseButtonUp(mouseUp);
