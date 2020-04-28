@@ -1,12 +1,15 @@
-#version 150
+#version 420
 
-uniform mat4 uProjection;
-uniform mat4 uModelView;
+layout(std140, binding=0) uniform UniformsHot
+{
+	uniform mat4 uProjection;
+	uniform mat4 uModelView;
+};
 
-in vec4 aPos;
-in vec2 aTexCoord;
+layout(location=0) in vec4 aPos;
+layout(location=1) in vec2 aTexCoord;
 
-out vec2 vTexCoord;
+layout(location=0) out vec2 vTexCoord;
 
 void main()
 {
