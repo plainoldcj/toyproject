@@ -81,7 +81,7 @@ def main():
     success, project_root = find_project_root()
     if not success:
         print("Unable to find project root directory.")
-        quit()
+        sys.exit(-1)
 
     if args.verbose:
         print("Project root directory: '{}'".format(project_root))
