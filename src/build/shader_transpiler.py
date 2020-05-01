@@ -5,6 +5,21 @@ import os
 import subprocess
 import sys
 
+class InputFile:
+    pass
+# ----------------------------------------------------------------
+
+class OutputFile:
+    pass
+# ----------------------------------------------------------------
+
+class CookingFailed(Exception):
+    def __init__(self, input_file, output_file, output):
+        self.input_file = input_file
+        self.output_file = output_file
+        self.output = output
+# ----------------------------------------------------------------
+
 def find_project_root():
     current_dir = "."
 
@@ -29,6 +44,31 @@ def make_parent_dirs(file_path):
         os.makedirs(os.path.split(file_path)[0])
     except FileExistsError:
         pass
+# ----------------------------------------------------------------
+
+def expand_proc_arg(x, new_input, new_output):
+    if isinstance(x, InputFile):
+        return new_input
+    elif isinstance(x, OutputFile):
+        return new_output
+    return x
+# ----------------------------------------------------------------
+
+def cook(proc_args, input_file_path, output_file_path):
+    make_parent_dirs(output_file_path);
+
+    expanded_proc_args = [ expand_proc_arg(x, input_file_path, output_file_path) for x in proc_args]
+
+    proc = subprocess.run(expanded_proc_args,
+        text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # Combine both streams
+
+    output = proc.stdout
+
+    if not is_cooked(output_file_path, input_file_path):
+        raise CookingFailed(input_file_path, output_file_path, output)
+
+    return output
 # ----------------------------------------------------------------
 
 def main():
@@ -69,63 +109,41 @@ def main():
             if args.verbose:
                 print("Processing shader '{}'".format(rel_path))
 
-            spv_file_path = os.path.join(shader_out_dir, filename + ".spv")
+            try:
+                spv_file_path = os.path.join(shader_out_dir, filename + ".spv")
 
-            make_parent_dirs(spv_file_path);
+                output = cook([glslang_validator, InputFile(),
+                    "-V",
+                    "-o", OutputFile()],
+                    abs_path,
+                    spv_file_path)
 
-            proc = subprocess.run([glslang_validator, abs_path,
-                "-V",
-                "-o", spv_file_path],
-                text=True, capture_output=True)
+                if args.verbose:
+                    print(output)
 
-            reported_output = False
+                msl_file_path = os.path.join(shader_out_dir, filename + ".msl")
 
-            if not is_cooked(spv_file_path, abs_path):
-                print("Generating SPIR-V from GLSL failed for shader '{}':".format(rel_path))
+                entry_name, entry_type = shader_ext_to_entry[ext]
 
-                print(proc.stdout)
-                print(proc.stderr)
-                reported_output = True
+                output = cook([spirv_cross, InputFile(),
+                    "--msl",
+                    "--output", OutputFile(),
+                    "--rename-entry-point", "main", entry_name, entry_type],
+                    spv_file_path, msl_file_path)
 
-                if args.continueonerror:
-                    continue
-                else:
-                    sys.exit(-1)
+                if args.verbose:
+                    print(output)
 
-            if args.verbose and not reported_output:
-                print(proc.stdout)
-                print(proc.stderr)
-
-            msl_file_path = os.path.join(shader_out_dir, filename + ".msl")
-
-            make_parent_dirs(spv_file_path);
-
-            entry_name, entry_type = shader_ext_to_entry[ext]
-
-            proc = subprocess.run([spirv_cross, spv_file_path,
-                "--msl",
-                "--output", msl_file_path,
-                "--rename-entry-point", "main", entry_name, entry_type],
-                text = True, capture_output=True)
-
-            reported_output = False
-
-            if not is_cooked(msl_file_path, spv_file_path):
-                print("Generating MSL from SPIR-V failed for shader '{}':".format(rel_path))
-
-                print(proc.stdout)
-                print(proc.stderr)
-                reported_output = True
+            except CookingFailed as e:
+                print("Cooking of file '{}' from file '{}' failed:".format(
+                    os.path.relpath(e.input_file, project_root),
+                    os.path.relpath(e.output_file, project_root)))
+                print(e.output)
 
                 if args.continueonerror:
                     continue
                 else:
                     sys.exit(-1)
-
-            if args.verbose and not reported_output:
-                print(proc.stdout)
-                print(proc.stderr)
-
 
 
     sys.exit(0)
