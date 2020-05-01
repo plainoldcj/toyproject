@@ -44,3 +44,7 @@ DerivedData/
 
 ### Xcode Patch ###
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+### Include src/build directory again
+# This line must come after any other pattern in this file that exludes build/!
+!/src/build
