@@ -1,6 +1,6 @@
 #version 420
 
-layout(std140, binding=0) uniform UniformsHot
+layout(std140, binding=1) uniform Uniforms
 {
 	uniform mat4 uProjection;
 	uniform mat4 uModelView;
