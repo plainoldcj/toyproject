@@ -1,11 +1,13 @@
-#version 150
+#version 420
 
-uniform sampler2D uDiffuseTex;
+layout(binding=0) uniform sampler2D uDiffuseTex;
 
-in vec2 vTexCoord;
+layout(location=1) in vec2 vTexCoord;
+
+layout(location=0) out vec4 vFragColor;
 
 void main()
 {
-	vec4 c = texture2D(uDiffuseTex, vTexCoord);
-	gl_FragColor = c.w * vec4(1.0, 1.0, 1.0, 1.0);
+	vec4 c = texture(uDiffuseTex, vTexCoord);
+	vFragColor = c.w * vec4(1.0, 1.0, 1.0, 1.0);
 }
