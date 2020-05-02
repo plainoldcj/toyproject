@@ -1,6 +1,7 @@
 ### Project specific ###
 /logfile.txt
 /build
+/cooked
 
 *.swp
 tags
